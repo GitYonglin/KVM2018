@@ -1,0 +1,34 @@
+<nz-layout>
+  <nz-sider [nzWidth]="300">
+    <app-left-menu #menu (operation)="operation($event)" (menuSwitch)="menuSwitch()"></app-left-menu>
+  </nz-sider>
+  <div class="flex-content">
+    <header class="block-17"></header>
+    <main>
+      <app-children-form formClass="project-form" [formGroup]="formGroup" [formTypes]="baseTypes"></app-children-form>
+      <div class="flex-content">
+        <nz-tabset>
+          <nz-tab nzTitle="标定数据">
+            <main>
+              <div class="scroll">
+                <div class="scroll-content">
+                  <!-- <app-children-form formClass="calibrated-form" [formGroup]="calibratedFormGroup" [formTypes]="calibratedFormTypes"></app-children-form> -->
+                  <app-work-mode formClass="calibrated-form" [formGroup]="formGroup" [formTypes]="calibratedTypes"></app-work-mode>
+                </div>
+              </div>
+            </main>
+          </nz-tab>
+          <nz-tab nzTitle="校正数据">
+            <main>
+              <div class="scroll">
+                <div class="scroll-content">
+                  <app-correction formClass="correction-form" [labelSpan]="8" [controlSpan]="15" [formGroup]="formGroup" [formTypes]="correctionTypes"></app-correction>
+                </div>
+              </div>
+            </main>
+          </nz-tab>
+        </nz-tabset>
+      </div>
+    </main>
+  </div>
+</nz-layout>

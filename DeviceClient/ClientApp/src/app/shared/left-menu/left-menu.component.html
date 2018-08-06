@@ -1,0 +1,60 @@
+<div class="left-menu-content">
+  <div class="header" *ngIf="!operationState">
+    <button nz-button (click)="onOperation('onAdd')" [disabled]="disabledState">添加</button>
+    <button nz-button (click)="onOperation('onModify')" [disabled]="!titleId || disabledState">修改</button>
+    <button nz-button (click)="onOperation('onDelete')" [disabled]="!titleId || disabledState">删除</button>
+    <button nz-button (click)="onOperation('onCloud')">
+      <i class="anticon anticon-ie"></i>
+    </button>
+  </div>
+  <div class="header" *ngIf="operationState">
+    <button nz-button (click)="onOperation('onSave')">保存</button>
+    <button nz-button (click)="onOperation('onCancel')">取消</button>
+  </div>
+  <div class="main" [ngStyle]="{'overflow-y': menuDataState ? 'hidden' : 'auto'}" (dblclick)="menuButton.showFullMenu()">
+    <ng-container *ngIf="menus; else elseBlock">
+      <div [ngStyle]="{'height': menuDataState && titleId === item.id ? '100%' : 'auto'}" *ngFor="let item of menus; index as i">
+        <ul *ngIf="!menuDataState || (titleId === item.id || titleId === null)">
+          <div class="title" [ngClass]="{'active': titleId === item.id}" (click)="onMenu1(i, item)">
+            <div class="text-img">
+              <!-- <mat-icon class="img" [svgIcon]="item.icon"></mat-icon> -->
+              <!-- <i class="anticon anticon-question"></i> -->
+              <h3>{{item.name}}</h3>
+            </div>
+            <div class="right" *ngIf="menuDataState">
+              <nz-tag [nzColor]="'#87d068'">{{item.count}}</nz-tag>
+              <i class="icon anticon anticon-down" [ngClass]="{'transform': titleId === item.id}"></i>
+              <!-- <mat-icon class="icon" [ngClass]="{'transform': indexActive === i}">keyboard_arrow_up</mat-icon> -->
+            </div>
+          </div>
+          <div [@list]="bridges.length" class="list" *ngIf="bridges && titleId === item.id">
+            <li *ngFor="let bridge of bridges" [ngClass]="{'active': bridgeId === bridge.id}" (click)="onBridge(bridge.id)">
+              <span mat-line>{{bridge.name}}</span>
+            </li>
+          </div>
+        </ul>
+      </div>
+    </ng-container>
+    <ng-template #elseBlock>
+      <div class="title">
+        <h3>
+          没有数据
+        </h3>
+      </div>
+    </ng-template>
+    <div class="title" *ngIf="menus && menus.length === 0;">
+      <nz-spin nzTip='加载中...'></nz-spin>
+    </div>
+  </div>
+  <div class="footer">
+    <!-- <button nz-button nzShape="circle" nzType="primary" (click)="fullMenu.showModal()">
+      <i class="anticon anticon-appstore"></i>
+    </button>
+    <div class="device">
+      <button nz-button nzType="primary" nzGhost>{{_ms.deviceLinkZ}}</button>
+      <button nz-button nzType="primary" nzGhost>{{_ms.deviceLinkC}}</button>
+    </div>
+    <app-full-menu #fullMenu></app-full-menu> -->
+    <app-menu-button #menuButton></app-menu-button>
+  </div>
+</div>

@@ -1,0 +1,113 @@
+.active {
+  border-color: #1890ff;
+}
+.project-list {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  &>div {
+    display: flex;
+    overflow-x: auto;
+  }
+}
+.main {
+  width: 100%;
+  flex: 2;
+}
+
+@keyframes gradientAnim {
+  0% {
+      background-position: -5% 0;
+  }
+  100% {
+      background-position: 105% 0;
+  }
+}
+.content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  // margin: 0;
+  // padding: 0;
+  // // display: flex;
+  // justify-content: center;
+  // align-items: center;
+  // background-color: #f23064;
+  // /* Old browsers */
+
+  // background-image: -moz-linear-gradient(left, #f23064 0%, #ad2ee8 12.5%, #6728d3 25%, #2acbe0 37.5%, #67f230 50%, #67f230 62.5%, #e2e22b 75%, #ce8027 87.5%, #f23064 100%);
+  // /* FF3.6-15 */
+
+  // background-image: -webkit-linear-gradient(left, #f23064 0%, #ad2ee8 12.5%, #6728d3 25%, #2acbe0 37.5%, #67f230 50%, #67f230 62.5%, #e2e22b 85.5%, #ce8027 87.5%, #f23064 100%);
+  // /* Chrome10-25,Safari5.1-6 */
+
+  // background-image: linear-gradient(to right, #f23064 0%, #ad2ee8 12.5%, #6728d3 25%, #2acbe0 37.5%, #67f230 50%, #67f230 62.5%, #e2e22b 75%, #ce8027 87.5%, #f23064 100%);
+  // /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+
+  // background-repeat: no-repeat;
+  // background-size: 2000% 400%;
+  // background-position: 0 0;
+  // animation-name: gradientAnim;
+  // animation-iteration-count: infinite;
+  // animation-delay: 0;
+  // animation-duration: 60s;
+  // animation-timing-function: linear;
+}
+.login-form-button {
+  width: 100%;
+}
+
+.bg {
+  animation: slide 3s ease-in-out infinite alternate;
+  background-image: linear-gradient(-60deg, #6c3 50%, #09f 50%);
+  bottom: 0;
+  left: -50%;
+  opacity: .5;
+  position: fixed;
+  right: -50%;
+  top: 0;
+  z-index: -1;
+}
+.bg2 {
+  animation-direction: alternate-reverse;
+  animation-duration: 4s;
+}
+.bg3 {
+  animation-duration: 5s;
+}
+.content {
+  background-color: rgba(255, 255, 255, .8);
+  border-radius: .25em;
+  box-shadow: 0 0 .25em rgba(0, 0, 0, .25);
+  box-sizing: border-box;
+  left: 50%;
+  padding: 10vmin;
+  position: fixed;
+  text-align: center;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+h1 {
+  font-family: monospace;
+}
+@keyframes slide {
+  0% {
+      transform: translateX(-25%);
+  }
+  100% {
+      transform: translateX(25%);
+  }
+}
+
+.login-btn{
+  display: flex;
+  height: 56px;
+  button{
+    height: 56px;
+  }
+}

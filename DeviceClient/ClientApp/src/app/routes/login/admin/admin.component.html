@@ -1,0 +1,24 @@
+<nz-modal [nzVisible]="isVisible"
+  [nzMaskClosable]="false"
+  [nzClosable]="false"
+  nzTitle="超级管理员注册"
+  [nzCancelText]="null"
+  (nzOnOk)="subBtn.click()">
+  <form nz-form [formGroup]="formGroup" (ngSubmit)="submitForm($event, formGroup.value)">
+    <nz-form-item *ngFor="let field of formTypes">
+
+      <nz-form-label [nzSpan]="7">{{field.prefix}}</nz-form-label>
+
+      <nz-form-control [nzSpan]="12">
+        <input nz-input [formControlName]="field.key" >
+
+        <nz-form-explain *ngIf="formGroup.controls[field.key].errors">
+          <ng-container>
+            {{formGroup.controls[field.key].errors | formError: field.errors }}
+          </ng-container>
+        </nz-form-explain>
+      </nz-form-control>
+    </nz-form-item>
+    <button hidden="hidden" #subBtn></button>
+  </form>
+</nz-modal>

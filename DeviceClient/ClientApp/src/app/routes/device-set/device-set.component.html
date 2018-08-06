@@ -1,0 +1,111 @@
+<div>
+  <header>
+    <app-menu-button></app-menu-button>
+    <h1>设备参数设置</h1>
+  </header>
+  <!-- <nz-divider></nz-divider> -->
+  <nz-spin nzTip='设备未连接' [nzSpinning]="!_ms.state.a1 || !_ms.state.a2">
+    <main>
+      <nz-card *ngIf="_ms.deviceParameter?.mpaCoefficient > 1 && _ms.deviceParameter?.mmCoefficient > 1">
+        <h2>安全参数</h2>
+        <div class="item">
+          <nz-form-item>
+            <nz-input-group nzAddOnBefore="压力上限" nzAddOnAfter="Mpa">
+              <input type="number" nz-input nzSize="large" [value]="_ms.deviceParameter?.mpaUpperLimit" (change)="onSet(500, $event, 'mpa')">
+            </nz-input-group>
+          </nz-form-item>
+          <nz-form-item>
+            <nz-input-group nzAddOnBefore="允许回程压力" nzAddOnAfter="Mpa">
+              <input type="number" nz-input nzSize="large" [value]="_ms.deviceParameter?.returnMpa" (change)="onSet(501, $event, 'mpa')">
+            </nz-input-group>
+          </nz-form-item>
+          <nz-form-item>
+            <nz-input-group nzAddOnBefore="超设置压力" nzAddOnAfter="Mpa">
+              <input type="number" nz-input nzSize="large" [value]="_ms.deviceParameter?.settingMpa" (change)="onSet(502, $event, 'mpa')">
+            </nz-input-group>
+          </nz-form-item>
+          <nz-form-item>
+            <nz-input-group nzAddOnBefore="油泵延时" nzAddOnAfter="s">
+              <input type="number" nz-input nzSize="large" [value]="_ms.deviceParameter?.oilPumpDelay" (change)="onSet(503, $event, 's')">
+            </nz-input-group>
+          </nz-form-item>
+          <nz-form-item>
+            <nz-input-group nzAddOnBefore="位移上限" nzAddOnAfter="mm">
+              <input type="number" nz-input nzSize="large" [value]="_ms.deviceParameter?.mmUpperLimit" (change)="onSet(504, $event, 'mm')">
+            </nz-input-group>
+          </nz-form-item>
+          <nz-form-item>
+            <nz-input-group nzAddOnBefore="位移下限" nzAddOnAfter="mm">
+              <input type="number" nz-input nzSize="large" [value]="_ms.deviceParameter?.mmLowerLimit" (change)="onSet(505, $event, 'mm')">
+            </nz-input-group>
+          </nz-form-item>
+          <nz-form-item>
+            <nz-input-group nzAddOnBefore="工作位移上限" nzAddOnAfter="mm">
+              <input type="number" nz-input nzSize="large" [value]="_ms.deviceParameter?.mmWorkUpperLimit" (change)="onSet(506, $event, 'mm')">
+            </nz-input-group>
+          </nz-form-item>
+          <nz-form-item>
+            <nz-input-group nzAddOnBefore="工作位移下限" nzAddOnAfter="mm">
+              <input type="number" nz-input nzSize="large" [value]="_ms.deviceParameter?.mmWorkLowerLimit" (change)="onSet(507, $event, 'mm')">
+            </nz-input-group>
+          </nz-form-item>
+        </div>
+      </nz-card>
+      <nz-card *ngIf="_ms.deviceParameter?.mpaCoefficient > 1 && _ms.deviceParameter?.mmCoefficient > 1">
+        <h2>自动控制参数</h2>
+        <div class="item">
+          <nz-form-item>
+            <nz-input-group nzAddOnBefore="允许偏差率上限" nzAddOnAfter="%">
+              <input type="number" nz-input nzSize="large" [value]="_ms.deviceParameter?.maximumDeviationRate" (change)="onSet(508, $event)">
+            </nz-input-group>
+          </nz-form-item>
+          <nz-form-item>
+            <nz-input-group nzAddOnBefore="允许偏差率下限" nzAddOnAfter="%">
+              <input type="number" nz-input nzSize="large" [value]="_ms.deviceParameter?.LowerDeviationRate" (change)="onSet(509, $event)">
+            </nz-input-group>
+          </nz-form-item>
+          <nz-form-item>
+            <nz-input-group nzAddOnBefore="允许压力偏差" nzAddOnAfter="Mpa">
+              <input type="number" nz-input nzSize="large" [value]="_ms.deviceParameter?.mpaDeviation" (change)="onSet(510, $event, 'mpa')">
+            </nz-input-group>
+          </nz-form-item>
+          <nz-form-item>
+            <nz-input-group nzAddOnBefore="平衡控制" nzAddOnAfter="mm">
+              <input type="number" nz-input nzSize="large" [value]="_ms.deviceParameter?.mmBalanceControl" (change)="onSet(511, $event, 'mm')">
+            </nz-input-group>
+          </nz-form-item>
+          <nz-form-item>
+            <nz-input-group nzAddOnBefore="倒顶位移下限" nzAddOnAfter="mm">
+              <input type="number" nz-input nzSize="large" [value]="_ms.deviceParameter?.mmReturnLowerLimit" (change)="onSet(512, $event, 'mm')">
+            </nz-input-group>
+          </nz-form-item>
+          <nz-form-item>
+            <nz-input-group nzAddOnBefore="卸荷完成延时" nzAddOnAfter="s">
+              <input type="number" nz-input nzSize="large" [value]="_ms.deviceParameter?.unloadingDelay" (change)="onSet(513, $event, 's')">
+            </nz-input-group>
+          </nz-form-item>
+        </div>
+      </nz-card>
+      <nz-card>
+        <h2>其他参数</h2>
+        <div class="item">
+          <nz-form-item>
+            <nz-input-group nzAddOnBefore="PLC模拟量值">
+              <input type="number" nz-input nzSize="large" [value]="_ms.deviceParameter?.simulationValue" (change)="onSet(514, $event)">
+            </nz-input-group>
+          </nz-form-item>
+          <nz-form-item>
+            <nz-input-group nzAddOnBefore="压力传感器上限">
+              <input type="number" nz-input nzSize="large" [value]="_ms.deviceParameter?.mpaSensorUpperLimit" (change)="onSet(515, $event)">
+            </nz-input-group>
+          </nz-form-item>
+          <nz-form-item>
+            <nz-input-group nzAddOnBefore="位移传感器上限">
+              <input type="number" nz-input nzSize="large" [value]="_ms.deviceParameter?.mmSensorUpperLimit" (change)="onSet(516, $event)">
+            </nz-input-group>
+          </nz-form-item>
+        </div>
+      </nz-card>
+    </main>
+  </nz-spin>
+</div>

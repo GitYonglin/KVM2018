@@ -1,0 +1,69 @@
+<!-- <input type="number" name="msg" [(ngModel)]="msg">
+<button (click)="F05(1, 1280, true)" nz-button>OnY0</button>
+<button (click)="F05(1, 1280, false)" nz-button>OffY0</button>
+<button (click)="F05(2, 1280, true)" nz-button>从OnY0</button>
+<button (click)="F05(2, 1280, false)" nz-button>从OffY0</button>
+<button (click)="F01(1, 1280, 20)" nz-button>F01</button>
+<button (click)="Test()" nz-button>Test</button>
+<h1>{{messages}}</h1> -->
+
+<div class="content">
+  <div>
+    <header>
+      <app-menu-button></app-menu-button>
+      <h1>梁:{{tensionData.bridgeName}} 孔号:{{tensionData.holeName}}</h1>
+      <div></div>
+    </header>
+    <hr>
+  </div>
+  <main>
+    <div>
+      <header>
+        <div class="item" *ngFor="let item of tensionData.timePLC; index as i">
+          <h4>阶段 {{i}} </h4>
+          <span>正在张拉</span>
+        </div>
+      </header>
+      <hr>
+    </div>
+    <div>
+      <table border="1" cellspaning="0">
+        <thead>
+          <tr>
+            <th>设备</th>
+            <th>状态</th>
+            <th>压力MPa</th>
+            <th>绝对位移mm</th>
+            <th>张拉位移mm</th>
+            <th>单顶伸张量mm</th>
+            <th>总伸长量</th>
+            <th>偏差率</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let name of tensionData.modes">
+            <td>{{name}}</td>
+            <td>设备状态</td>
+            <td>{{_ms.showValues[name].mpa}}</td>
+            <td>{{_ms.showValues[name].mm}}</td>
+            <td>{{_ms.showValues[name].mm - 1}}</td>
+            <td>{{_ms.showValues[name].mm - 2}}</td>
+            <td *ngIf="tensionData.modes.length === 1">{{_ms.showValues[name].mm + 3}}</td>
+            <td *ngIf="tensionData.modes.length === 1">1%</td>
+            <td *ngIf="tensionData.modes.length !== 1 && (name === 'a1' || name === 'b1')" rowspan="2">{{_ms.showValues[name].mm + 3}}</td>
+            <td *ngIf="tensionData.modes.length !== 1 && (name === 'a1' || name === 'b1')" rowspan="2">1%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="cvs">
+      <div #cvs>
+        <app-canvas-cvs [mode]="tensionData.modes" [data]="getCvs()" *ngIf="heightCvs" [width]="widthCvs" [height]="heightCvs"></app-canvas-cvs>
+      </div>
+      <div>
+        <app-canvas-cvs [mode]="tensionData.modes" [data]="getCvs()" *ngIf="heightCvs" [width]="widthCvs" [height]="heightCvs" title="位移曲线·mm"
+          [yMax]="220" [ticks]="[0, 40, 80, 120, 160, 200, 240]"></app-canvas-cvs>
+      </div>
+    </div>
+  </main>
+</div>

@@ -1,0 +1,42 @@
+.content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  // overflow: hidden;
+}
+header {
+  height: 56px;
+  display: flex;
+  justify-content: space-between;
+  h1 {
+    line-height: 56px;
+    font-size: 36px;
+  }
+}
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  header {
+    height: 56px;
+    // flex: none;
+    .item {
+      flex: 1;
+      border-radius: 100%;
+      display: flex;
+      border: 2px solid rgb(0, 128, 0);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+  table {
+    width: 100%;
+    text-align: center;
+  }
+  .cvs {
+    flex: 1;
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+  }
+}

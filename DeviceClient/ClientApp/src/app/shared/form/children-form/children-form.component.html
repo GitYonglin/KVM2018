@@ -1,0 +1,28 @@
+<form class="{{formClass}}" nz-form [formGroup]="formGroup">
+  <nz-form-item *ngFor="let field of formTypes">
+
+    <nz-form-label [nzSpan]="4">{{field.prefix}}</nz-form-label>
+    <nz-form-control [nzSpan]="20" [ngSwitch]="field.type">
+
+      <input nz-input [formControlName]="field.key" *ngSwitchCase="'text'">
+      <input nz-input [formControlName]="field.key" *ngSwitchCase="'number'" [type]="field.type">
+      <nz-date-picker [formControlName]="field.key" *ngSwitchCase="'date'" [nzDisabledDate]="field.filter" ></nz-date-picker>
+      <nz-radio-group [formControlName]="field.key" *ngSwitchCase="'radio'">
+        <label nz-radio-button *ngFor="let radio of field.radio" [nzValue]="radio.value">{{radio.name}}</label>
+      </nz-radio-group>
+
+      <!-- <nz-checkbox-group [ngModel]="field.checkbox" [formControlName]="field.key" *ngSwitchCase="'checkbox'"></nz-checkbox-group> -->
+      <nz-checkbox-wrapper style="width: 100%;" (nzOnChange)="onCheckbox($event); formGroup.controls[field.key].value = $event;" *ngSwitchCase="'checkbox'">
+          <label nz-checkbox [nzValue]="item.value" [nzChecked]="checkboxModel(field.key, item.value)" *ngFor="let item of field.checkbox" [nzDisabled]="!formGroup.enabled">{{ item.name }}</label>
+      </nz-checkbox-wrapper>
+
+      <app-form-up-img *ngSwitchCase="'file'" (upFile)="upFile($event, field.key)" [imgUrl]="formGroup.controls[field.key].value"></app-form-up-img>
+
+      <nz-form-explain *ngIf="formGroup.controls[field.key].errors">
+        <ng-container>
+          {{formGroup.controls[field.key].errors | formError: field.errors }}
+        </ng-container>
+      </nz-form-explain>
+    </nz-form-control>
+  </nz-form-item>
+</form>

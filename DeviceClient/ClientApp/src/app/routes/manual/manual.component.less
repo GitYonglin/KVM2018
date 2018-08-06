@@ -1,0 +1,52 @@
+.enforcement {
+    border: 15px solid red;
+}
+
+header{
+  display: flex;
+  height: 56px;
+  app-menu-button{
+    width: 300px;
+  }
+  .header {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    flex: 1;
+  }
+}
+
+.device-group {
+    display: flex;
+    .item {
+        margin: 0 50px;
+        h3 {
+            font-size: 32px;
+            text-align: center;
+        }
+        nz-input-group {
+            margin: 10px;
+        }
+    }
+}
+
+.input-progress {
+    position: relative;
+    input {
+        background-color: rgba(0, 0, 0, 0);
+    }
+    nz-progress {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        .ant-progress-bg {
+          border-radius: 8px;
+        }
+    }
+}
+
+.correction {
+  display: flex;
+  flex-direction: row;
+}

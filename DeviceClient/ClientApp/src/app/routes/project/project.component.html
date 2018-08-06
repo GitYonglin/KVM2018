@@ -1,0 +1,110 @@
+<nz-layout>
+  <nz-sider [nzWidth]="300">
+    <app-left-menu #menu (operation)="operation($event)" (menuSwitch)="menuSwitch()"></app-left-menu>
+  </nz-sider>
+  <div class="flex-content">
+    <header class="block-17"></header>
+    <main>
+      <app-children-form formClass="project-form" [formGroup]="formGroup" [formTypes]="formTypes"></app-children-form>
+      <div class="flex-content">
+        <nz-tabset [nzTabBarExtraContent]="extraTemplate" (nzSelectedIndexChange)="tabSelect($event)">
+          <nz-tab nzTitle="操作员">
+            <main>
+              <div class="scroll">
+                <div class="scroll-content">
+                    <nz-table [nzData]="operatorData" [nzShowPagination]="false" nzBordered>
+                      <thead>
+                        <tr>
+                          <th>头像</th>
+                          <th>用户名</th>
+                          <th>联系方式</th>
+                          <th>角色</th>
+                          <th>操作</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let item of operatorData; index as i;" (click)="onAddTab(item)">
+                          <td height="56px">
+                            <nz-avatar nzIcon="anticon anticon-user" [nzSrc]="item.imgUrl | imgUrl"></nz-avatar>
+                          </td>
+                          <td>{{item.sName}}</td>
+                          <td>{{item.sPhone}}</td>
+                          <td>{{item.nAuthority ? '管理员' : '操作员'}}</td>
+                          <td><button nz-button nzType="danger" (click)="$event.stopPropagation(); otherDelete(item)">删 除</button></td>
+                        </tr>
+                      </tbody>
+                    </nz-table>
+                </div>
+              </div>
+            </main>
+          </nz-tab>
+          <nz-tab nzTitle="监理">
+            <main>
+              <div class="scroll">
+                <div class="scroll-content">
+                    <nz-table [nzData]="supervisionData" [nzShowPagination]="false" nzBordered>
+                        <thead>
+                          <tr>
+                            <th>头像</th>
+                            <th>姓名名</th>
+                            <th>监理单位</th>
+                            <th>联系方式</th>
+                            <th>操作</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr *ngFor="let item of supervisionData; index as i;" (click)="onAddTab(item)">
+                            <td height="56px">
+                              <nz-avatar nzIcon="anticon anticon-user" [nzSrc]="item.imgUrl| imgUrl"></nz-avatar>
+                            </td>
+                            <td>{{item.sName}}</td>
+                            <td>{{item.sUnit}}</td>
+                            <td>{{item.sPhone}}</td>
+                            <td><button nz-button nzType="danger" (click)="$event.stopPropagation(); otherDelete(item)">删 除</button></td>
+                          </tr>
+                        </tbody>
+                      </nz-table>
+                </div>
+              </div>
+            </main>
+          </nz-tab>
+          <nz-tab nzTitle="钢绞线">
+            <main>
+              <div class="scroll">
+                <div class="scroll-content">
+                    <nz-table [nzData]="steelStrandData" [nzShowPagination]="false" nzBordered>
+                        <thead>
+                          <tr>
+                            <th>名称</th>
+                            <th>型号</th>
+                            <th>摩擦系数</th>
+                            <th>报告编号</th>
+                            <th>标定日期</th>
+                            <th>操作</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr *ngFor="let item of steelStrandData; index as i;" (click)="onAddTab(item)">
+                            <td>{{item.sName}}</td>
+                            <td>{{item.sModel}}</td>
+                            <td>{{item.sFrictionCoefficient}}</td>
+                            <td>{{item.sReportNo}}</td>
+                            <td>{{item.dCalibrationDate | date: 'yyyy-MM-dd'}}</td>
+                            <td><button nz-button nzType="danger" (click)="$event.stopPropagation(); otherDelete(item)">删 除</button></td>
+                          </tr>
+                        </tbody>
+                      </nz-table>
+                </div>
+              </div>
+            </main>
+          </nz-tab>
+        </nz-tabset>
+        <ng-template #extraTemplate>
+          <button nz-button (click)="onAddTab()" [disabled]="!menu.titleId">添加</button>
+        </ng-template>
+      </div>
+    </main>
+  </div>
+</nz-layout>
+
+<app-modal-form-data (outClose)="editCancel($event)"></app-modal-form-data>

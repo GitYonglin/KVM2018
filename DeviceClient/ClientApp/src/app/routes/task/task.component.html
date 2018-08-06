@@ -1,0 +1,111 @@
+<nz-layout>
+  <nz-sider [nzWidth]="300">
+    <app-left-menu #menu (operation)="operation($event)" (menuSwitch)="menuSwitch()" [disabledState]="holeGroup.holeGroupEdit"></app-left-menu>
+  </nz-sider>
+  <div class="flex-content">
+    <header class="block-17 header">
+      <div class="header-right">
+        <button (click)="onCopy()" style="height: 100%;" nz-button *ngIf="!menu.operationState && menu.bridgeId !== null">复制</button>
+      </div>
+    </header>
+    <main>
+      <div class="flex-content" style="overflow-y: auto;" #target>
+        <div>
+          <nz-tabset [nzTabPosition]="'top'" [nzType]="'card'">
+            <nz-tab nzTitle="基础信息">
+              <form nz-form [formGroup]="formGroup">
+                <div class="task-base">
+                  <nz-form-item>
+                    <nz-form-label [nzSpan]="3">构件/孔号</nz-form-label>
+                    <nz-form-control [nzSpan]="19">
+                      <input type="text" readonly="readonly" nz-input formControlName="componentName" style="width: 50%;" (click)="onSelectComponent()">
+                      <input type="text" readonly="readonly" nz-input formControlName="holeName" style="width:50%;" (click)="onSelectComponent()">
+                      <nz-form-explain *ngIf="formGroup.controls['componentName'].errors || formGroup.controls['holeName'].errors">
+                        {{formGroup.controls['componentName'].errors | formError: formTypes.componentName.errors }} {{formGroup.controls['holeName'].errors
+                        | formError: formTypes.holeName.errors }}
+                      </nz-form-explain>
+                    </nz-form-control>
+                  </nz-form-item>
+                  <nz-form-item>
+                    <nz-form-label [nzSpan]="3">设备</nz-form-label>
+                    <nz-form-control [nzSpan]="19">
+                      <nz-input-group nzSearch [nzSuffix]="suffixButton">
+                        <input type="text" readonly="readonly" nz-input formControlName="deviceName" (click)="onSelectDevice()">
+                      </nz-input-group>
+                      <ng-template #suffixButton>
+                        <button nz-button nzType="primary" nzSearch [disabled]="!holeGroups" (click)="onManual()" *ngIf="!nowData">分组</button>
+                      </ng-template>
+                      <nz-form-explain *ngIf="formGroup.controls['deviceName'].errors">
+                        {{formGroup.controls['deviceName'].errors | formError: formTypes.deviceName.errors }}
+                      </nz-form-explain>
+                    </nz-form-control>
+                  </nz-form-item>
+                  <nz-form-item>
+                    <nz-form-label [nzSpan]="3">梁号</nz-form-label>
+                    <nz-form-control [nzSpan]="19">
+                      <input type="text" nz-input formControlName="bridgeName">
+                      <nz-form-explain *ngIf="formGroup.controls['bridgeName'].errors">
+                        {{formGroup.controls['bridgeName'].errors | formError: formTypes.bridgeName.errors }}
+                      </nz-form-explain>
+                    </nz-form-control>
+                  </nz-form-item>
+                  <nz-form-item>
+                    <nz-form-label [nzSpan]="3">钢绞线</nz-form-label>
+                    <nz-form-control [nzSpan]="19">
+                      <input type="text" readonly="readonly" nz-input formControlName="steelStrandName" (click)="onSelectSteelStrand()">
+                      <nz-form-explain *ngIf="formGroup.controls['steelStrandName'].errors">
+                        {{formGroup.controls['steelStrandName'].errors | formError: formTypes.steelStrandName.errors }}
+                      </nz-form-explain>
+                    </nz-form-control>
+                  </nz-form-item>
+                  <img class="img" *ngIf="!nowComponent" src="" alt="构件示意图">
+                  <img class="img" *ngIf="nowComponent" [src]="nowComponent.hole.imgUrl | imgUrl" alt="构件示意图">
+                </div>
+              </form>
+            </nz-tab>
+          </nz-tabset>
+        </div>
+        <nz-affix [nzTarget]="target">
+          <div class="hole-group">
+            <nz-radio-group [nzSize]="'large'" [(ngModel)]="selectHoleGroup" (ngModelChange)="onSelectHoleRadio()">
+              <label nz-radio-button [nzValue]="item?.id" *ngFor="let item of holeGroups; index as i" [nzDisabled]="!nowData || (holeGroup.holeGroupEdit && item.id !== holeGroup.holeGroupId)">{{item?.hole}}</label>
+            </nz-radio-group>
+            <div class="operation" *ngIf="holeGroup.holeGroupEdit; else tension">
+              <button nz-button nzType="primary" nzSize="large" (click)="holeGroup.save()">保存</button>
+              <button nz-button nzType="primary" nzSize="large" (click)="holeGroup.cancel()">取消</button>
+            </div>
+            <ng-template #tension>
+              <div class="operation">
+                <button nz-button nzType="primary" nzSize="large" *ngIf="!menu.operationState && selectHoleGroup !== null" (click)="onTension()">张拉</button>
+              </div>
+            </ng-template>
+          </div>
+        </nz-affix>
+        <app-group-task-data [nowDevice]="nowDevice?.device" #holeGroup></app-group-task-data>
+      </div>
+    </main>
+  </div>
+</nz-layout>
+
+<app-select-component (outClose)="outSelectComponent($event)"></app-select-component>
+<app-select-device (outClose)="outSelectDevice($event)"></app-select-device>
+<app-manual-group [device]="nowDevice" [holes]="nowComponent?.hole?.holes" *ngIf="holeGroups && nowData === null" (outClose)="outManual($event)"></app-manual-group>
+<app-select-steel-strand (outClose)="outSteelStrand($event)"></app-select-steel-strand>
+
+<!-- 张拉弹出框 -->
+<nz-modal [nzVisible]="runTension.state" nzTitle="设备状态" nzWidth="auto" (nzOnCancel)="runTension.state = false" [nzMaskClosable]="false"
+  (nzOnOk)="runTensionOk()">
+  <div class="alarm">
+    <div *ngFor="let name of runTension.mode">
+      <div *ngIf="_ms.showValues[name].alarmNumber">
+        <nz-card [nzTitle]="name + '状态'">
+          <div *ngFor="let item of _ms.showValues[name].alarm">
+            <nz-alert *ngIf="item" nzType="error" [nzMessage]="item" nzShowIcon>
+            </nz-alert>
+          </div>
+          <h3 *ngIf="!_ms.state[name]">设备未连接</h3>
+        </nz-card>
+      </div>
+    </div>
+  </div>
+</nz-modal>

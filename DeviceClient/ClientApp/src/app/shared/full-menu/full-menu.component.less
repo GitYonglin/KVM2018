@@ -1,0 +1,42 @@
+@active-color: #40a9ff;
+
+nz-modal {
+  // display: flex;
+  flex-direction: column;
+  justify-content: center;
+  .ant-modal-close {
+    display: none;
+  }
+}
+.operation {
+  display: flex;
+  justify-content: space-around;
+  padding-bottom: 24px;
+  button{
+    width: 96px;
+    height: 96px;
+  }
+}
+.menu {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  h3 {
+    text-align: center;
+  }
+  i {
+    font-size: 96px;
+  }
+  .active {
+    background: -webkit-linear-gradient(-45deg, #225e9e 0%, #712c69 100%);
+    background: -webkit-linear-gradient(135deg, #225e9e 0%, #712c69 100%);
+    background: linear-gradient(-45deg, #225e9e 0%, #712c69 100%);
+    h3 {
+      color: #fff;
+    }
+  }
+}
+.block-22 {
+  background: -webkit-linear-gradient(-45deg, #225e9e 0%, #712c69 100%);
+  background: -webkit-linear-gradient(135deg, #225e9e 0%, #712c69 100%);
+  background: linear-gradient(-45deg, #225e9e 0%, #712c69 100%);
+}

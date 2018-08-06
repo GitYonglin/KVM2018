@@ -1,0 +1,19 @@
+<nz-modal [nzVisible]="isVisible" (nzOnCancel)="handleCancel()" [nzClosable]="false" [nzFooter]="null" [nzWidth]="680">
+  <div class="operation">
+    <a href="/">
+      <button nz-button nzType="primary" nzShape="circle"><i class="anticon anticon-logout"></i>登出</button>
+    </a>
+    <button nz-button nzType="default" nzShape="circle"><i class="anticon anticon-reload"></i>重启</button>
+    <button nz-button nzType="danger" nzShape="circle"><i class="anticon anticon-poweroff"></i> 关机</button>
+  </div>
+  <div class="menu">
+    <nz-card *ngFor="let menu of menus" class="item" [ngClass]="{'active': url === menu.url}" (click)="go(menu.url)">
+      <!-- <a [href]="menu.url"> -->
+        <h3>
+          <i [ngClass]="['anticon', menu.icon]"></i>
+        </h3>
+        <h3>{{menu.name}}</h3>
+      <!-- </a> -->
+    </nz-card>
+  </div>
+</nz-modal>

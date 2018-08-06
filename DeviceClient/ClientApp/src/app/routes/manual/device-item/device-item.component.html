@@ -1,0 +1,29 @@
+<nz-card *ngIf="data.state">
+  <div class="item">
+    <h3>{{name}}</h3>
+    <nz-input-group nzAddOnBefore="设备压力" nzAddOnAfter="Mpa" >
+      <div class="input-progress">
+        <nz-progress nz-tooltip [nzPercent]="_ms.showValues[name]?.mpa / _ms.deviceParameter.mpaUpperLimit * 100" [nzShowInfo]="false" [nzStrokeWidth]="32"></nz-progress>
+        <input type="number" [value]="_ms.showValues[name]?.mpa" nz-input nzSize="large" readonly="readonly">
+      </div>
+    </nz-input-group>
+    <nz-input-group nzAddOnBefore="设置压力" nzAddOnAfter="Mpa">
+      <div class="input-col">
+        <nz-slider [nzDisabled]="!_ms.state[name]" [nzStep]="0.5" [nzMin]="0" [nzMax]="55" [(ngModel)]="data.setMpa" (ngModelChange)="onSet('mpa')"></nz-slider>
+        <input type="number" [disabled]="!_ms.state[name]" [(ngModel)]="data.setMpa" max="55" min="0" nz-input nzSize="large" (change)="onSet('mpa')">
+      </div>
+    </nz-input-group>
+    <nz-input-group nzAddOnBefore="设备位移" nzAddOnAfter="mm">
+        <div class="input-progress">
+          <nz-progress nz-tooltip [nzPercent]="_ms.showValues[name]?.mm / _ms.deviceParameter.mmWorkUpperLimit * 100" [nzShowInfo]="false" [nzStrokeWidth]="32"></nz-progress>
+          <input type="number" [value]="_ms.showValues[name]?.mm" nz-input nzSize="large" readonly="readonly">
+        </div>
+      </nz-input-group>
+      <nz-input-group nzAddOnBefore="设置位移" nzAddOnAfter="mm">
+        <div class="input-col">
+          <nz-slider [nzDisabled]="!_ms.state[name]" [nzMin]="0" [nzMax]="200" [(ngModel)]="data.setMm" (ngModelChange)="onSet('mm')"></nz-slider>
+          <input type="number" [disabled]="!_ms.state[name]" [(ngModel)]="data.setMm" max="200" min="0" nz-input nzSize="large" (change)="onSet('mm')">
+        </div>
+      </nz-input-group>
+  </div>
+</nz-card>

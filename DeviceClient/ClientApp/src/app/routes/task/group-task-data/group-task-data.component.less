@@ -1,0 +1,23 @@
+.task-base {
+  display: grid;
+  grid-template-columns: 1fr 1fr 126px;
+  justify-items: stretch;
+  .img {
+    grid-column: 3;
+    grid-row: ~"1/3";
+    height: 120px;
+    padding-right: 5px;
+  }
+}
+.hole-group {
+  padding: 5px;
+  background-color: #eee;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.task-data-base {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+}

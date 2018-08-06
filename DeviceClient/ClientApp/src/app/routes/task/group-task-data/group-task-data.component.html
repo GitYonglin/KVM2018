@@ -1,0 +1,133 @@
+<form nz-form [formGroup]="holeFormGroup" *ngIf="holeGroupId !== null">
+  <div class="task-data">
+    <div class="task-data-base">
+      <nz-form-item>
+        <nz-form-label [nzSpan]="5">控制应力</nz-form-label>
+        <nz-form-control [nzSpan]="18">
+          <input type="number" nz-input formControlName="tensionKn" (input)="funcCountKM()">
+          <nz-form-explain *ngIf="holeFormGroup.controls['tensionKn'].errors">
+            {{holeFormGroup.controls['tensionKn'].errors | formError: holeFormTypes['tensionKn'].errors }}
+          </nz-form-explain>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label [nzSpan]="5">张拉长度</nz-form-label>
+        <nz-form-control [nzSpan]="18">
+          <input type="number" nz-input formControlName="tensionLength">
+
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label [nzSpan]="5">钢绞线数量</nz-form-label>
+        <nz-form-control [nzSpan]="18">
+          <input type="number" nz-input formControlName="steelStrandNumber">
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label [nzSpan]="5">设备/孔号</nz-form-label>
+        <nz-form-control [nzSpan]="18">
+          <nz-input-group nzCompact>
+            <input type="text" nz-input style="width: 50%;" [value]="nowDevice?.sName + '--' + (nowTaskData.mode | deviceMode)">
+            <input type="text" nz-input style="width: 50%;" [value]="nowTaskData.name">
+          </nz-input-group>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label [nzSpan]="5">张拉段数</nz-form-label>
+        <nz-form-control [nzSpan]="18">
+          <nz-select style="width: 100%;" formControlName="tensionStage">
+            <nz-option nzLabel="3段" nzValue="3" *ngIf="!nowTaskData.twice"></nz-option>
+            <nz-option nzLabel="4段" nzValue="4"></nz-option>
+            <nz-option nzLabel="5段" nzValue="5"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item style="display: flex; align-items: center;">
+        <label nz-checkbox formControlName="twice">二次张拉</label>
+        <label nz-checkbox formControlName="super">超张拉</label>
+      </nz-form-item>
+    </div>
+    <div class="task-data-mode">
+      <table style="width: 100%">
+        <thead>
+          <tr>
+            <th width="70">张拉数据</th>
+            <th>初张拉</th>
+            <th>阶段一</th>
+            <th *ngIf="nowTaskData.tensionStage >= 4">阶段二</th>
+            <th *ngIf="nowTaskData.tensionStage >= 5">阶段三</th>
+            <th>终张拉</th>
+            <th *ngIf="nowTaskData.super">超张拉</th>
+            <th width="100">工作长度</th>
+            <th width="100">内缩均值</th>
+            <th width="100">理论伸长量</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>张拉阶段</td>
+            <td [ngClass]="{'has-error': holeFormGroup.controls['tensionStageValue[' + item +']'].errors}" *ngFor="let item of tensionStageArr(); index as i">
+              <nz-input-group nzAddOnAfter="%">
+                <input (input)="funcV1();" type="number" nz-input formControlName="tensionStageValue[0]" *ngIf="item === 0 ">
+                <input (input)="funcCountKM()" type="number" nz-input [formControlName]="'tensionStageValue[' + item +']'" *ngIf="item !== 0 && item !== 1 && !(item === 2 && nowTaskData.twice)">
+                <input (input)="funcCountKM()" type="number" nz-input *ngIf="item === 1" disabled="true" [value]="holeFormGroup.controls['tensionStageValue[' + item +']'].value">
+                <input (input)="funcCountKM()" type="number" nz-input *ngIf="item === 2 && nowTaskData.twice" disabled="true" [value]="holeFormGroup.controls['tensionStageValue[' + item +']'].value">
+              </nz-input-group>
+            </td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>控制应力</td>
+            <td *ngFor="let item of countKM.kn">
+              <nz-input-group nzAddOnAfter="kn">
+                <input nz-input [value]="item">
+              </nz-input-group>
+            </td>
+          </tr>
+          <tr *ngFor="let item of modeStrArr; index as i">
+            <td>{{item}}</td>
+            <td *ngFor="let mpa of countKM.mpa[item]">
+              <nz-input-group nzAddOnAfter="Mpa">
+                <input nz-input [value]="mpa">
+              </nz-input-group>
+            </td>
+            <td [ngClass]="{'has-error': holeFormGroup.controls[item + '.workMm'].errors}">
+              <nz-input-group nzAddOnAfter="mm">
+                <input nz-input [formControlName]="item + '.workMm'">
+              </nz-input-group>
+            </td>
+            <td [ngClass]="{'has-error': holeFormGroup.controls[item + '.retractionMm'].errors}">
+              <nz-input-group nzAddOnAfter="mm">
+                <input nz-input [formControlName]="item + '.retractionMm'">
+              </nz-input-group>
+            </td>
+            <td [ngClass]="{'has-error': holeFormGroup.controls[item + '.theoryMm'].errors}" rowspan="2" *ngIf="(nowTaskData.mode === 1 && i === 0) || (nowTaskData.mode === 3 && i === 0) || (nowTaskData.mode === 4 && (i === 0 || i === 2))">
+              <nz-input-group nzAddOnAfter="mm">
+                <input style="height: 68px;" nz-input [formControlName]="item + '.theoryMm'">
+              </nz-input-group>
+            </td>
+            <td [ngClass]="{'has-error': holeFormGroup.controls[item + '.theoryMm'].errors}" *ngIf="nowTaskData.mode === 0 || nowTaskData.mode === 2">
+              <nz-input-group nzAddOnAfter="mm">
+                <input nz-input [formControlName]="item + '.theoryMm'">
+              </nz-input-group>
+            </td>
+          </tr>
+          <tr>
+            <td>持荷时间</td>
+            <td *ngFor="let item of tensionStageArr()">
+              <nz-input-group nzAddOnAfter="s">
+                <input nz-input [formControlName]="'time' + '[' + item + ']'">
+              </nz-input-group>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</form>
+<div *ngIf="holeGroupId !== null">
+  <app-canvas-cvs [mode]="modeStrArr" height="360"></app-canvas-cvs>
+  <app-canvas-cvs [mode]="modeStrArr" height="360" title="位移曲线·mm" [yMax]="220" [ticks]="[0, 40, 80, 120, 160, 200, 240]"></app-canvas-cvs>
+</div>

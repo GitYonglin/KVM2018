@@ -1,0 +1,5 @@
+<main [ngStyle]="{width: width + 'px', height: height + 'px'}">
+  <h3 (click)="getData()">{{title}}</h3>
+  <canvas #mountNode id="mountNode" [width]="width" [height]="height" ></canvas>
+  <!-- <button (click)="getData()">hhhh</button> -->
+</main>

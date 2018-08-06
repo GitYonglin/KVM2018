@@ -1,0 +1,47 @@
+<nz-layout>
+  <nz-sider [nzWidth]="300">
+    <app-left-menu #menu (operation)="operation($event)" (menuSwitch)="menuSwitch()"></app-left-menu>
+  </nz-sider>
+  <div class="flex-content">
+    <header class="block-17"></header>
+    <main>
+      <div style="display: flex;">
+        <app-children-form style="flex: 1;" [formGroup]="formGroup" [formTypes]="formTypes"></app-children-form>
+        <button style="margin: 3px 15px;" nz-button (click)="holeEdit()" [disabled]="!menu.titleId">添加</button>
+      </div>
+      <div class="flex-content">
+          <main>
+            <div class="scroll">
+              <div class="scroll-content">
+                  <nz-table [nzData]="holeData" [nzShowPagination]="false" nzBordered>
+                    <thead>
+                      <tr>
+                        <th>示意图</th>
+                        <th>名称</th>
+                        <th>孔明细</th>
+                        <th>操作 </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let item of holeData; index as i;" (click)="holeEdit(item)">
+                        <td height="56px">
+                          <nz-avatar nzIcon="anticon anticon-user" [nzSrc]="item.imgUrl | imgUrl"></nz-avatar>
+                        </td>
+                        <td>{{item.sName}}</td>
+                        <td><nz-tag [nzColor]="'#2db7f5'" *ngFor="let hole of item.holes">{{hole}}</nz-tag></td>
+                        <td><button nz-button nzType="danger" (click)="$event.stopPropagation(); holeDelete(item)">删 除</button></td>
+                      </tr>
+                      <!-- <tr>
+                        <td colspan="4"><button style="width: 100%;" nz-button (click)="holeEdit()">添加</button></td>
+                      </tr> -->
+                    </tbody>
+                  </nz-table>
+              </div>
+            </div>
+          </main>
+      </div>
+    </main>
+  </div>
+</nz-layout>
+
+<app-modal-form-data [width]="666" #editHole (outClose)="outClose($event)"></app-modal-form-data>

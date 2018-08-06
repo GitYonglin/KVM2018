@@ -1,0 +1,13 @@
+<nz-modal [nzVisible]="isVisible" (nzOnCancel)="handleCancel()" (nzOnOk)="handleOk()" [nzMaskClosable]="false" [nzClosable]="false"
+  nzTitle="构件选择">
+  <nz-divider nzOrientation="left" nzText="设备"></nz-divider>
+  <nz-radio-group [nzSize]="'large'">
+    <label nz-radio-button *ngFor="let item of device" [nzValue]="item.id" (click)="onSelect(item)">{{item.name}}</label>
+  </nz-radio-group>
+  <nz-divider nzOrientation="left" nzText="模式"></nz-divider>
+  <nz-radio-group [nzSize]="'large'">
+    <label nz-radio-button *ngFor="let item of workMode" [nzValue]="item" (click)="onMode(item)">{{item | deviceMode}}</label>
+  </nz-radio-group>
+  <!-- <nz-divider nzOrientation="left" nzText="孔明细"></nz-divider>
+  <nz-tag [nzColor]="'#87d068'" *ngFor="let item of holes">{{item}}</nz-tag> -->
+</nz-modal>

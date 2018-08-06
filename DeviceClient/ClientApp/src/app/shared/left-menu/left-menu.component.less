@@ -1,0 +1,96 @@
+@active-color: #40a9ff;
+@border-color: #ccc;
+
+nz-sider{
+  background:#f0f2f5;
+}
+
+.left-menu-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  .header {
+    height: 55px;
+    border-bottom: 1px solid @border-color;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    button{
+      flex-grow: 1;
+      min-width: auto;
+      height: 100%;
+    }
+  }
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    ul {
+      max-height: 100%;
+      display: flex;
+      flex-direction: column;
+      .title {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 55px;
+        padding: 0 5px;
+        border-bottom: 1px solid #ccc;
+        &.active {
+          background-color: @active-color;
+        }
+        .text-img {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          .img {
+            height: 36px;
+            width: 36px;
+          }
+          h3 {
+            padding: 0 5px;
+          }
+        }
+        .right {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+        }
+        .icon {
+          transform-origin:center center; //旋转中心要是正中间 才行
+          transition: transform .5s;
+          transform: rotate(0deg);
+          &.transform {
+            transform: rotate(180deg);
+          }
+        }
+      }
+      .list {
+        // max-height: calc(100);
+        flex: 1;
+        overflow-y: auto;
+        .active {
+          background-color: @active-color;
+        }
+        li {
+          padding-right: 10px;
+          padding-left: 5px;
+          margin-left: 5px;
+          font-size: 18px;
+          height: 46px;
+          border-bottom: 1px solid #ccc;
+          line-height: 46px;
+        }
+      }
+    }
+  }
+  .footer {
+    height: 56px;
+    border-top: 1px solid @border-color;
+  }
+}
+
+
+

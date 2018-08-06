@@ -1,0 +1,13 @@
+<nz-modal [nzVisible]="isVisible" (nzOnCancel)="handleCancel()" (nzOnOk)="handleOk()" [nzMaskClosable]="false" [nzClosable]="false"
+  nzTitle="构件选择">
+  <nz-divider nzOrientation="left" nzText="构件"></nz-divider>
+  <nz-radio-group [nzSize]="'large'" [(ngModel)]="selectItem" (ngModelChange)="onSelect()">
+    <label nz-radio-button *ngFor="let item of components" [nzValue]="item"  [nzDisabled]="!(item.id === nowComponentId) && !(nowComponentId === 'null')">{{item.name}}</label>
+  </nz-radio-group>
+  <nz-divider nzOrientation="left" nzText="孔号"></nz-divider>
+  <nz-radio-group [nzSize]="'large'" [(ngModel)]="selectHoleItem" (ngModelChange)="onHoles()">
+    <label nz-radio-button *ngFor="let item of holeData" [nzValue]="item" >{{item.sName}}</label>
+  </nz-radio-group>
+  <nz-divider nzOrientation="left" nzText="孔明细"></nz-divider>
+  <nz-tag [nzColor]="'#87d068'" *ngFor="let item of holes">{{item}}</nz-tag>
+</nz-modal>

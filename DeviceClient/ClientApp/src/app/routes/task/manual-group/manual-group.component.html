@@ -1,0 +1,27 @@
+<!-- <nz-divider nzOrientation="left" nzText="孔号"></nz-divider>
+<nz-radio-group [nzSize]="'large'">
+  <label nz-radio-button *ngFor="let item of holeData" [nzValue]="item.sName" (click)="onHoles(item)">{{item.sName}}</label>
+</nz-radio-group> -->
+<nz-modal [nzVisible]="isVisible" (nzOnCancel)="handleCancel()" (nzOnOk)="handleOk()" [nzMaskClosable]="false" [nzClosable]="false"
+  nzTitle="手动分组">
+    <nz-input-group nzAddOnBefore="张拉模式">
+      <nz-select style="width: 100%;" [ngModel]="mode" (ngModelChange)="mode = $event; onDevice()">
+        <nz-option [nzLabel]="item | deviceMode" [nzValue]="item" *ngFor="let item of device.device.aWorkMode"></nz-option>
+      </nz-select>
+    </nz-input-group>
+    <nz-input-group nzAddOnBefore="A 张拉孔" *ngIf="mode === 4 || mode === 0 || mode === 1">
+      <nz-select style="width: 100%;" [ngModel]="aHole" (ngModelChange)="aHole = $event; onHoleChange($event)">
+        <nz-option [nzLabel]="item" [nzValue]="item" *ngFor="let item of selectHole"></nz-option>
+      </nz-select>
+    </nz-input-group>
+    <nz-input-group nzAddOnBefore="B 张拉孔" *ngIf="mode === 4 || mode === 2 || mode === 3">
+      <nz-select style="width: 100%;" [ngModel]="bHole" (ngModelChange)="bHole = $event; onHoleChange($event)">
+        <nz-option [nzLabel]="item" [nzValue]="item" *ngFor="let item of selectHole"></nz-option>
+      </nz-select>
+    </nz-input-group>
+    <button (click)="save()" nz-button>完成</button>
+    <nz-divider nzOrientation="left" nzText="未分组孔号"></nz-divider>
+    <nz-tag [nzColor]="'#2db7f5'" *ngFor="let item of selectHole">{{item}}</nz-tag>
+    <nz-divider nzOrientation="left" nzText="完成的分组"></nz-divider>
+    <nz-tag [nzColor]="'#2db7f5'" *ngFor="let item of groupMode">{{item.mode | deviceMode}}--{{item.hole}}</nz-tag>
+</nz-modal>

@@ -1,0 +1,31 @@
+<div [ngClass]="{'full': correctionName !== null}">
+  <app-manual [hidden]="correctionName === null" (saveCorrectionValue)="saveCorrectionValue($event)"></app-manual>
+  <form nz-form [formGroup]="formGroup" >
+    <div *ngFor="let key of workMode">
+      <div *ngIf="correctionName === null || correctionName === key">
+    <div class="title">
+      <h3>{{key}}</h3>
+      <button nz-button nzType="primary" ng-button (click)="onCorrection(key)" [disabled]="!_appService.editState">{{ correctionName === null ? '校正参数' : '完成'}}</button>
+    </div>
+    <div class="{{formClass}}">
+      <ng-container *ngFor="let field of formTypes; index as i">
+        <nz-form-item *ngIf="field.key.indexOf(key) > -1">
+          <nz-form-label [nzSpan]="labelSpan">{{field.prefix}}</nz-form-label>
+          <nz-form-control [nzSpan]="controlSpan" [ngSwitch]="field.type">
+
+            <input nz-input [formControlName]="field.key" type="field.type" (click)="onSetCorrection(field.prefix, field.key, i)" readonly="readonly">
+
+            <nz-form-explain *ngIf="formGroup.controls[field.key].errors">
+              <ng-container>
+                {{formGroup.controls[field.key].errors | formError: field.errors }}
+              </ng-container>
+            </nz-form-explain>
+          </nz-form-control>
+        </nz-form-item>
+      </ng-container>
+    </div>
+
+  </div>
+</div>
+</form>
+</div>

@@ -1,0 +1,11 @@
+<div class=in-tag>
+  <nz-tag *ngFor="let tag of tags; let i = index;" [nzMode]="'closeable'" (nzAfterClose)="handleClose(tag)" [nzColor]="'#2db7f5'">
+    {{ sliceTagName(tag) }}
+  </nz-tag>
+  <nz-tag *ngIf="!inputVisible" class="editable-tag" (click)="showInput()">
+    <i class="anticon anticon-plus" style="color:#87d068;"></i>
+    {{addBtn}}
+  </nz-tag>
+  <input #inputElement nz-input nzSize="large" *ngIf="inputVisible" type="text" [value]="inputValue" style="width: 78px;"
+  (blur)="handleInputConfirm()" (keydown.enter)="handleInputConfirm()" >
+</div>
