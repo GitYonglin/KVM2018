@@ -125,9 +125,91 @@
         </tbody>
       </table>
     </div>
+    <div class="task-data-mode" *ngIf="recordData !== null">
+      <table style="width: 100%">
+        <thead>
+          <tr>
+            <th width="70">张拉记录</th>
+            <th>初张拉</th>
+            <th>阶段一</th>
+            <th *ngIf="nowTaskData.tensionStage >= 4">阶段二</th>
+            <th *ngIf="nowTaskData.tensionStage >= 5">阶段三</th>
+            <th>终张拉</th>
+            <th *ngIf="nowTaskData.super">超张拉</th>
+            <th width="100">回油至初应力</th>
+            <th width="100">力筋回缩量</th>
+            <th width="100">总伸长量/偏差率</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>张拉阶段</td>
+            <td [ngClass]="{'has-error': holeFormGroup.controls['tensionStageValue[' + item +']'].errors}" *ngFor="let item of tensionStageArr(); index as i">
+              <nz-input-group nzAddOnAfter="%">
+                <input (input)="funcV1();" type="number" nz-input formControlName="tensionStageValue[0]" *ngIf="item === 0 ">
+                <input (input)="funcCountKM()" type="number" nz-input [formControlName]="'tensionStageValue[' + item +']'" *ngIf="item !== 0 && item !== 1 && !(item === 2 && nowTaskData.twice)">
+                <input (input)="funcCountKM()" type="number" nz-input *ngIf="item === 1" disabled="true" [value]="holeFormGroup.controls['tensionStageValue[' + item +']'].value">
+                <input (input)="funcCountKM()" type="number" nz-input *ngIf="item === 2 && nowTaskData.twice" disabled="true" [value]="holeFormGroup.controls['tensionStageValue[' + item +']'].value">
+              </nz-input-group>
+            </td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr *ngFor="let item of modeStrArr">
+            <td>{{item}}</td>
+            <td *ngFor="let mpa of recordData.mpa[item]; index as i">
+              <nz-input-group nzAddOnAfter="Mpa">
+                <input nz-input [value]="mpa">
+              </nz-input-group>
+              <nz-input-group nzAddOnAfter="mm">
+                <input nz-input [value]="recordData.mm[item][i]">
+              </nz-input-group>
+            </td>
+            <td>
+              <nz-input-group nzAddOnAfter="Mpa">
+                <input nz-input value="mpa">
+              </nz-input-group>
+              <nz-input-group nzAddOnAfter="mm">
+                <input nz-input value="mm">
+              </nz-input-group>
+            </td>
+            <td >
+              <nz-input-group nzAddOnAfter="mm">
+                <input nz-input style="height: 68px;" value="回缩">
+              </nz-input-group>
+            </td>
+            <td  *ngIf="modeStrArr.length === 1" >
+              <nz-input-group nzAddOnAfter="mm">
+                <input nz-input value="总伸长量">
+              </nz-input-group>
+              <nz-input-group nzAddOnAfter="%">
+                <input nz-input value="偏差">
+              </nz-input-group>
+            </td>
+            <td  rowspan="2" *ngIf="modeStrArr.length !== 1 && (item === 'a1' || item === 'b1')" >
+              <nz-input-group nzAddOnAfter="mm">
+                <input nz-input style="height: 68px;" value="总伸长量">
+              </nz-input-group>
+              <nz-input-group nzAddOnAfter="%">
+                <input nz-input style="height: 68px;" value="偏差">
+              </nz-input-group>
+            </td>
+          </tr>
+          <tr>
+            <td>持荷时间</td>
+            <td *ngFor="let item of recordData.time">
+              <nz-input-group nzAddOnAfter="s">
+                <input nz-input [value]="item">
+              </nz-input-group>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </form>
-<div *ngIf="holeGroupId !== null">
-  <app-canvas-cvs [mode]="modeStrArr" height="360"></app-canvas-cvs>
-  <app-canvas-cvs [mode]="modeStrArr" height="360" title="位移曲线·mm" [yMax]="220" [ticks]="[0, 40, 80, 120, 160, 200, 240]"></app-canvas-cvs>
+<div *ngIf="holeGroupId !== null && recordData !== null" >
+  <app-canvas-cvs name="mpa"  [data]="recordData?.cvsData" height="360"></app-canvas-cvs>
+  <app-canvas-cvs name="mm" [data]="recordData?.cvsData" height="360" title="位移曲线·mm" [yMax]="220" [ticks]="[0, 40, 80, 120, 160, 200, 240]"></app-canvas-cvs>
 </div>

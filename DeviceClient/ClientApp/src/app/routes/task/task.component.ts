@@ -2,7 +2,7 @@ import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
 import { APIService } from '../../services/api.service';
 import { LeftMenuComponent } from '../../shared/left-menu/left-menu.component';
 import { FormGroup } from '@angular/forms';
-import { newFormData } from '../../utils/form/constructor-FormData';
+import { newFormData, getFormData } from '../../utils/form/constructor-FormData';
 import { constructFormData, constructHoleFromGroup, setHoleFormValue } from './form.data';
 import { setFromValue } from '../../utils/form/construct-form';
 import { SelectComponentComponent } from './select-component/select-component.component';
@@ -16,8 +16,10 @@ import { Router } from '@angular/router';
 import { MSService } from '../../services/MS.service';
 import { deviceModes } from '../../model/device.model';
 import { RecordData } from '../../model/live.model';
+import { Http, Headers } from '@angular/http';
 
 const baseUri = '/task';
+
 @Component({
   selector: 'app-task',
   templateUrl: './task.component.html',
@@ -61,6 +63,7 @@ export class TaskComponent implements OnInit, AfterViewInit {
     private _activatedRoute: ActivatedRoute,
     private _router: Router,
     public _ms: MSService,
+    private _http: Http,
   ) { }
 
   ngOnInit() {
@@ -111,7 +114,7 @@ export class TaskComponent implements OnInit, AfterViewInit {
       console.log(r, r.holeGroups);
       setFromValue(r, this.formGroup);
       this.nowData = r;
-      this.nowDevice = {device: r.device};
+      this.nowDevice = { device: r.device };
       this.holeGroups = r.holeGroupsRadio;
       this.groupTaskElem.holeGroupId = null;
       this.formGroup.disable();
@@ -204,15 +207,15 @@ export class TaskComponent implements OnInit, AfterViewInit {
           url = `${baseUri}/${this.nowData.id}`;
           // 新建梁
         } else {
-            this.groupTaskElem.nowTaskDataArr.forEach((item, index) => {
-              // tslint:disable-next-line:forin
-              for (const key in item) {
-                fd.append(`holeGroups[${index}].${key}`, item[key]);
-              }
-            });
-            fd.append('projectId', JSON.parse(localStorage.getItem('project')).id);
-            fd.append('deviceId', this.nowDevice.device.id);
-            fd.append('componentId', this.nowComponent.componentId);
+          this.groupTaskElem.nowTaskDataArr.forEach((item, index) => {
+            // tslint:disable-next-line:forin
+            for (const key in item) {
+              fd.append(`holeGroups[${index}].${key}`, item[key]);
+            }
+          });
+          fd.append('projectId', JSON.parse(localStorage.getItem('project')).id);
+          fd.append('deviceId', this.nowDevice.device.id);
+          fd.append('componentId', this.nowComponent.componentId);
         }
         // tslint:disable-next-line:forin
         for (const key in this.formGroup.value) {
@@ -336,6 +339,7 @@ export class TaskComponent implements OnInit, AfterViewInit {
       this.steelStrandElem.isVisible = false;
     }
   }
+  // 选择张拉孔组孔
   onSelectHoleRadio() {
     console.log('8888', this.selectHoleGroup);
     if (this.nowData) {
@@ -348,17 +352,19 @@ export class TaskComponent implements OnInit, AfterViewInit {
       // this.groupTaskElem.onSelectHoleRadio(this.selectHoleGroup);
     }
   }
+  // 复制梁
   onCopy() {
     this.copyState = true;
     this.onAdd();
   }
+  // 张拉
   onTension() {
     console.log('aaaaaaaaaaaaaaaaaaaaaaaaaa', {
-        mpa: this.groupTaskElem.countKM.mpa,
-        kn: this.groupTaskElem.countKM.kn,
-        stage: this.groupTaskElem.dbData.tensionStageValue,
-        time: this.groupTaskElem.dbData.time
-      });
+      mpa: this.groupTaskElem.countKM.mpa,
+      kn: this.groupTaskElem.countKM.kn,
+      stage: this.groupTaskElem.dbData.tensionStageValue,
+      time: this.groupTaskElem.dbData.time
+    });
     this.runTension.state = true;
     this.runTension.title = '数据处理中...';
     this._ms.setDevice((state) => {
@@ -368,10 +374,10 @@ export class TaskComponent implements OnInit, AfterViewInit {
         this.runTension.mode = deviceModes[tensionData.mode];
         for (const name of this.runTension.mode) {
           console.log(name);
-          if (this._ms.showValues[name].alarmNumber !== 0) {
+          if (!this._ms.state[name] || this._ms.showValues[name].alarmNumber !== 0) {
             this.runTension.title = '设备状态有误，请检查设备！';
             this.runTension.alarmState = true;
-            return ;
+            return;
           }
         }
         this.runTension.alarmState = false;
@@ -396,6 +402,7 @@ export class TaskComponent implements OnInit, AfterViewInit {
           }
         };
         const recordData: RecordData = {
+          id: this.groupTaskElem.holeGroupId,
           stage: 0,
           time: [],
           mode: tensionData.mode,
@@ -408,6 +415,7 @@ export class TaskComponent implements OnInit, AfterViewInit {
             mpa: {},
             mm: {},
           },
+          returnStart: {},
           liveMpaCvs: [],
           liveMmCvs: [],
         };
@@ -422,6 +430,7 @@ export class TaskComponent implements OnInit, AfterViewInit {
             nowTensionData.mpaPLC[name].push(this._ms.Value2PLC(mpa, 'mpa', name));
             recordData.mm[name].push(0);
             recordData.mpa[name].push(0);
+            recordData.returnStart[name] = { mpa: 0, mm: 0};
           }
         }
         // for (const time of tensionData.time) {

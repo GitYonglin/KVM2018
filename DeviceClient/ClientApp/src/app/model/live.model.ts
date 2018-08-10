@@ -15,6 +15,7 @@ interface ShowValuesItem {
 }
 
 export interface RecordData {
+  id: string;
   stage: number;
   time: number[];
   mode: number;
@@ -23,6 +24,7 @@ export interface RecordData {
   cvsData: CvsData;
   liveMpaCvs: LiveCvs[];
   liveMmCvs: LiveCvs[];
+  returnStart: ReturnStart;
 }
 interface RecordMode {
   a1?: number[];
@@ -41,4 +43,15 @@ interface LiveCvs {
   time: any;
   type: any;
   value: number;
+}
+
+interface ReturnStartItem {
+  mpa: number;
+  mm: number;
+}
+interface ReturnStart {
+  a1?: ReturnStartItem;
+  a2?: ReturnStartItem;
+  b1?: ReturnStartItem;
+  b2?: ReturnStartItem;
 }

@@ -8,6 +8,7 @@ using KVM.LiteDB.DAL.Project;
 using KVM.LiteDB.DAL.Project.Operator;
 using KVM.LiteDB.DAL.Project.SteelStrand;
 using KVM.LiteDB.DAL.Project.Supervision;
+using KVM.LiteDB.DAL.Record;
 using KVM.LiteDB.DAL.Task;
 using KVM.LiteDB.DAL.Task.HoleGroup;
 using Microsoft.AspNetCore.Builder;
@@ -56,6 +57,7 @@ namespace DeviceClient
             services.AddScoped<IDevice, RDevice>();
             services.AddScoped<ITask, RTask>();
             services.AddScoped<IHoleGroup, RHoleGroup>();
+            services.AddScoped<IRecord, RRecord>();
 
             services.AddSignalR();
 

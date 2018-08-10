@@ -5,6 +5,7 @@ import { PLC2Value, PLC100ms2s, Value2PLC } from '../utils/PLC8Show';
 import { APIService } from './api.service';
 import { ShowValues, autoState, RecordData } from '../model/live.model';
 import { Observable } from 'rxjs';
+import { newFormData } from '../utils/form/constructor-FormData';
 
 interface InPLC {
   Id: number;
@@ -34,6 +35,8 @@ export class MSService {
     stage: 0,
     delayState: false,
     stateOk: false,
+    LodOffTime: 0,
+    loadOffDelayState: false,
   };
   public tensionData: any;
   public recordData: RecordData;
@@ -159,6 +162,22 @@ export class MSService {
             this.runTensionData.stateOk = true;
             this.autoLoadOff();
           }
+        });
+        // 监听卸荷延时
+        connection.on('LoadOffDelay', data => {
+          this.recordData.time[this.recordData.stage] = data;
+          console.log('卸荷延时', data);
+        });
+        // 监听保压完成
+        connection.on('LoadOffDelayOk', data => {
+          console.log('卸荷延时完成');
+          // tslint:disable-next-line:forin
+          for (const name in this.recordData.returnStart) {
+            this.recordData.returnStart[name].mpa = this.showValues[name].mpa;
+            this.recordData.returnStart[name].mpa = this.showValues[name].mm;
+          }
+          this.saveRecordDb();
+          this.autoReturn();
         });
         // 监听获取plc设置
         connection.on('DeviceParameter', rData => {
@@ -345,24 +364,15 @@ export class MSService {
         // console.log(this.showValues[name].state, name);
       }
       // 进入保压
-      if (delay) {
-        if (!this.runTensionData.delayState) {
-          // if (!(this.recordData.stage < this.tensionData.checkData.time.length - 1)) {
-          //   this.runTensionData.stateOk = true;
-          // }
+      if (delay && !this.runTensionData.delayState) {
           console.log('进入保压计时', this.tensionData.checkData.time[this.recordData.stage]);
           this.runTensionData.delayState = true;
           this.connection.invoke('Delay', this.tensionData.checkData.time[this.recordData.stage]);
-        }
       }
-    // 进入回程
-    if (loadOff) {
-      this.runTensionData.state = false;
-      console.log('进入回程');
-      this.connection.invoke('AutoF05', { mode: this.tensionData.mode, address: 522, F05: true});
-      console.log('张拉记录数据', this.recordData);
-      // history.go(-1);
-      history.go(-1);
+    // 进入卸荷延时
+    if (loadOff && !this.runTensionData.loadOffDelayState) {
+      this.connection.invoke('LoadOffDelay', this.runTensionData.LodOffTime);
+      this.runTensionData.loadOffDelayState = true;
     }
   }
   // 自动卸荷
@@ -373,7 +383,23 @@ export class MSService {
   }
   // 自动回程
   autoReturn() {
-
+    this.runTensionData.state = false;
+    console.log('进入回程');
+    this.connection.invoke('AutoF05', { mode: this.tensionData.mode, address: 522, F05: true});
+    // 返回上一页
+    history.go(-1);
+  }
+  // 保存数据到数据库
+  saveRecordDb() {
+    console.log('数据保存');
+    delete this.recordData .liveMmCvs;
+    delete this.recordData .liveMpaCvs;
+    console.log('张拉记录数据', this.recordData);
+    localStorage.setItem('recordData', JSON.stringify(this.recordData));
+    const message = { success: '记录保存', error: '' };
+    this._service.http('post', this.recordData, '/record', message).subscribe(b => {
+      console.log('返回数据', b);
+    });
   }
   // 曲线保存
   // public DelaySaveCvs() {
@@ -384,18 +410,18 @@ export class MSService {
   //     }
   //   }, 3000);
   // }
-  public saveCvs(): Observable<any> {
-    this.tensionData.modes.forEach(name => {
-      this.recordData.cvsData.timeEnd = new Date().getTime();
-      this.recordData.cvsData.mpa[name].push(this.showValues[name].mpa);
-      this.recordData.cvsData.mm[name].push(this.showValues[name].mm);
-      this.recordData.liveMpaCvs.push({time: new Date().getTime(), type: name, value: this.showValues[name].mpa});
-      this.recordData.liveMmCvs.push({time: new Date().getTime(), type: name, value: this.showValues[name].mm});
-    });
-    return Observable.create((observer) => {
-      observer.next({mpa: this.recordData.liveMpaCvs, mm: this.recordData.liveMmCvs});
-    });
-  }
+  // public saveCvs(): Observable<any> {
+  //   this.tensionData.modes.forEach(name => {
+  //     this.recordData.cvsData.timeEnd = new Date().getTime();
+  //     this.recordData.cvsData.mpa[name].push(this.showValues[name].mpa);
+  //     this.recordData.cvsData.mm[name].push(this.showValues[name].mm);
+  //     this.recordData.liveMpaCvs.push({time: new Date().getTime(), type: name, value: this.showValues[name].mpa});
+  //     this.recordData.liveMmCvs.push({time: new Date().getTime(), type: name, value: this.showValues[name].mm});
+  //   });
+  //   return Observable.create((observer) => {
+  //     observer.next({mpa: this.recordData.liveMpaCvs, mm: this.recordData.liveMmCvs});
+  //   });
+  // }
   // public showCvs(): Observable<any> {
   // }
   private anew() {

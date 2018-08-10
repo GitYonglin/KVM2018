@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, Inject, ViewChild, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';
 import { HubConnectionBuilder, HubConnection } from '@aspnet/signalr';
 import { MSService } from '../../services/MS.service';
 import { setCvs } from '../../utils/cvsData';
@@ -9,7 +9,7 @@ import { Value2PLC } from '../../utils/PLC8Show';
   templateUrl: './tension.component.html',
   styleUrls: ['./tension.component.less']
 })
-export class TensionComponent implements OnInit, AfterViewInit {
+export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('cvs') elementCvs: ElementRef;
   heightCvs: any;
   widthCvs: any;
@@ -29,6 +29,19 @@ export class TensionComponent implements OnInit, AfterViewInit {
     unloadingDelay: 0,
   };
 
+  ngOnDestroy(): void {
+    console.log('自动结束');
+    this._ms.DF05(520, false);
+    this._ms.DF05(10, false);
+    this._ms.runTensionData = {
+      state: false,
+      stage: 0,
+      delayState: false,
+      stateOk: false,
+      LodOffTime: 0,
+      loadOffDelayState: false,
+    };
+  }
   constructor(
     public _ms: MSService
   ) { }
@@ -45,28 +58,20 @@ export class TensionComponent implements OnInit, AfterViewInit {
     this.autoControl.mmBalanceControl = this._ms.deviceParameter.mmBalanceControl;
     this.autoControl.mmReturnLowerLimit = this._ms.deviceParameter.mmReturnLowerLimit;
     this.autoControl.unloadingDelay = this._ms.deviceParameter.unloadingDelay;
+    this._ms.runTensionData.LodOffTime = this.autoControl.unloadingDelay;
   }
   ngAfterViewInit() {
     this.heightCvs = this.elementCvs.nativeElement.offsetHeight - 5;
     this.widthCvs = this.elementCvs.nativeElement.offsetWidth - 5;
     console.log(this.heightCvs, this.widthCvs);
   }
-  // getMpaCvs() {
-  //   console.log(setCvs(this._ms.recordData.cvsData, this._ms.recordData.mode, 'mpa'));
-  //   return setCvs(this._ms.recordData.cvsData, this._ms.recordData.mode, 'mpa');
-  // }
-  // getMmCvs() {
-  //   console.log(setCvs(this._ms.recordData.cvsData, this._ms.recordData.mode, 'mm'));
-  //   return setCvs(this._ms.recordData.cvsData, this._ms.recordData.mode, 'mm');
-  // }
-
   onCancelTension() {
     console.log('取消张拉');
     this.runTension.runState = false;
   }
   onRunTension() {
     console.log('启动张拉');
-    this._ms.saveCvs();
+    // this._ms.saveCvs();
     this._ms.connection.invoke('AutoF05', { mode: this._ms.tensionData.mode, address: 520, F05: true});
     this.runTension.runState = false;
     this._ms.runTensionData.state = true;
@@ -84,30 +89,6 @@ export class TensionComponent implements OnInit, AfterViewInit {
       console.log(r);
     });
   }
-  // setRecordData() {
-  //   const mpa = null;
-  //   this.tensionData.modes.forEach(name => {
-  //     this.tensionData.checkData.forEach(index => {
-  //       mpa[name] =
-  //     });
-  //   });
-  //   this._ms.recordData = {
-  //     stage: 0,
-  //     time: number[],
-  //     mpa: {
-  //       a1?: number[],
-  //       a2?: number[],
-  //       b1?: number[],
-  //       b2?: number[],
-  //     },
-  //     mm: {
-  //       a1?: number[],
-  //       a2?: number[],
-  //       b1?: number[],
-  //       b2?: number[],
-  //     }
-  //   };
-  // }
 
   F05(id, address, data) {
     this._ms.connection.invoke('F05', { Id: id, Address: address, F05: data });

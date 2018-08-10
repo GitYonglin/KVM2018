@@ -74,7 +74,7 @@ export class APIService {
         });
     });
   }
-  public http(type: string = 'post', fd: FormData, url: string, message: { success: string, error: string }):
+  public http(type: string = 'post', fd: any, url: string, message: { success: string, error: string }):
     Observable<{ state: string, data: any }> {
       return Observable.create((observer) => {
         this._http[type](`${this.config.uri}${url}`, fd, { headers: headers })
@@ -88,6 +88,7 @@ export class APIService {
             }
           }, (error) => {
             observer.next({ state: false, data: error });
+            console.error('API请求错误');
           });
       });
   }

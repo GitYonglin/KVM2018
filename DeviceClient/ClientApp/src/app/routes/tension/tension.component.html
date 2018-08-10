@@ -63,10 +63,10 @@
     </div>
     <div class="cvs">
       <div #cvs>
-        <app-canvas-cvs name="Mpa" [mode]="_ms.tensionData.modes" [data]="_ms.recordData.liveMpaCvs" *ngIf="heightCvs && _ms.runTensionData.state" [width]="widthCvs" [height]="heightCvs"></app-canvas-cvs>
+        <app-canvas-cvs name="Mpa" *ngIf="heightCvs && _ms.runTensionData.state" [width]="widthCvs" [height]="heightCvs"></app-canvas-cvs>
       </div>
       <div>
-        <app-canvas-cvs name="Mm" [mode]="_ms.tensionData.modes" [data]="_ms.recordData.liveMmCvs" *ngIf="heightCvs && _ms.runTensionData.state" [width]="widthCvs" [height]="heightCvs" title="位移曲线·mm"
+        <app-canvas-cvs name="Mm" *ngIf="heightCvs && _ms.runTensionData.state" [width]="widthCvs" [height]="heightCvs" title="位移曲线·mm"
           [yMax]="220" [ticks]="[0, 40, 80, 120, 160, 200, 240]"></app-canvas-cvs>
       </div>
     </div>

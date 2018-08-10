@@ -41,6 +41,7 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit {
   mountNode: ElementRef;
   chart: any;
   legendItems = [];
+  ms = 1000;
 
   @Input()
   height = '100%';
@@ -65,15 +66,17 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit {
     console.log(this.height, this.width);
   }
   ngAfterViewInit() {
-    if (this.name !== null) {
+    if (this.data === null) {
       this.saveCvs();
       this.setCvs();
       console.log('初始化曲线', this.data, this.chart);
     } else {
-      this.data = [];
-      this.data.push(...this.getRecord(-2));
-      this.data.push(...this.getRecord(-1));
-      this.data.push(...this.getRecord());
+      // this.data = [];
+      // this.data.push(...this.getRecord(-2));
+      // this.data.push(...this.getRecord(-1));
+      // this.data.push(...this.getRecord());
+      this.data = setCvs(this.data, this.name);
+      console.log(this.data);
     }
     this.chart = new Chart({
       // id: 'mountNode',
@@ -125,12 +128,13 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit {
     });
 
     this.chart.render();
-
+    // 测试动态曲线
     // setInterval(() => {
     //   this.data.push(...this.getRecord());
     //   this.chart.changeData(this.data);
     // }, 1000);
   }
+  // 自动张拉曲线监听
   setCvs() {
     console.log('监听曲线');
     setTimeout(() => {
@@ -138,15 +142,26 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit {
         this.saveCvs();
         this.setCvs();
       }
-    }, 3000);
+    }, this.ms);
   }
-  public saveCvs() {
+  // 自动张拉曲线监听
+  // liveCvs() {
+  //   console.log('监听曲线');
+  //   setTimeout(() => {
+  //     if (this._ms.runTensionData.state) {
+  //       this.saveCvs();
+  //       this.setCvs();
+  //     }
+  //   }, this.ms);
+  // }
+  public saveCvs(state = false) {
+    const showValue = this._ms.showValues;
     this._ms.tensionData.modes.forEach(name => {
       this._ms.recordData.cvsData.timeEnd = new Date().getTime();
-      this._ms.recordData.cvsData.mpa[name].push(this._ms.showValues[name].mpa);
-      this._ms.recordData.cvsData.mm[name].push(this._ms.showValues[name].mm);
-      this._ms.recordData.liveMpaCvs.push({time: new Date().getTime(), type: name, value: this._ms.showValues[name].mpa});
-      this._ms.recordData.liveMmCvs.push({time: new Date().getTime(), type: name, value: this._ms.showValues[name].mm});
+      this._ms.recordData.cvsData.mpa[name].push(showValue[name].mpa);
+      this._ms.recordData.cvsData.mm[name].push(showValue[name].mm);
+      this._ms.recordData.liveMpaCvs.push({time: new Date().getTime(), type: name, value: showValue[name].mpa});
+      this._ms.recordData.liveMmCvs.push({time: new Date().getTime(), type: name, value: showValue[name].mm});
     });
     if (this.chart) {
       this.chart.changeData(this._ms.recordData[`live${this.name}Cvs`]);
@@ -155,7 +170,7 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit {
       console.log('11111', this.data, this._ms.recordData[`live${this.name}Cvs`]);
     }
   }
-  // 添加数据，模拟数据，可以指定当前时间的偏移的秒
+  // 测试 添加数据，模拟数据，可以指定当前时间的偏移的秒
   getRecord(offset?) {
     offset = offset || 0;
     const time = new Date().getTime() + offset * 1000;
@@ -172,8 +187,5 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit {
         type: 'A2'
       }
     ];
-  }
-  getData() {
-    this.data = setCvs(this.data.data.cvsData, this.data.data.mode, this.data.key);
   }
 }

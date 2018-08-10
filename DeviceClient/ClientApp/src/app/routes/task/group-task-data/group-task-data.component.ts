@@ -4,6 +4,7 @@ import { constructHoleFromGroup, setHoleFormValue } from '../form.data';
 import { APIService } from '../../../services/api.service';
 import { newFormData } from '../../../utils/form/constructor-FormData';
 import { AppService } from '../../app.service';
+import { RecordData } from '../../../model/live.model';
 
 @Component({
   selector: 'app-group-task-data',
@@ -23,6 +24,7 @@ export class GroupTaskDataComponent implements OnInit {
     holeName: null,
   };
   nowTaskDataArr = [];
+  recordData: RecordData = null;
   holeFormGroup: FormGroup;
   holeFormTypes: any;
   holeSubscribe: any;
@@ -87,14 +89,18 @@ export class GroupTaskDataComponent implements OnInit {
   }
   // 切换张拉孔
   onSelectHoleRadio(id, state = false) {
+    this.recordData = null;
     if (id !== this.holeGroupId || state) {
       this._service.get(`/holeGroup/${id}`).subscribe(r => {
-        this.setFormValue(r);
+        console.log('切换空', r);
+        this.setFormValue(r.task);
+        this.recordData = r.record;
         this.holeGroupId = id;
       });
     }
     // this.holeGroupId = index;
   }
+  // 设置form值
   setFormValue(r) {
     const data = {};
     // tslint:disable-next-line:forin
@@ -138,6 +144,7 @@ export class GroupTaskDataComponent implements OnInit {
     this.funcModeStrArr();
     this.funcCountKM();
   }
+  // 数据编辑监控
   onHoleSubscribe() {
     this.holeSubscribe = this.holeFormGroup.valueChanges.subscribe((r) => {
       this.holeGroupEdit = true;
@@ -184,6 +191,7 @@ export class GroupTaskDataComponent implements OnInit {
       }
     });
   }
+  // 编辑修改数据
   setTensionStage(data, value) {
     delete data['tensionStageValue[3]'];
     delete data['tensionStageValue[4]'];
@@ -205,11 +213,13 @@ export class GroupTaskDataComponent implements OnInit {
       console.log('444444444444');
     }
   }
+  // 张拉模式获取
   funcModeStrArr() {
     const data = this.nowTaskData.mode;
     const mode = [['a1'], ['a1', 'a2'], ['b1'], ['b1', 'b2'], ['a1', 'a2', 'b1', 'b2']];
     this.modeStrArr = mode[data];
   }
+  // 编辑张拉阶段
   tensionStageArr() {
     let data = this.nowTaskData.tensionStage;
     if (this.nowTaskData.super) {
@@ -218,6 +228,7 @@ export class GroupTaskDataComponent implements OnInit {
     const r = Array.from(new Array(Number(data)), (v, i) => i);
     return r;
   }
+  // 压力转换
   funcCountKM() {
     const data = this.nowTaskData;
     const device = this.nowDevice;
@@ -256,10 +267,12 @@ export class GroupTaskDataComponent implements OnInit {
     this.countKM = { kn: kns, mpa: mpa };
     this.nowData.mpa = mpa;
   }
+  // 编辑张拉阶段二次张拉处理
   funcV1() {
     this.holeFormGroup.controls['tensionStageValue[1]'].setValue(this.holeFormGroup.controls['tensionStageValue[0]'].value * 2);
     this.funcCountKM();
   }
+  // 保存数据到数据库
   save() {
     console.log('保存');
     const fd = newFormData(this.nowTaskData);
@@ -273,6 +286,7 @@ export class GroupTaskDataComponent implements OnInit {
       }
     });
   }
+  // 取消编辑
   cancel() {
     console.log('取消');
     this.onSelectHoleRadio(this.holeGroupId, true);

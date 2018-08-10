@@ -14,6 +14,8 @@ namespace DeviceClient.Hubs
         private static ModbusSocket Z = null;
         private static ModbusSocket C = null;
         private static IHubCallerClients _clients = null;
+        private static bool LoadOffDelayState = false;
+        private static bool DelayState = false;
 
         public PLCHub()
         {
@@ -226,29 +228,64 @@ namespace DeviceClient.Hubs
             }
         }
         /// <summary>
-        /// 自动张拉延时
+        /// 自动保压延时
         /// </summary>
         /// <param name="time"></param>
         public void Delay(int time)
         {
-            int nowTime = 0;
-            Task.Run(() =>
+            if (!DelayState)
             {
-                while (time >= nowTime)
+                DelayState = true;
+                int nowTime = 0;
+                Task.Run(() =>
                 {
-                    if (time == nowTime)
+                    while (time >= nowTime)
                     {
-                        _clients.All.SendAsync("DelayOk", nowTime);
-                    }
-                    else
-                    {
-                        _clients.All.SendAsync("Delay", nowTime);
+                        if (time == nowTime)
+                        {
+                            _clients.All.SendAsync("DelayOk", nowTime);
+                            DelayState = false;
+                        }
+                        else
+                        {
+                            _clients.All.SendAsync("Delay", nowTime);
 
+                        }
+                        Thread.Sleep(1000);
+                        nowTime++;
                     }
-                    Thread.Sleep(1000);
-                    nowTime++;
-                }
-            });
+                });
+            }
+        }
+        /// <summary>
+        /// 自动卸荷延时
+        /// </summary>
+        /// <param name="time"></param>
+        public void LoadOffDelay(int time)
+        {
+            if (!LoadOffDelayState)
+            {
+                LoadOffDelayState = true;
+                int nowTime = 0;
+                Task.Run(() =>
+                {
+                    while (time >= nowTime)
+                    {
+                        if (time == nowTime)
+                        {
+                            _clients.All.SendAsync("LoadOffDelayOk", nowTime);
+                            LoadOffDelayState = false;
+                        }
+                        else
+                        {
+                            _clients.All.SendAsync("LoadOffDelay", nowTime);
+
+                        }
+                        Thread.Sleep(1000);
+                        nowTime++;
+                    }
+                });
+            }
         }
     }
     public class InPLC
