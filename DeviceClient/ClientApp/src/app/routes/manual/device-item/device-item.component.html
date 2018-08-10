@@ -1,6 +1,6 @@
 <nz-card *ngIf="data.state">
   <div class="item">
-    <h3>{{name}}</h3>
+    <h3>{{title}}</h3>
     <nz-input-group nzAddOnBefore="设备压力" nzAddOnAfter="Mpa" >
       <div class="input-progress">
         <nz-progress nz-tooltip [nzPercent]="_ms.showValues[name]?.mpa / _ms.deviceParameter.mpaUpperLimit * 100" [nzShowInfo]="false" [nzStrokeWidth]="32"></nz-progress>

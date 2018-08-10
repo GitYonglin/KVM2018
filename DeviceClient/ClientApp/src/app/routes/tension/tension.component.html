@@ -11,7 +11,7 @@
   <div>
     <header>
       <app-menu-button></app-menu-button>
-      <h1>梁:{{tensionData.bridgeName}} 孔号:{{tensionData.holeName}}</h1>
+      <h1>梁:{{_ms.tensionData.bridgeName}} 孔号:{{_ms.tensionData.holeName}}</h1>
       <div></div>
     </header>
     <hr>
@@ -19,10 +19,13 @@
   <main>
     <div>
       <header>
-        <div class="item" *ngFor="let item of tensionData.timePLC; index as i">
+        <nz-steps [nzCurrent]="0">
+          <nz-step [nzTitle]="'阶段' + i + _ms.recordData?.time[_ms.recordData.stage]" nzStatus="finish" nzIcon="anticon anticon-spin anticon-loading" *ngFor="let item of _ms.tensionData.checkData.time; index as i"></nz-step>
+        </nz-steps>
+        <!-- <div class="item" *ngFor="let item of tensionData.timePLC; index as i">
           <h4>阶段 {{i}} </h4>
           <span>正在张拉</span>
-        </div>
+        </div> -->
       </header>
       <hr>
     </div>
@@ -30,40 +33,107 @@
       <table border="1" cellspaning="0">
         <thead>
           <tr>
-            <th>设备</th>
-            <th>状态</th>
-            <th>压力MPa</th>
-            <th>绝对位移mm</th>
-            <th>张拉位移mm</th>
-            <th>单顶伸张量mm</th>
-            <th>总伸长量</th>
-            <th>偏差率</th>
+            <th width="80">设备</th>
+            <th >状态</th>
+            <th width="120">压力MPa</th>
+            <th width="120">目标压力</th>
+            <th width="120">绝对位移mm</th>
+            <th width="120">张拉位移mm</th>
+            <th width="120">单顶伸张量mm</th>
+            <th width="120">总伸长量</th>
+            <th width="120">偏差率</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let name of tensionData.modes">
+          <tr *ngFor="let name of _ms.tensionData.modes">
             <td>{{name}}</td>
-            <td>设备状态</td>
+            <td>{{_ms.showValues[name].state}}</td>
             <td>{{_ms.showValues[name].mpa}}</td>
+            <td>{{_ms.tensionData.checkData.mpa[name][_ms.recordData.stage]}}</td>
             <td>{{_ms.showValues[name].mm}}</td>
             <td>{{_ms.showValues[name].mm - 1}}</td>
             <td>{{_ms.showValues[name].mm - 2}}</td>
-            <td *ngIf="tensionData.modes.length === 1">{{_ms.showValues[name].mm + 3}}</td>
-            <td *ngIf="tensionData.modes.length === 1">1%</td>
-            <td *ngIf="tensionData.modes.length !== 1 && (name === 'a1' || name === 'b1')" rowspan="2">{{_ms.showValues[name].mm + 3}}</td>
-            <td *ngIf="tensionData.modes.length !== 1 && (name === 'a1' || name === 'b1')" rowspan="2">1%</td>
+            <td *ngIf="_ms.tensionData.modes.length === 1">{{_ms.showValues[name].mm + 3}}</td>
+            <td *ngIf="_ms.tensionData.modes.length === 1">1%</td>
+            <td *ngIf="_ms.tensionData.modes.length !== 1 && (name === 'a1' || name === 'b1')" rowspan="2">{{_ms.showValues[name].mm + 3}}</td>
+            <td *ngIf="_ms.tensionData.modes.length !== 1 && (name === 'a1' || name === 'b1')" rowspan="2">1%</td>
           </tr>
         </tbody>
       </table>
     </div>
     <div class="cvs">
       <div #cvs>
-        <app-canvas-cvs [mode]="tensionData.modes" [data]="getCvs()" *ngIf="heightCvs" [width]="widthCvs" [height]="heightCvs"></app-canvas-cvs>
+        <app-canvas-cvs name="Mpa" [mode]="_ms.tensionData.modes" [data]="_ms.recordData.liveMpaCvs" *ngIf="heightCvs && _ms.runTensionData.state" [width]="widthCvs" [height]="heightCvs"></app-canvas-cvs>
       </div>
       <div>
-        <app-canvas-cvs [mode]="tensionData.modes" [data]="getCvs()" *ngIf="heightCvs" [width]="widthCvs" [height]="heightCvs" title="位移曲线·mm"
+        <app-canvas-cvs name="Mm" [mode]="_ms.tensionData.modes" [data]="_ms.recordData.liveMmCvs" *ngIf="heightCvs && _ms.runTensionData.state" [width]="widthCvs" [height]="heightCvs" title="位移曲线·mm"
           [yMax]="220" [ticks]="[0, 40, 80, 120, 160, 200, 240]"></app-canvas-cvs>
       </div>
     </div>
   </main>
 </div>
+
+<!-- 张拉弹出框 -->
+<nz-modal [nzVisible]="runTension.runState" nzTitle="准备张拉·数据核对" nzWidth="auto" [nzFooter]="runFooter" [nzMaskClosable]="false"
+  nzClosable="false">
+  <nz-card nzTitle="控制参数">
+    <div class="run-main">
+      <nz-form-item>
+        <nz-input-group nzAddOnBefore="允许偏差率上限" nzAddOnAfter="%">
+          <input type="number" nz-input nzSize="large" [value]="autoControl.maximumDeviationRate" (change)="onSet(508, $event)">
+        </nz-input-group>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-input-group nzAddOnBefore="允许偏差率下限" nzAddOnAfter="%">
+          <input type="number" nz-input nzSize="large" [value]="autoControl.LowerDeviationRate" (change)="onSet(509, $event)">
+        </nz-input-group>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-input-group nzAddOnBefore="允许压力偏差" nzAddOnAfter="Mpa">
+          <input type="number" nz-input nzSize="large" [value]="autoControl.mpaDeviation" (change)="onSet(510, $event, 'mpa')">
+        </nz-input-group>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-input-group nzAddOnBefore="平衡控制" nzAddOnAfter="mm">
+          <input type="number" nz-input nzSize="large" [value]="autoControl.mmBalanceControl" (change)="onSet(511, $event, 'mm')">
+        </nz-input-group>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-input-group nzAddOnBefore="倒顶位移下限" nzAddOnAfter="mm">
+          <input type="number" nz-input nzSize="large" [value]="autoControl.mmReturnLowerLimit" (change)="onSet(512, $event, 'mm')">
+        </nz-input-group>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-input-group nzAddOnBefore="卸荷完成延时" nzAddOnAfter="s">
+          <input type="number" nz-input nzSize="large" [value]="autoControl.unloadingDelay" (change)="onSet(513, $event, 's')">
+        </nz-input-group>
+      </nz-form-item>
+    </div>
+  </nz-card>
+  <nz-card nzTitle="张拉参数">
+    <table border="1" cellspaning="0" class="check">
+      <tbody>
+        <tr >
+          <td>张拉阶段</td>
+          <td *ngFor="let item of _ms.tensionData.checkData.stage">{{item}}</td>
+        </tr>
+        <tr >
+          <td>张拉应力</td>
+          <td *ngFor="let item of _ms.tensionData.checkData.kn">{{item}}</td>
+        </tr>
+        <tr *ngFor="let name of _ms.tensionData.modes">
+          <td>{{name}}</td>
+          <td *ngFor="let item of _ms.tensionData.checkData.mpa[name]">{{item}}</td>
+        </tr>
+        <tr >
+            <td>保压时间</td>
+            <td *ngFor="let item of _ms.tensionData.checkData.time">{{item}}</td>
+          </tr>
+      </tbody>
+    </table>
+  </nz-card>
+  <ng-template #runFooter>
+    <button nz-button nzType="default" (click)="onCancelTension()">取 消</button>
+    <button nz-button nzType="primary" (click)="onRunTension()">启动张拉</button>
+  </ng-template>
+</nz-modal>

@@ -1,15 +1,16 @@
 import { deviceModes } from '../model/device.model';
+import { CvsData } from '../model/live.model';
 
-export function setCvs(d) {
+export function setCvs(d: CvsData, mode, key) {
   let time = null;
   const data = [];
-  for (const name of deviceModes[d.mode]) {
-    d[name].forEach((v, index) => {
-      time = d.stimeState + index * 1000 * d.step;
+  for (const name of deviceModes[mode]) {
+    d[key][name].forEach((v, index) => {
+      time = d.timeState + index * 1000 * d.skep;
       if (index === 0) {
-        time = d.stimeState;
+        time = d.timeState;
       }
-      if (d[name].length - 1 === index ) {
+      if (d[key][name].length - 1 === index ) {
         time = d.timeEnd;
       }
       data.push({time: time, value: v, type: name});

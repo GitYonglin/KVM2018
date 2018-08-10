@@ -19,6 +19,11 @@ main {
   flex-direction: column;
   header {
     height: 56px;
+    align-items: center;
+    nz-steps {
+      width: 100%;
+      padding: 0 15px;
+    }
     // flex: none;
     .item {
       flex: 1;
@@ -38,5 +43,21 @@ main {
     flex: 1;
     display: grid;
     grid-template-rows: 1fr 1fr;
+  }
+}
+
+.run-main {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    nz-form-item{
+      margin-left: 10px;
+      margin-right: 10px;
+    }
+}
+.check {
+  width: 100%;
+  text-align: center;
+  td {
+    height: 30px;
   }
 }

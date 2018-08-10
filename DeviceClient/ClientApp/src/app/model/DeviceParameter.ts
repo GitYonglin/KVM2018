@@ -32,15 +32,4 @@ export enum DeviceItemName {
   b1 = 'b1',
   b2 = 'b2'
 }
-export interface ShowValues {
-  a1: ValuesModel;
-  b1: ValuesModel;
-  a2: ValuesModel;
-  b2: ValuesModel;
-}
-interface ValuesModel {
-  mpa: number;
-  mm: number;
-  alarmNumber: number;
-  alarm: string[];
-}
+

@@ -15,6 +15,7 @@ import { ActivatedRoute, NavigationStart } from '@angular/router';
 import { Router } from '@angular/router';
 import { MSService } from '../../services/MS.service';
 import { deviceModes } from '../../model/device.model';
+import { RecordData } from '../../model/live.model';
 
 const baseUri = '/task';
 @Component({
@@ -48,8 +49,10 @@ export class TaskComponent implements OnInit, AfterViewInit {
   selectHoleGroup = null;
   copyState = false;
   runTension = {
+    alarmState: false,
     state: false,
     mode: null,
+    title: '',
   };
 
   constructor(
@@ -350,6 +353,14 @@ export class TaskComponent implements OnInit, AfterViewInit {
     this.onAdd();
   }
   onTension() {
+    console.log('aaaaaaaaaaaaaaaaaaaaaaaaaa', {
+        mpa: this.groupTaskElem.countKM.mpa,
+        kn: this.groupTaskElem.countKM.kn,
+        stage: this.groupTaskElem.dbData.tensionStageValue,
+        time: this.groupTaskElem.dbData.time
+      });
+    this.runTension.state = true;
+    this.runTension.title = '数据处理中...';
     this._ms.setDevice((state) => {
       if (state) {
         const tensionData = this.groupTaskElem.nowData;
@@ -358,11 +369,12 @@ export class TaskComponent implements OnInit, AfterViewInit {
         for (const name of this.runTension.mode) {
           console.log(name);
           if (this._ms.showValues[name].alarmNumber !== 0) {
-            this.runTension.state = true;
+            this.runTension.title = '设备状态有误，请检查设备！';
+            this.runTension.alarmState = true;
             return ;
           }
         }
-        this.runTension.state = false;
+        this.runTension.alarmState = false;
         const nowTensionData = {
           id: tensionData.id,
           holeName: tensionData.holeName,
@@ -370,24 +382,59 @@ export class TaskComponent implements OnInit, AfterViewInit {
           mode: tensionData.mode,
           modes: this.runTension.mode,
           mpaPLC: {
-            a1: [],
-            b1: [],
-            a2: [],
-            b2: [],
+            // a1: [],
+            // b1: [],
+            // a2: [],
+            // b2: [],
           },
-          timePLC: [],
+          // timePLC: [],
+          checkData: {
+            mpa: this.groupTaskElem.countKM.mpa,
+            kn: this.groupTaskElem.countKM.kn,
+            stage: this.groupTaskElem.dbData.tensionStageValue,
+            time: this.groupTaskElem.dbData.time
+          }
+        };
+        const recordData: RecordData = {
+          stage: 0,
+          time: [],
+          mode: tensionData.mode,
+          mpa: {},
+          mm: {},
+          cvsData: {
+            timeState: new Date().getTime(),
+            timeEnd: new Date().getTime(),
+            skep: 3,
+            mpa: {},
+            mm: {},
+          },
+          liveMpaCvs: [],
+          liveMmCvs: [],
         };
         for (const name of this.runTension.mode) {
+          recordData.mm[name] = [];
+          recordData.mpa[name] = [];
+          recordData.cvsData.mpa[name] = [0];
+          recordData.cvsData.mm[name] = [0];
+          nowTensionData.mpaPLC[name] = [];
+          // recordData.liveCvs.push({time: new Date().getTime(), type: name, value: 0});
           for (const mpa of tensionData.mpa[name]) {
             nowTensionData.mpaPLC[name].push(this._ms.Value2PLC(mpa, 'mpa', name));
+            recordData.mm[name].push(0);
+            recordData.mpa[name].push(0);
           }
         }
-        for (const time of tensionData.time) {
-          nowTensionData.timePLC.push(time * 10);
-        }
+        // for (const time of tensionData.time) {
+        //   nowTensionData.timePLC.push(time * 10);
+        // }
         localStorage.setItem('nowTensionData', JSON.stringify(nowTensionData));
-        console.log('启动张拉', tensionData, nowTensionData);
-        this._router.navigate(['/tension']);
+        console.log('张拉数据', tensionData, nowTensionData, recordData);
+        this._ms.recordData = recordData;
+        this._ms.tensionData = nowTensionData;
+        this.runTension.title = '数据处理完成！';
+        setTimeout(() => {
+          this._router.navigate(['/tension']);
+        }, 500);
       } else {
         console.log('设备链接异常');
       }

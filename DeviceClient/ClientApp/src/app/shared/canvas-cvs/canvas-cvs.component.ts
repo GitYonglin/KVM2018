@@ -1,9 +1,11 @@
 import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, Input } from '@angular/core';
 import { F2, Chart, Animate } from '@antv/f2';
 import { deviceModes } from '../../model/device.model';
+import { setCvs } from '../../utils/cvsData';
+import { MSService } from '../../services/MS.service';
 
 // 自定义线图变更动画
-Animate.registerAnimation('lineUpdate', function(updateShape, animateCfg) {
+Animate.registerAnimation('lineUpdate', function (updateShape, animateCfg) {
   const cacheShape = updateShape.get('cacheShape'); // 该动画 shape 的前一个状态
   const cacheAttrs = cacheShape.attrs; // 上一个 shape 属性
   const oldPoints = cacheAttrs.points; // 上一个状态的关键点
@@ -36,37 +38,43 @@ Animate.registerAnimation('lineUpdate', function(updateShape, animateCfg) {
 
 export class CanvasCvsComponent implements OnInit, AfterViewInit {
   @ViewChild('mountNode')
-    mountNode: ElementRef;
-    chart: any;
-    legendItems = [];
+  mountNode: ElementRef;
+  chart: any;
+  legendItems = [];
 
   @Input()
-    height = '100%';
+  height = '100%';
   @Input()
-    width = 100;
+  width = '100%';
   @Input()
-    data = [];
+  data = null;
   @Input()
-    title = '压力曲线·Mpa';
+  title = '压力曲线·Mpa';
   @Input()
-    yMax = 60;
+  yMax = 60;
   @Input()
-    ticks = [0, 10, 20, 30, 40, 50, 60];
+  ticks = [0, 10, 20, 30, 40, 50, 60];
   @Input()
-    mode = [];
+  mode = [];
+  @Input()
+  name = null;
 
-  constructor() { }
+  constructor(private _ms: MSService) { }
 
   ngOnInit() {
     console.log(this.height, this.width);
   }
   ngAfterViewInit() {
-    if (this.data.length === 0) {
+    if (this.name !== null) {
+      this.saveCvs();
+      this.setCvs();
+      console.log('初始化曲线', this.data, this.chart);
+    } else {
+      this.data = [];
       this.data.push(...this.getRecord(-2));
       this.data.push(...this.getRecord(-1));
       this.data.push(...this.getRecord());
     }
-
     this.chart = new Chart({
       // id: 'mountNode',
       el: this.mountNode.nativeElement,
@@ -83,8 +91,8 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit {
       value: {
         // tickCount: 8,
         // max: this.yMax,
-        ticks: this.ticks,
-        min: 0
+        // ticks: this.ticks,
+        // min: 0
       }
     };
     this.chart.source(this.data, defs);
@@ -123,6 +131,30 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit {
     //   this.chart.changeData(this.data);
     // }, 1000);
   }
+  setCvs() {
+    console.log('监听曲线');
+    setTimeout(() => {
+      if (this._ms.runTensionData.state) {
+        this.saveCvs();
+        this.setCvs();
+      }
+    }, 3000);
+  }
+  public saveCvs() {
+    this._ms.tensionData.modes.forEach(name => {
+      this._ms.recordData.cvsData.timeEnd = new Date().getTime();
+      this._ms.recordData.cvsData.mpa[name].push(this._ms.showValues[name].mpa);
+      this._ms.recordData.cvsData.mm[name].push(this._ms.showValues[name].mm);
+      this._ms.recordData.liveMpaCvs.push({time: new Date().getTime(), type: name, value: this._ms.showValues[name].mpa});
+      this._ms.recordData.liveMmCvs.push({time: new Date().getTime(), type: name, value: this._ms.showValues[name].mm});
+    });
+    if (this.chart) {
+      this.chart.changeData(this._ms.recordData[`live${this.name}Cvs`]);
+    } else {
+      this.data = this._ms.recordData[`live${this.name}Cvs`];
+      console.log('11111', this.data, this._ms.recordData[`live${this.name}Cvs`]);
+    }
+  }
   // 添加数据，模拟数据，可以指定当前时间的偏移的秒
   getRecord(offset?) {
     offset = offset || 0;
@@ -142,6 +174,6 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit {
     ];
   }
   getData() {
-    console.log(this.data);
+    this.data = setCvs(this.data.data.cvsData, this.data.data.mode, this.data.key);
   }
 }

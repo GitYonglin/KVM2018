@@ -95,7 +95,8 @@
 <!-- 张拉弹出框 -->
 <nz-modal [nzVisible]="runTension.state" nzTitle="设备状态" nzWidth="auto" (nzOnCancel)="runTension.state = false" [nzMaskClosable]="false"
   (nzOnOk)="runTensionOk()">
-  <div class="alarm">
+  <h3>{{runTension.title}}</h3>
+  <div class="alarm" *ngIf="runTension.alarmState">
     <div *ngFor="let name of runTension.mode">
       <div *ngIf="_ms.showValues[name].alarmNumber">
         <nz-card [nzTitle]="name + '状态'">

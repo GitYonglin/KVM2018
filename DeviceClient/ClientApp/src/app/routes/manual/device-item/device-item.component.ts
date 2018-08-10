@@ -1,6 +1,4 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { Value2PLC } from '../../../utils/PLC8Show';
-import { DeviceParameter, ShowValues } from '../../../model/DeviceParameter';
 import { MSService } from '../../../services/MS.service';
 
 @Component({
@@ -11,6 +9,8 @@ import { MSService } from '../../../services/MS.service';
 export class DeviceItemComponent implements OnInit {
   @Input()
   name: string;
+  @Input()
+  title: string;
   @Input()
   data: any;
   @Input()

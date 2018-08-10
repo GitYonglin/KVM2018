@@ -84,6 +84,26 @@ namespace DeviceClient.Hubs
             C.F05(PLCSite.M(data.Address), data.F05, null);
             return true;
         }
+        /// <summary>
+        /// 自动张拉F05
+        /// </summary>
+        /// <param name="mode"></param>
+        /// <returns></returns>
+        public Boolean AutoF05(InPLC data)
+        {
+            switch (data.Mode)
+            {
+                case 1:
+                case 3:
+                case 4:
+                    C.F05(PLCSite.M(data.Address), data.F05, null);
+                    break;
+                default:
+                    break;
+            }
+            Z.F05(PLCSite.M(data.Address), data.F05, null);
+            return true;
+        }
         public void F06(InPLC data)
         {
 
@@ -125,6 +145,11 @@ namespace DeviceClient.Hubs
                 _clients.All.SendAsync("Send", new { Id = id, Message = message });
             }
         }
+        /// <summary>
+        /// 心跳连接
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="message"></param>
         public void ModbusLinkSuccess(string id, string message)
         {
             var device = Z;
@@ -200,6 +225,31 @@ namespace DeviceClient.Hubs
                 return false;
             }
         }
+        /// <summary>
+        /// 自动张拉延时
+        /// </summary>
+        /// <param name="time"></param>
+        public void Delay(int time)
+        {
+            int nowTime = 0;
+            Task.Run(() =>
+            {
+                while (time >= nowTime)
+                {
+                    if (time == nowTime)
+                    {
+                        _clients.All.SendAsync("DelayOk", nowTime);
+                    }
+                    else
+                    {
+                        _clients.All.SendAsync("Delay", nowTime);
+
+                    }
+                    Thread.Sleep(1000);
+                    nowTime++;
+                }
+            });
+        }
     }
     public class InPLC
     {
@@ -209,6 +259,7 @@ namespace DeviceClient.Hubs
         public int F01 { get; set; }
         public int F06 { get; set; }
         public int F03 { get; set; }
+        public int Mode { get; set; }
     }
     public class SetDeviceParameterData
     {

@@ -30,6 +30,7 @@ export class GroupTaskDataComponent implements OnInit {
   countKM: any;
   modeStrArr: any;
   holeGroupEdit = false;
+  dbData: any;
 
   constructor(
     private _service: APIService,
@@ -86,7 +87,6 @@ export class GroupTaskDataComponent implements OnInit {
   }
   // 切换张拉孔
   onSelectHoleRadio(id, state = false) {
-    console.log(id);
     if (id !== this.holeGroupId || state) {
       this._service.get(`/holeGroup/${id}`).subscribe(r => {
         this.setFormValue(r);
@@ -97,7 +97,6 @@ export class GroupTaskDataComponent implements OnInit {
   }
   setFormValue(r) {
     const data = {};
-    console.log(r);
     // tslint:disable-next-line:forin
     for (const key in r) {
       switch (key) {
@@ -125,6 +124,7 @@ export class GroupTaskDataComponent implements OnInit {
       }
     }
     console.log('张拉数据', r, data);
+    this.dbData = r;
     this.nowTaskData = data;
     this.nowData.holeName = r.name;
     this.nowData.id = r.id;
@@ -145,7 +145,6 @@ export class GroupTaskDataComponent implements OnInit {
       if (this.holeGroupId !== null) {
         const data = this.nowTaskData;
         const formGroupValue = this.holeFormGroup.controls;
-        console.log(data);
         // tslint:disable-next-line:forin
         for (const key in data) {
           switch (key) {
@@ -183,7 +182,6 @@ export class GroupTaskDataComponent implements OnInit {
           }
         }
       }
-      console.log(this.nowTaskData);
     });
   }
   setTensionStage(data, value) {
