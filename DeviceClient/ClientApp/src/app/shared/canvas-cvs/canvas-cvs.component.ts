@@ -75,8 +75,13 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit {
       // this.data.push(...this.getRecord(-2));
       // this.data.push(...this.getRecord(-1));
       // this.data.push(...this.getRecord());
+      // tslint:disable-next-line:forin
+      for (const name in this.data.mm) {
+        this.data.mm[name].shift();
+        // console.log('4444444444444444444444444444444444444444', this.data.mm[name], this.data.mm[name].shift());
+      }
       this.data = setCvs(this.data, this.name);
-      console.log(this.data);
+      // console.log('44444444', this.data);
     }
     this.chart = new Chart({
       // id: 'mountNode',

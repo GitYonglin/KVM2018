@@ -399,7 +399,8 @@ export class TaskComponent implements OnInit, AfterViewInit {
             kn: this.groupTaskElem.countKM.kn,
             stage: this.groupTaskElem.dbData.tensionStageValue,
             time: this.groupTaskElem.dbData.time
-          }
+          },
+          taskSum: {}
         };
         const recordData: RecordData = {
           id: this.groupTaskElem.holeGroupId,
@@ -428,18 +429,41 @@ export class TaskComponent implements OnInit, AfterViewInit {
           // recordData.liveCvs.push({time: new Date().getTime(), type: name, value: 0});
           for (const mpa of tensionData.mpa[name]) {
             nowTensionData.mpaPLC[name].push(this._ms.Value2PLC(mpa, 'mpa', name));
+            nowTensionData.taskSum[name] = this.groupTaskElem.nowSumData[name];
             recordData.mm[name].push(0);
             recordData.mpa[name].push(0);
             recordData.returnStart[name] = { mpa: 0, mm: 0};
           }
         }
+        let liveState = [];
+        switch (Number(this.groupTaskElem.nowTaskData.tensionStage)) {
+          case 3:
+          liveState = ['初张拉', '阶段一', '终张拉'];
+          recordData.time = [0, 0, 0];
+          break;
+          case 4:
+          liveState = ['初张拉', '阶段一', '阶段二', '终张拉'];
+          recordData.time = [0, 0, 0, 0];
+          break;
+          case 5:
+          liveState = ['初张拉', '阶段一', '阶段二', '阶段三', '终张拉'];
+          recordData.time = [0, 0, 0, 0, 0];
+          break;
+          default:
+          break;
+        }
+        console.log(Number(this.groupTaskElem.nowTaskData.tensionStage), liveState, '555555555555555555555555');
+        if (this.groupTaskElem.nowTaskData.super) {
+          liveState.push('超张拉');
+        }
         // for (const time of tensionData.time) {
         //   nowTensionData.timePLC.push(time * 10);
         // }
         localStorage.setItem('nowTensionData', JSON.stringify(nowTensionData));
-        console.log('张拉数据', tensionData, nowTensionData, recordData);
+        console.log('张拉数据', tensionData, nowTensionData, recordData, liveState);
         this._ms.recordData = recordData;
         this._ms.tensionData = nowTensionData;
+        this._ms.liveState = liveState;
         this.runTension.title = '数据处理完成！';
         setTimeout(() => {
           this._router.navigate(['/tension']);

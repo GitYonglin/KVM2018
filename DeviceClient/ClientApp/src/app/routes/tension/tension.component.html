@@ -18,14 +18,35 @@
   </div>
   <main>
     <div>
-      <header>
-        <nz-steps [nzCurrent]="0">
-          <nz-step [nzTitle]="'阶段' + i + _ms.recordData?.time[_ms.recordData.stage]" nzStatus="finish" nzIcon="anticon anticon-spin anticon-loading" *ngFor="let item of _ms.tensionData.checkData.time; index as i"></nz-step>
-        </nz-steps>
-        <!-- <div class="item" *ngFor="let item of tensionData.timePLC; index as i">
-          <h4>阶段 {{i}} </h4>
-          <span>正在张拉</span>
-        </div> -->
+      <header class="live-stage">
+        <div *ngFor="let item of _ms.liveState; index as i" class="item">
+          <div class="top">
+            <button nz-button [nzType]=" _ms.recordData.stage >= i ? 'primary': 'dashed'" nzShape="circle">{{item}}</button>
+            <nz-progress [nzPercent]="(_ms.recordData.time[i] / _ms.tensionData.checkData.time[i]) * 100"  [nzStatus]="'active'" [nzShowInfo]="false" ></nz-progress>
+            <span>{{_ms.recordData.time[i]}} / {{_ms.tensionData.checkData.time[i]}}</span>
+          </div>
+          <div class="bottom">
+            <p>延时30/30</p>
+          </div>
+        </div>
+        <div class="item">
+            <div class="top">
+              <button nz-button [nzType]=" _ms.runTensionData.loadOffDelayState ? 'primary': 'dashed'" nzShape="circle">卸荷</button>
+              <nz-progress [nzPercent]="(_ms.runTensionData.nowLodOffTime / _ms.runTensionData.LodOffTime) *100"  [nzStatus]="'active'" [nzShowInfo]="false" ></nz-progress>
+              <span >{{_ms.runTensionData.nowLodOffTime}} / {{_ms.runTensionData.LodOffTime}}</span>
+            </div>
+            <div class="bottom" >
+              <p>延时30/30</p>
+            </div>
+          </div>
+          <div style="flex: 0;" class="item">
+            <div class="top">
+              <button nz-button  nzShape="circle">回程</button>
+            </div>
+          </div>
+        <!-- <nz-steps [nzCurrent]="_ms.recordData.stage">
+          <nz-step [nzTitle]="item" *ngFor="let item of _ms.liveState; index as i"></nz-step>
+        </nz-steps> -->
       </header>
       <hr>
     </div>
@@ -38,7 +59,6 @@
             <th width="120">压力MPa</th>
             <th width="120">目标压力</th>
             <th width="120">绝对位移mm</th>
-            <th width="120">张拉位移mm</th>
             <th width="120">单顶伸张量mm</th>
             <th width="120">总伸长量</th>
             <th width="120">偏差率</th>
@@ -51,12 +71,11 @@
             <td>{{_ms.showValues[name].mpa}}</td>
             <td>{{_ms.tensionData.checkData.mpa[name][_ms.recordData.stage]}}</td>
             <td>{{_ms.showValues[name].mm}}</td>
-            <td>{{_ms.showValues[name].mm - 1}}</td>
-            <td>{{_ms.showValues[name].mm - 2}}</td>
-            <td *ngIf="_ms.tensionData.modes.length === 1">{{_ms.showValues[name].mm + 3}}</td>
-            <td *ngIf="_ms.tensionData.modes.length === 1">1%</td>
-            <td *ngIf="_ms.tensionData.modes.length !== 1 && (name === 'a1' || name === 'b1')" rowspan="2">{{_ms.showValues[name].mm + 3}}</td>
-            <td *ngIf="_ms.tensionData.modes.length !== 1 && (name === 'a1' || name === 'b1')" rowspan="2">1%</td>
+            <td>{{_ms.liveSum?  _ms.liveSum[name].mm : null}}</td>
+            <td *ngIf="_ms.tensionData.modes.length === 1">{{_ms.liveSum? _ms.liveSum[name]?.sum : null}}</td>
+            <td *ngIf="_ms.tensionData.modes.length === 1">{{_ms.liveSum? _ms.liveSum[name]?.deviation : null}}%</td>
+            <td *ngIf="_ms.tensionData.modes.length !== 1 && (name === 'a1' || name === 'b1')" rowspan="2">{{_ms.liveSum? _ms.liveSum[name]?.sum : null}}</td>
+            <td *ngIf="_ms.tensionData.modes.length !== 1 && (name === 'a1' || name === 'b1')" rowspan="2">{{_ms.liveSum? _ms.liveSum[name]?.deviation : null}}%</td>
           </tr>
         </tbody>
       </table>

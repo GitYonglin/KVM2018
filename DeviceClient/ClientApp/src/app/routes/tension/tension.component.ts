@@ -39,6 +39,7 @@ export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
       delayState: false,
       stateOk: false,
       LodOffTime: 0,
+      nowLodOffTime: 0,
       loadOffDelayState: false,
     };
   }
@@ -50,7 +51,7 @@ export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
     // this.tensionData = JSON.parse(localStorage.getItem('nowTensionData'));
     // this._ms.tensionData = this.tensionData;
     // console.log(this.tensionData);
-    console.log('预备', this._ms.tensionData, this._ms.runTensionData, this._ms.recordData);
+    console.log('预备', this._ms.tensionData, this._ms.runTensionData, this._ms.recordData, this._ms.deviceParameter);
     this._ms.upPLC();
     this.autoControl.maximumDeviationRate = this._ms.deviceParameter.maximumDeviationRate;
     this.autoControl.LowerDeviationRate = this._ms.deviceParameter.LowerDeviationRate;

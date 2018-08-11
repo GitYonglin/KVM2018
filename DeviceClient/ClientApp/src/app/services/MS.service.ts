@@ -3,7 +3,7 @@ import { HubConnectionBuilder, HubConnection } from '@aspnet/signalr';
 import { DeviceParameter, ConversionName, DeviceItemName } from '../model/DeviceParameter';
 import { PLC2Value, PLC100ms2s, Value2PLC } from '../utils/PLC8Show';
 import { APIService } from './api.service';
-import { ShowValues, autoState, RecordData } from '../model/live.model';
+import { ShowValues, autoState, RecordData, SumData, funcSumData } from '../model/live.model';
 import { Observable } from 'rxjs';
 import { newFormData } from '../utils/form/constructor-FormData';
 
@@ -36,6 +36,7 @@ export class MSService {
     delayState: false,
     stateOk: false,
     LodOffTime: 0,
+    nowLodOffTime: 0,
     loadOffDelayState: false,
   };
   public tensionData: any;
@@ -71,6 +72,8 @@ export class MSService {
       state: autoState[0]
     },
   };
+  public liveSum: SumData;
+  public liveState: any;
 
   constructor(
     @Inject('BASE_CONFIG') private config,
@@ -110,6 +113,9 @@ export class MSService {
       const connection = new HubConnectionBuilder().withUrl('/PLC').build();
       connection.start().then(r => {
         this.setDevice();
+        connection.invoke('Init');
+        // 获取设备参数
+        connection.invoke('GetDeviceParameter');
         // 监听连接状态
         connection.on('Send', data => {
           // console.log(data);
@@ -165,16 +171,15 @@ export class MSService {
         });
         // 监听卸荷延时
         connection.on('LoadOffDelay', data => {
-          this.recordData.time[this.recordData.stage] = data;
+          this.runTensionData.nowLodOffTime = data;
           console.log('卸荷延时', data);
         });
         // 监听保压完成
         connection.on('LoadOffDelayOk', data => {
           console.log('卸荷延时完成');
           // tslint:disable-next-line:forin
-          for (const name in this.recordData.returnStart) {
-            this.recordData.returnStart[name].mpa = this.showValues[name].mpa;
-            this.recordData.returnStart[name].mpa = this.showValues[name].mm;
+          for (const name in this.recordData.mm) {
+            this.recordData.returnStart[name] = {mpa: this.showValues[name].mpa, mm: this.showValues[name].mm};
           }
           this.saveRecordDb();
           this.autoReturn();
@@ -182,14 +187,12 @@ export class MSService {
         // 监听获取plc设置
         connection.on('DeviceParameter', rData => {
           if (rData.name === '主站') {
-            console.log('主站', rData.data);
+            console.log('监听获取plc设置', rData.data);
             this.setDeviceParameterValue(rData.data);
           } else {
             console.log('从站', rData.data);
           }
         });
-        connection.invoke('Init');
-        connection.invoke('GetDeviceParameter');
         this.connection = connection;
         console.log('链接成功', this.connection);
       }).catch((error) => {
@@ -338,13 +341,19 @@ export class MSService {
     console.log('下载数据到PLC', t, index, data, this.tensionData.checkData.time[this.runTensionData.stage]);
     this.connection.invoke('Tension', data);
   }
-  // 保存张拉数据
+  // 实时保存张拉数据
   private saveRecord() {
     const modes = this.tensionData.modes;
+    const sumData = {};
     modes.forEach(name => {
       this.recordData.mpa[name][this.recordData.stage] = this.showValues[name].mpa;
       this.recordData.mm[name][this.recordData.stage] = this.showValues[name].mm;
+      sumData[name] = this.recordData.mm[name];
     });
+    // 实时计算位移偏差率
+    if (this.recordData.stage > 0) {
+      this.liveSum = funcSumData(sumData, this.tensionData.taskSum);
+    }
   }
   // 自动张拉监控
   private autoMonitoring() {

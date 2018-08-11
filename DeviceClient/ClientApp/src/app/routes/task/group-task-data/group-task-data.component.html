@@ -168,31 +168,31 @@
             </td>
             <td>
               <nz-input-group nzAddOnAfter="Mpa">
-                <input nz-input value="mpa">
+                <input nz-input [value]="recordData.returnStart?.a1.mpa">
               </nz-input-group>
               <nz-input-group nzAddOnAfter="mm">
-                <input nz-input value="mm">
+                <input nz-input [value]="recordData.returnStart?.a1.mm">
               </nz-input-group>
             </td>
             <td >
               <nz-input-group nzAddOnAfter="mm">
-                <input nz-input style="height: 68px;" value="回缩">
+                <input nz-input style="height: 68px;" [value]="recordRetraction[item]">
               </nz-input-group>
             </td>
             <td  *ngIf="modeStrArr.length === 1" >
               <nz-input-group nzAddOnAfter="mm">
-                <input nz-input value="总伸长量">
+                <input nz-input [value]="recordSum[item].sum">
               </nz-input-group>
               <nz-input-group nzAddOnAfter="%">
-                <input nz-input value="偏差">
+                <input nz-input [value]="recordSum[item].deviation">
               </nz-input-group>
             </td>
             <td  rowspan="2" *ngIf="modeStrArr.length !== 1 && (item === 'a1' || item === 'b1')" >
               <nz-input-group nzAddOnAfter="mm">
-                <input nz-input style="height: 68px;" value="总伸长量">
+                <input nz-input style="height: 68px;" [value]="recordSum[item].sum">
               </nz-input-group>
               <nz-input-group nzAddOnAfter="%">
-                <input nz-input style="height: 68px;" value="偏差">
+                <input nz-input style="height: 68px;" [value]="recordSum[item].deviation">
               </nz-input-group>
             </td>
           </tr>

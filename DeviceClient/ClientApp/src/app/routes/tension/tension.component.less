@@ -17,24 +17,6 @@ main {
   flex: 1;
   display: flex;
   flex-direction: column;
-  header {
-    height: 56px;
-    align-items: center;
-    nz-steps {
-      width: 100%;
-      padding: 0 15px;
-    }
-    // flex: none;
-    .item {
-      flex: 1;
-      border-radius: 100%;
-      display: flex;
-      border: 2px solid rgb(0, 128, 0);
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-  }
   table {
     width: 100%;
     text-align: center;
@@ -59,5 +41,38 @@ main {
   text-align: center;
   td {
     height: 30px;
+  }
+}
+
+.live-stage {
+  display: flex;
+  height: 56px;
+  .item {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    flex: 1;
+    .top {
+      width: 100%;
+      display: flex;
+      position: relative;
+      align-items: center;
+      nz-progress {
+        width: 100%;
+      }
+      button{
+        width: auto;
+        padding: 1px 5px;
+      }
+      span {
+        position: absolute;
+        top: 0;
+        left: 50%;
+      }
+
+    }
+    .text {
+      padding-left: 10px;
+    }
   }
 }

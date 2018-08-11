@@ -34,10 +34,10 @@ namespace KVM.entity
     }
     public class ReturnStart
     {
-        public ReturnStart A1 { get; set; }
-        public ReturnStart A2 { get; set; }
-        public ReturnStart B1 { get; set; }
-        public ReturnStart B2 { get; set; }
+        public ReturnStartItem A1 { get; set; }
+        public ReturnStartItem A2 { get; set; }
+        public ReturnStartItem B1 { get; set; }
+        public ReturnStartItem B2 { get; set; }
     }
     public class ReturnStartItem
     {
