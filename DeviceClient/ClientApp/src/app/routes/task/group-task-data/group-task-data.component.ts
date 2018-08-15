@@ -36,6 +36,7 @@ export class GroupTaskDataComponent implements OnInit {
   modeStrArr: any;
   holeGroupEdit = false;
   dbData: any;
+  showCvs = false;
 
   constructor(
     private _service: APIService,
@@ -93,6 +94,7 @@ export class GroupTaskDataComponent implements OnInit {
   // 切换张拉孔
   onSelectHoleRadio(id, state = false) {
     this.recordData = null;
+    this.showCvs = false;
     if (id !== this.holeGroupId || state) {
       this._service.get(`/holeGroup/${id}`).subscribe(r => {
         this.setFormValue(r.task);

@@ -8,6 +8,7 @@ namespace KVM.entity
     {
         public string Id { get; set; }
         public int Stage { get; set; }
+        public int State { get; set; }
         public IEnumerable<int> Time { get; set; }
         public int Mode { get; set; }
         public RecordMode Mpa { get; set; }

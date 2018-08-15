@@ -1,4 +1,4 @@
-export function Value2PLC(value: number, sensor: number, MpaMm: number = 5,  correction: number[] = null): number {
+export function Value2PLC(value: number, sensor: number, MpaMm: number = 5, correction: number[] = null): number {
   // return Math.round(value * sensor) || 0;
   const item = value * sensor;
   // console.log('88888888', correction, correction[Math.round(value / 40)]);
@@ -24,3 +24,6 @@ export function Value2PLC100ms(PLCValue: number): number {
   return Math.round(PLCValue * 10) || 0;
 }
 
+export function PLCM(address: number): number {
+  return 2048 + address;
+}

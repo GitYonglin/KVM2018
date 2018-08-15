@@ -110,8 +110,9 @@ export class TaskComponent implements OnInit, AfterViewInit {
    * @memberof ProjectComponent
    */
   menuSwitch() {
+    console.log(`${baseUri}/${this.LeftMenu.bridgeId}`);
     this._servers.get(`${baseUri}/${this.LeftMenu.bridgeId}`).subscribe(r => {
-      console.log(r, r.holeGroups);
+      console.log('切换梁数据', r);
       setFromValue(r, this.formGroup);
       this.nowData = r;
       this.nowDevice = { device: r.device };
@@ -404,6 +405,7 @@ export class TaskComponent implements OnInit, AfterViewInit {
         };
         const recordData: RecordData = {
           id: this.groupTaskElem.holeGroupId,
+          state: 0,
           stage: 0,
           time: [],
           mode: tensionData.mode,
@@ -412,7 +414,7 @@ export class TaskComponent implements OnInit, AfterViewInit {
           cvsData: {
             timeState: new Date().getTime(),
             timeEnd: new Date().getTime(),
-            skep: 3,
+            skep: 1,
             mpa: {},
             mm: {},
           },

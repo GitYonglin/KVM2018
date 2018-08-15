@@ -6,16 +6,16 @@ namespace Modbus.ASCII
 {
     public static class ReceiveData
     {
-        public static object F05(byte[] types)
+        public static bool F05(byte[] types)
         {
             //var v = data.Substring(9).Substring(0, 1);
-            return (object)(types[9] == 'F');
+            return types[9] == 'F';
         }
         public static object F01(byte[] types)
         {
             return (object)new Boolean[] { true, false, true };
         }
-        public static object F03(byte[] types, int number)
+        public static List<int> F03(byte[] types, int number)
         {
             List<int> rList = new List<int>();
             var str = Encoding.ASCII.GetString(types);

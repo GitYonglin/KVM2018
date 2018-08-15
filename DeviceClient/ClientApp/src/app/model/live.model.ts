@@ -1,7 +1,10 @@
 import { N2F } from '../utils/toFixed';
 
 export const manualState = ['待机', '张拉中', '卸荷中', '回程中', '保压'];
-export const autoState = ['待机', '张拉中', '卸荷中', '回程中', '保压', '卸荷完成', '补压', '压力确认', '回顶', '回顶完成'];
+export const autoState = ['待机', '张拉中', '卸荷中', '回程中', '保压', '卸荷完成', '补压', '压力确认', '回顶', '回顶完成', '平衡暂停',
+                          '11', '12', '13', '14', '15', '16', '17', '18', '19',
+                          '张拉暂停'
+];
 export const liveState = ['初张拉', '阶段一', '阶段二', '阶段三', '终张拉', '超张拉', '卸荷', '回程'];
 export interface ShowValues {
   a1: ShowValuesItem;
@@ -10,6 +13,7 @@ export interface ShowValues {
   b2: ShowValuesItem;
 }
 interface ShowValuesItem {
+  plcMpa: number;
   mpa: number;
   mm: number;
   alarmNumber: number;
@@ -19,6 +23,7 @@ interface ShowValuesItem {
 
 export interface RecordData {
   id: string;
+  state: number;
   stage: number;
   time: number[];
   mode: number;
@@ -72,7 +77,7 @@ interface SumItem {
 }
 // 伸长量 = 100% - 10% + %20 - 10% - 内缩值 - 工作端伸长量
 // 偏差率 = (总伸长量 - 理论伸长量) / 理论伸长量 * 100
-export function funcSumData(mm, task): SumData {
+export function funcSumData(mm, task, stage = 0): SumData {
   const r: SumData = {};
   const mode = [];
   // tslint:disable-next-line:forin
@@ -80,8 +85,12 @@ export function funcSumData(mm, task): SumData {
     mode.push(name);
     const m = mm[name];
     r[name] = {};
+    if (stage === 0) {
+      stage = m.length - 1;
+    }
     // workMm: 1, retractionMm: 2, theoryMm: 3
-    r[name].mm = N2F(m[m.length - 1] - m[0] + (m[1] - m[0]) - task[name].workMm - task[name].retractionMm);
+    r[name].mm = N2F(m[stage] - m[0] + (m[1] - m[0]) - task[name].workMm - task[name].retractionMm);
+    // console.log('实时数据计算', mm, m[m.length - 1], m[1], m[0]);
   }
   if (mode.length === 1) {
     if (mode.indexOf('a1') !== -1) {

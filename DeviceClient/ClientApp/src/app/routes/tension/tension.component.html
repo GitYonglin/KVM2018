@@ -82,11 +82,11 @@
     </div>
     <div class="cvs">
       <div #cvs>
-        <app-canvas-cvs name="Mpa" *ngIf="heightCvs && _ms.runTensionData.state" [width]="widthCvs" [height]="heightCvs"></app-canvas-cvs>
+        <app-canvas-cvs *ngIf="heightCvs && _ms.runTensionData.state" [width]="widthCvs" [height]="heightCvs"></app-canvas-cvs>
       </div>
       <div>
-        <app-canvas-cvs name="Mm" *ngIf="heightCvs && _ms.runTensionData.state" [width]="widthCvs" [height]="heightCvs" title="位移曲线·mm"
-          [yMax]="220" [ticks]="[0, 40, 80, 120, 160, 200, 240]"></app-canvas-cvs>
+        <!-- <app-canvas-cvs name="Mm" *ngIf="heightCvs && _ms.runTensionData.state" [width]="widthCvs" [height]="heightCvs" title="位移曲线·mm"
+          [yMax]="220" [ticks]="[0, 40, 80, 120, 160, 200, 240]"></app-canvas-cvs> -->
       </div>
     </div>
   </main>
@@ -114,7 +114,7 @@
       </nz-form-item>
       <nz-form-item>
         <nz-input-group nzAddOnBefore="平衡控制" nzAddOnAfter="mm">
-          <input type="number" nz-input nzSize="large" [value]="autoControl.mmBalanceControl" (change)="onSet(511, $event, 'mm')">
+          <input type="number" nz-input nzSize="large" [value]="_ms.runTensionData.mmBalanceControl" (input)="_ms.runTensionData.mmBalanceControl = $event.target.valueAsNumber">
         </nz-input-group>
       </nz-form-item>
       <nz-form-item>
@@ -124,7 +124,7 @@
       </nz-form-item>
       <nz-form-item>
         <nz-input-group nzAddOnBefore="卸荷完成延时" nzAddOnAfter="s">
-          <input type="number" nz-input nzSize="large" [value]="autoControl.unloadingDelay" (change)="onSet(513, $event, 's')">
+          <input type="number" nz-input nzSize="large" [value]="_ms.runTensionData.LodOffTime" (input)="_ms.runTensionData.LodOffTime = $event.target.valueAsNumber">
         </nz-input-group>
       </nz-form-item>
     </div>
@@ -154,5 +154,55 @@
   <ng-template #runFooter>
     <button nz-button nzType="default" (click)="onCancelTension()">取 消</button>
     <button nz-button nzType="primary" (click)="onRunTension()">启动张拉</button>
+  </ng-template>
+</nz-modal>
+
+<nz-modal [nzVisible]="_ms.runTensionData.returnState" nzTitle="张拉完成" [nzFooter]="returnFooter" [nzMaskClosable]="false"
+  nzClosable="false">
+  <div>
+    <h1>张拉完成！数据保存完成！</h1>
+    <h2>{{_ms.runTensionData.returnTime}}s 自动退出！</h2>
+  </div>
+  <ng-template #returnFooter>
+    <button nz-button nzType="default" (click)="onStop()">停止退出</button>
+    <button nz-button nzType="primary" (click)="onAutoReturn()">继续回程退出</button>
+  </ng-template>
+</nz-modal>
+
+<nz-modal [nzVisible]="_ms.runTensionData.stopState" nzTitle="张拉暂停" [nzFooter]="stopFooter" [nzMaskClosable]="false"
+  nzClosable="false">
+  <div>
+    <h1>张拉暂停</h1>
+    <div class="alarm">
+        <div *ngFor="let name of _ms.tensionData.modes">
+          <nz-card [nzTitle]="name + '报警'" *ngIf="_ms.showValues[name].alarmNumber">
+              <div *ngFor="let item of _ms.showValues[name].alarm">
+                <nz-alert *ngIf="item" nzType="error" [nzMessage]="item" nzDescription="报警说明" nzShowIcon>
+                </nz-alert>
+              </div>
+            <h3 *ngIf="!_ms.state[name]">设备通信异常</h3>
+          </nz-card>
+        </div>
+        <!-- <p>{{_ms.tensionData.mode}}</p>
+        <p>{{_ms.showValues.a1.alarmNumber}}</p>
+        <p>{{_ms.showValues.a2.alarmNumber}}</p>
+        <p>{{_ms.showValues.b1.alarmNumber}}</p>
+        <p>{{_ms.showValues.b2.alarmNumber}}</p>
+        <p>{{_ms.state.a1}}</p>
+        <p>{{_ms.state.a2}}</p>
+        <p>{{_ms.state.b1}}</p>
+        <p>{{_ms.state.b2}}</p> -->
+    </div>
+  </div>
+  <ng-template #stopFooter>
+    <button nz-button nzType="default" (click)="onStop2run()" *ngIf="
+    (_ms.tensionData.mode === 0 && _ms.showValues.a1.alarmNumber === 0 && _ms.state.a1) ||
+    (_ms.tensionData.mode === 2 && _ms.showValues.b1.alarmNumber === 0 && _ms.state.b1) ||
+    ( _ms.tensionData.mode === 1 && _ms.showValues.a1.alarmNumber === 0 && _ms.showValues.a2.alarmNumber === 0 && _ms.state.a1 && _ms.state.a2) ||
+    ( _ms.tensionData.mode === 3 && _ms.showValues.b1.alarmNumber === 0 && _ms.showValues.b2.alarmNumber === 0 && _ms.state.b1 && _ms.state.b2) ||
+    ( _ms.tensionData.mode === 4 && _ms.showValues.a1.alarmNumber === 0 && _ms.showValues.a2.alarmNumber === 0 && _ms.showValues.b1.alarmNumber === 0 && _ms.showValues.b2.alarmNumber === 0 && _ms.state.a1 && _ms.state.a2)
+    ">继续张拉</button>
+    <button nz-button nzType="default" (click)="onSaveExit()">保存数据·退出张拉</button>
+    <button nz-button nzType="danger" (click)="onSaveExit()">不保存数据·退出</button>
   </ng-template>
 </nz-modal>

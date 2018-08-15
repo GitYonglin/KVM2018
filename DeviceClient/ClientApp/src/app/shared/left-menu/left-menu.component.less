@@ -75,13 +75,35 @@ nz-sider{
           background-color: @active-color;
         }
         li {
-          padding-right: 10px;
-          padding-left: 5px;
-          margin-left: 5px;
+          position: relative;
+          padding: 0 10px;
           font-size: 18px;
           height: 46px;
           border-bottom: 1px solid #ccc;
           line-height: 46px;
+        }
+        .state{
+          width: 5px;
+          height: 100%;
+          position: absolute;
+          background-color: grey;
+          top: 0;
+          left: 0;
+        }
+        .state0{
+          background-color: grey;
+        }
+        .state1{
+          background-color: #87d068;
+        }
+        .state2{
+          background-color: rgb(250, 173, 20);
+        }
+        .state3{
+          background-color: #f50;
+        }
+        .state4{
+          background-color: #108ee9;
         }
       }
     }

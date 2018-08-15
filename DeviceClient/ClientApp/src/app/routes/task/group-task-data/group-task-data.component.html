@@ -82,7 +82,7 @@
             <td>控制应力</td>
             <td *ngFor="let item of countKM.kn">
               <nz-input-group nzAddOnAfter="kn">
-                <input nz-input [value]="item">
+                <input type="number" nz-input [value]="item">
               </nz-input-group>
             </td>
           </tr>
@@ -90,27 +90,27 @@
             <td>{{item}}</td>
             <td *ngFor="let mpa of countKM.mpa[item]">
               <nz-input-group nzAddOnAfter="Mpa">
-                <input nz-input [value]="mpa">
+                <input type="number" nz-input [value]="mpa">
               </nz-input-group>
             </td>
             <td [ngClass]="{'has-error': holeFormGroup.controls[item + '.workMm'].errors}">
               <nz-input-group nzAddOnAfter="mm">
-                <input nz-input [formControlName]="item + '.workMm'">
+                <input type="number" nz-input [formControlName]="item + '.workMm'">
               </nz-input-group>
             </td>
             <td [ngClass]="{'has-error': holeFormGroup.controls[item + '.retractionMm'].errors}">
               <nz-input-group nzAddOnAfter="mm">
-                <input nz-input [formControlName]="item + '.retractionMm'">
+                <input type="number" nz-input [formControlName]="item + '.retractionMm'">
               </nz-input-group>
             </td>
             <td [ngClass]="{'has-error': holeFormGroup.controls[item + '.theoryMm'].errors}" rowspan="2" *ngIf="(nowTaskData.mode === 1 && i === 0) || (nowTaskData.mode === 3 && i === 0) || (nowTaskData.mode === 4 && (i === 0 || i === 2))">
               <nz-input-group nzAddOnAfter="mm">
-                <input style="height: 68px;" nz-input [formControlName]="item + '.theoryMm'">
+                <input type="number" style="height: 68px;" nz-input [formControlName]="item + '.theoryMm'">
               </nz-input-group>
             </td>
             <td [ngClass]="{'has-error': holeFormGroup.controls[item + '.theoryMm'].errors}" *ngIf="nowTaskData.mode === 0 || nowTaskData.mode === 2">
               <nz-input-group nzAddOnAfter="mm">
-                <input nz-input [formControlName]="item + '.theoryMm'">
+                <input type="number" nz-input [formControlName]="item + '.theoryMm'">
               </nz-input-group>
             </td>
           </tr>
@@ -118,7 +118,7 @@
             <td>持荷时间</td>
             <td *ngFor="let item of tensionStageArr()">
               <nz-input-group nzAddOnAfter="s">
-                <input nz-input [formControlName]="'time' + '[' + item + ']'">
+                <input type="number" nz-input [formControlName]="'time' + '[' + item + ']'">
               </nz-input-group>
             </td>
           </tr>
@@ -146,10 +146,10 @@
             <td>张拉阶段</td>
             <td [ngClass]="{'has-error': holeFormGroup.controls['tensionStageValue[' + item +']'].errors}" *ngFor="let item of tensionStageArr(); index as i">
               <nz-input-group nzAddOnAfter="%">
-                <input (input)="funcV1();" type="number" nz-input formControlName="tensionStageValue[0]" *ngIf="item === 0 ">
-                <input (input)="funcCountKM()" type="number" nz-input [formControlName]="'tensionStageValue[' + item +']'" *ngIf="item !== 0 && item !== 1 && !(item === 2 && nowTaskData.twice)">
-                <input (input)="funcCountKM()" type="number" nz-input *ngIf="item === 1" disabled="true" [value]="holeFormGroup.controls['tensionStageValue[' + item +']'].value">
-                <input (input)="funcCountKM()" type="number" nz-input *ngIf="item === 2 && nowTaskData.twice" disabled="true" [value]="holeFormGroup.controls['tensionStageValue[' + item +']'].value">
+                <input type="number" (input)="funcV1();" type="number" nz-input formControlName="tensionStageValue[0]" *ngIf="item === 0 ">
+                <input type="number" (input)="funcCountKM()" type="number" nz-input [formControlName]="'tensionStageValue[' + item +']'" *ngIf="item !== 0 && item !== 1 && !(item === 2 && nowTaskData.twice)">
+                <input type="number" (input)="funcCountKM()" type="number" nz-input *ngIf="item === 1" disabled="true" [value]="holeFormGroup.controls['tensionStageValue[' + item +']'].value">
+                <input type="number" (input)="funcCountKM()" type="number" nz-input *ngIf="item === 2 && nowTaskData.twice" disabled="true" [value]="holeFormGroup.controls['tensionStageValue[' + item +']'].value">
               </nz-input-group>
             </td>
             <td></td>
@@ -160,39 +160,39 @@
             <td>{{item}}</td>
             <td *ngFor="let mpa of recordData.mpa[item]; index as i">
               <nz-input-group nzAddOnAfter="Mpa">
-                <input nz-input [value]="mpa">
+                <input type="number" nz-input [value]="mpa">
               </nz-input-group>
               <nz-input-group nzAddOnAfter="mm">
-                <input nz-input [value]="recordData.mm[item][i]">
+                <input type="number" nz-input [value]="recordData.mm[item][i]">
               </nz-input-group>
             </td>
             <td>
               <nz-input-group nzAddOnAfter="Mpa">
-                <input nz-input [value]="recordData.returnStart?.a1.mpa">
+                <input type="number" nz-input [value]="recordData.returnStart?.a1.mpa">
               </nz-input-group>
               <nz-input-group nzAddOnAfter="mm">
-                <input nz-input [value]="recordData.returnStart?.a1.mm">
+                <input type="number" nz-input [value]="recordData.returnStart?.a1.mm">
               </nz-input-group>
             </td>
             <td >
               <nz-input-group nzAddOnAfter="mm">
-                <input nz-input style="height: 68px;" [value]="recordRetraction[item]">
+                <input type="number" nz-input style="height: 68px;" [value]="recordRetraction[item]">
               </nz-input-group>
             </td>
             <td  *ngIf="modeStrArr.length === 1" >
               <nz-input-group nzAddOnAfter="mm">
-                <input nz-input [value]="recordSum[item].sum">
+                <input type="number" nz-input [value]="recordSum[item].sum">
               </nz-input-group>
               <nz-input-group nzAddOnAfter="%">
-                <input nz-input [value]="recordSum[item].deviation">
+                <input type="number" nz-input [value]="recordSum[item].deviation">
               </nz-input-group>
             </td>
             <td  rowspan="2" *ngIf="modeStrArr.length !== 1 && (item === 'a1' || item === 'b1')" >
               <nz-input-group nzAddOnAfter="mm">
-                <input nz-input style="height: 68px;" [value]="recordSum[item].sum">
+                <input type="number" nz-input style="height: 68px;" [value]="recordSum[item].sum">
               </nz-input-group>
               <nz-input-group nzAddOnAfter="%">
-                <input nz-input style="height: 68px;" [value]="recordSum[item].deviation">
+                <input type="number" nz-input style="height: 68px;" [value]="recordSum[item].deviation">
               </nz-input-group>
             </td>
           </tr>
@@ -200,7 +200,7 @@
             <td>持荷时间</td>
             <td *ngFor="let item of recordData.time">
               <nz-input-group nzAddOnAfter="s">
-                <input nz-input [value]="item">
+                <input type="number" nz-input [value]="item">
               </nz-input-group>
             </td>
           </tr>
@@ -209,7 +209,11 @@
     </div>
   </div>
 </form>
-<div *ngIf="holeGroupId !== null && recordData !== null" >
-  <app-canvas-cvs name="mpa"  [data]="recordData?.cvsData" height="360"></app-canvas-cvs>
-  <app-canvas-cvs name="mm" [data]="recordData?.cvsData" height="360" title="位移曲线·mm" [yMax]="220" [ticks]="[0, 40, 80, 120, 160, 200, 240]"></app-canvas-cvs>
+<div *ngIf="holeGroupId !== null && recordData !== null"  style="background-color: lightgray;">
+  <app-canvas-cvs *ngIf="showCvs" [data]="recordData?.cvsData" height="360"></app-canvas-cvs>
+  <div class="show-cvs" (click)="showCvs = true" *ngIf="!showCvs">
+    <span>点击查看曲线 </span>
+    <i class="anticon anticon-line-chart"></i>
+  </div>
+  <!-- <app-canvas-cvs name="mm" [data]="recordData?.cvsData" height="360" title="位移曲线·mm" [yMax]="220" [ticks]="[0, 40, 80, 120, 160, 200, 240]"></app-canvas-cvs> -->
 </div>

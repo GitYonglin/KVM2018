@@ -68,7 +68,12 @@
         <nz-affix [nzTarget]="target">
           <div class="hole-group">
             <nz-radio-group [nzSize]="'large'" [(ngModel)]="selectHoleGroup" (ngModelChange)="onSelectHoleRadio()">
-              <label nz-radio-button [nzValue]="item?.id" *ngFor="let item of holeGroups; index as i" [nzDisabled]="!nowData || (holeGroup.holeGroupEdit && item.id !== holeGroup.holeGroupId)">{{item?.hole}}</label>
+              <div class="label"  *ngFor="let item of holeGroups; index as i">
+                <label nz-radio-button [nzValue]="item?.id" [nzDisabled]="!nowData || (holeGroup.holeGroupEdit && item.id !== holeGroup.holeGroupId)">
+                  {{item?.hole}}
+                </label>
+                <div class="state" [ngClass]="'state' + item.state"></div>
+              </div>
             </nz-radio-group>
             <div class="operation" *ngIf="holeGroup.holeGroupEdit; else tension">
               <button nz-button nzType="primary" nzSize="large" (click)="holeGroup.save()">保存</button>

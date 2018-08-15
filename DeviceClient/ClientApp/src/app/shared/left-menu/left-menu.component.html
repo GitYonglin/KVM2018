@@ -29,6 +29,7 @@
           </div>
           <div [@list]="bridges.length" class="list" *ngIf="bridges && titleId === item.id">
             <li *ngFor="let bridge of bridges" [ngClass]="{'active': bridgeId === bridge.id}" (click)="onBridge(bridge.id)">
+              <span class="state" [ngClass]="'state' + bridge.state"></span>
               <span mat-line>{{bridge.name}}</span>
             </li>
           </div>

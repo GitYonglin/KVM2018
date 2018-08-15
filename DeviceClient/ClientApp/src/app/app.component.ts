@@ -2,6 +2,7 @@ import { Component, OnInit, Inject } from '@angular/core';
 import { Http } from '@angular/http';
 import { MSService } from './services/MS.service';
 import { Router, NavigationEnd, NavigationStart } from '@angular/router';
+import { APIService } from './services/api.service';
 
 @Component({
   selector: 'app-root',
@@ -14,10 +15,12 @@ export class AppComponent implements OnInit {
   constructor(
     private _ms: MSService,
     private _router: Router,
+    private _service: APIService,
   ) {
   }
 
   ngOnInit() {
     this._ms.creation();
+    this._ms.setDevice();
   }
 }

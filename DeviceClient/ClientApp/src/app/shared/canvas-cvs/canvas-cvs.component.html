@@ -1,5 +1,10 @@
 <main [ngStyle]="{width: width + 'px', height: height + 'px'}">
-  <h3>{{title}}</h3>
-  <canvas #mountNode id="mountNode" [width]="width" [height]="height" ></canvas>
+  <h3>压力曲线·MPa</h3>
+  <canvas #mpaCvs id="mpaCvs" [width]="width" [height]="height" ></canvas>
+  <!-- <button (click)="getData()">hhhh</button> -->
+</main>
+<main [ngStyle]="{width: width + 'px', height: height + 'px'}">
+  <h3>位移曲线·mm</h3>
+  <canvas #mmCvs id="mmCvs" [width]="width" [height]="height" ></canvas>
   <!-- <button (click)="getData()">hhhh</button> -->
 </main>

@@ -54,7 +54,8 @@ namespace KVM.entity
   {
     public string Id { get; set; }
     public string Hole { get; set; }
-  }
+        public int State { get; set; }
+    }
   public class CopyTask
   {
     public string Id { get; set; }

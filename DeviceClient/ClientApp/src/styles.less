@@ -130,3 +130,49 @@ td {
     border-radius: 0;
   }
 }
+
+.hole-group {
+  padding: 5px;
+  background-color: #eee;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  nz-radio-group{
+    display: flex;
+  }
+  .label{
+    position: relative;
+    .state {
+      position: absolute;
+      transform: rotateZ(-45deg);
+      top: -20px;
+      left: 1px;
+      z-index: 1;
+      &:before
+      {
+        content: '';
+        border-width: 15px;
+        width: 0;
+        border-style: dashed dashed solid dashed;
+        border-color: transparent transparent greenyellow transparent;
+        display: block;
+        position: absolute;
+        top: 0;
+        z-index: -2;
+        right: 0;
+      }
+    }
+    .state0:before{
+      border-color: transparent transparent grey transparent;
+    }
+    .state1:before{
+      border-color: transparent transparent #87d068 transparent;
+    }
+    .state2:before{
+      border-color: transparent transparent rgb(250, 173, 20) transparent;
+    }
+    .state3:before{
+      border-color: transparent transparent #f50 transparent;
+    }
+  }
+}

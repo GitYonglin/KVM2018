@@ -4,6 +4,7 @@ import { deviceModes } from '../../model/device.model';
 import { setCvs } from '../../utils/cvsData';
 import { MSService } from '../../services/MS.service';
 
+
 // 自定义线图变更动画
 Animate.registerAnimation('lineUpdate', function (updateShape, animateCfg) {
   const cacheShape = updateShape.get('cacheShape'); // 该动画 shape 的前一个状态
@@ -30,6 +31,20 @@ Animate.registerAnimation('lineUpdate', function (updateShape, animateCfg) {
   });
 });
 
+const defs = {
+  time: {
+    type: 'timeCat',
+    mask: 'HH:mm:ss',
+    tickCount: 4,
+    range: [0, 1]
+  },
+  value: {
+    // tickCount: 8,
+    // max: this.yMax,
+    // ticks: this.ticks,
+    // min: 0
+  }
+};
 @Component({
   selector: 'app-canvas-cvs',
   templateUrl: './canvas-cvs.component.html',
@@ -37,9 +52,16 @@ Animate.registerAnimation('lineUpdate', function (updateShape, animateCfg) {
 })
 
 export class CanvasCvsComponent implements OnInit, AfterViewInit {
-  @ViewChild('mountNode')
-  mountNode: ElementRef;
-  chart: any;
+  @ViewChild('mpaCvs')
+    mpaCvs: ElementRef;
+  @ViewChild('mmCvs')
+    mmCvs: ElementRef;
+
+  mpaChart: any = null;
+  mmChart: any = null;
+  mpaData: any;
+  mmData: any;
+
   legendItems = [];
   ms = 1000;
 
@@ -69,42 +91,28 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit {
     if (this.data === null) {
       this.saveCvs();
       this.setCvs();
-      console.log('初始化曲线', this.data, this.chart);
+      console.log('初始化曲线', this.data, this.mpaChart);
     } else {
-      // this.data = [];
-      // this.data.push(...this.getRecord(-2));
-      // this.data.push(...this.getRecord(-1));
-      // this.data.push(...this.getRecord());
       // tslint:disable-next-line:forin
       for (const name in this.data.mm) {
         this.data.mm[name].shift();
-        // console.log('4444444444444444444444444444444444444444', this.data.mm[name], this.data.mm[name].shift());
       }
-      this.data = setCvs(this.data, this.name);
+      this.mpaData = setCvs(this.data, 'mpa');
+      this.mmData = setCvs(this.data, 'mm');
       // console.log('44444444', this.data);
     }
-    this.chart = new Chart({
+    this.mpaChart = this.corterChart(this.mpaCvs, this.mpaChart, this.mpaData);
+    this.mmChart = this.corterChart(this.mmCvs, this.mmChart, this.mmData);
+  }
+  corterChart(cvs, chart, data) {
+    chart = new Chart({
       // id: 'mountNode',
-      el: this.mountNode.nativeElement,
+      el: cvs.nativeElement,
       pixelRatio: window.devicePixelRatio
     });
 
-    const defs = {
-      time: {
-        type: 'timeCat',
-        mask: 'HH:mm:ss',
-        tickCount: 4,
-        range: [0, 1]
-      },
-      value: {
-        // tickCount: 8,
-        // max: this.yMax,
-        // ticks: this.ticks,
-        // min: 0
-      }
-    };
-    this.chart.source(this.data, defs);
-    this.chart.axis('time', {
+    chart.source(data, defs);
+    chart.axis('time', {
       label: (text, index, total) => {
         const textCfg = {
           text: '',
@@ -121,44 +129,30 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit {
       }
     });
 
-    this.chart.line().position('time*value').color('type').animate({
+    chart.line().position('time*value').color('type').animate({
       update: {
         animation: 'lineUpdate'
       }
     });
     // 设置图例居中显示
-    this.chart.legend({
+    chart.legend({
       align: 'center',
       itemWidth: null, // 图例项按照实际宽度渲染
     });
 
-    this.chart.render();
-    // 测试动态曲线
-    // setInterval(() => {
-    //   this.data.push(...this.getRecord());
-    //   this.chart.changeData(this.data);
-    // }, 1000);
+    chart.render();
+    return chart;
   }
   // 自动张拉曲线监听
   setCvs() {
     console.log('监听曲线');
     setTimeout(() => {
-      if (this._ms.runTensionData.state) {
+      if (this._ms.runTensionData.state && !this._ms.runTensionData.returnState) {
         this.saveCvs();
         this.setCvs();
       }
     }, this.ms);
   }
-  // 自动张拉曲线监听
-  // liveCvs() {
-  //   console.log('监听曲线');
-  //   setTimeout(() => {
-  //     if (this._ms.runTensionData.state) {
-  //       this.saveCvs();
-  //       this.setCvs();
-  //     }
-  //   }, this.ms);
-  // }
   public saveCvs(state = false) {
     const showValue = this._ms.showValues;
     this._ms.tensionData.modes.forEach(name => {
@@ -168,10 +162,12 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit {
       this._ms.recordData.liveMpaCvs.push({time: new Date().getTime(), type: name, value: showValue[name].mpa});
       this._ms.recordData.liveMmCvs.push({time: new Date().getTime(), type: name, value: showValue[name].mm});
     });
-    if (this.chart) {
-      this.chart.changeData(this._ms.recordData[`live${this.name}Cvs`]);
+    if (this.mpaChart !== null && this.mmChart !== null) {
+      this.mpaChart.changeData(this._ms.recordData.liveMpaCvs);
+      this.mmChart.changeData(this._ms.recordData.liveMmCvs);
     } else {
-      this.data = this._ms.recordData[`live${this.name}Cvs`];
+      this.mpaData = this._ms.recordData.liveMpaCvs;
+      this.mmData = this._ms.recordData.liveMmCvs;
       console.log('11111', this.data, this._ms.recordData[`live${this.name}Cvs`]);
     }
   }

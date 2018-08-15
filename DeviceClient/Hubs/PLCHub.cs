@@ -14,13 +14,20 @@ namespace DeviceClient.Hubs
         private static ModbusSocket Z = null;
         private static ModbusSocket C = null;
         private static IHubCallerClients _clients = null;
+        private static int TensionMode = -1;
         private static bool LoadOffDelayState = false;
         private static bool DelayState = false;
+        private static bool AutoStopState = false;
+        private static bool ZAutoStopState = false;
+        private static bool CAutoStopState = false;
+        private static bool AutoStopRunState = false;
+        private static bool ZAutoStopRunState = false;
+        private static bool CAutoStopRunState = false;
 
         public PLCHub()
         {
             TaskFactory tf = new TaskFactory();
-            tf.StartNew(() => Console.WriteLine(Thread.CurrentThread.ManagedThreadId));
+            tf.StartNew(() => Console.WriteLine("重新请求连接" + Thread.CurrentThread.ManagedThreadId));
 
             if (Z == null)
             {
@@ -93,18 +100,36 @@ namespace DeviceClient.Hubs
         /// <returns></returns>
         public Boolean AutoF05(InPLC data)
         {
-            switch (data.Mode)
+            TensionMode = data.Mode;
+            Console.WriteLine("张拉启动");
+            Console.WriteLine(TensionMode);
+            if (TensionMode == 1 || TensionMode == 3 || TensionMode == 4)
             {
-                case 1:
-                case 3:
-                case 4:
-                    C.F05(PLCSite.M(data.Address), data.F05, null);
-                    break;
-                default:
-                    break;
+                C.F05(PLCSite.M(data.Address), data.F05, null);
             }
+
             Z.F05(PLCSite.M(data.Address), data.F05, null);
+            LoadOffDelayState = false;
+            DelayState = false;
+            AutoStopRunState = false;
+            ZAutoStopState = false;
+            CAutoStopState = false;
+            AutoStopState = false;
+            ZAutoStopState = false;
+            CAutoStopState = false;
             return true;
+        }
+        public void AutoOk()
+        {
+            TensionMode = -1;
+            LoadOffDelayState = false;
+            DelayState = false;
+            AutoStopRunState = false;
+            ZAutoStopState = false;
+            CAutoStopState = false;
+            AutoStopState = false;
+            ZAutoStopState = false;
+            CAutoStopState = false;
         }
         public void F06(InPLC data)
         {
@@ -136,7 +161,7 @@ namespace DeviceClient.Hubs
             }
         }
         /// <summary>
-        /// 通信状态事件
+        /// 通信错误事件
         /// </summary>
         /// <param name="id">主从Id</param>
         /// <param name="message">通信状态</param>
@@ -145,10 +170,14 @@ namespace DeviceClient.Hubs
             if (_clients != null)
             {
                 _clients.All.SendAsync("Send", new { Id = id, Message = message });
+                if (TensionMode != -1)
+                {
+                    AutoStop(20, id);
+                }
             }
         }
         /// <summary>
-        /// 心跳连接
+        /// 连接成功，启动心跳包连接
         /// </summary>
         /// <param name="id"></param>
         /// <param name="message"></param>
@@ -158,8 +187,10 @@ namespace DeviceClient.Hubs
             if (id == "从站")
             {
                 device = C;
+            } else
+            {
+                GetDeviceParameter(); // 获取设备参数
             }
-            //GetDeviceParameter(device);
             // 心跳包保证链接
             Task.Run(() =>
             {
@@ -168,7 +199,9 @@ namespace DeviceClient.Hubs
                     device.F05(PLCSite.M(0), true, null);
                     device.F03(PLCSite.D(0), 8, (data) =>
                     {
-                        _clients.All.SendAsync("LiveData", new { name = device.Name, data = ReceiveData.F03(data, 8) });
+                        var rdata = ReceiveData.F03(data, 8);
+                        AutoStop(rdata[6], device.Name);
+                        _clients.All.SendAsync("LiveData", new { name = device.Name, data = rdata });
                     });
                     Thread.Sleep(10);
                 }
@@ -178,6 +211,104 @@ namespace DeviceClient.Hubs
             //  _clients.All.SendAsync("Send", new { Id = id, Message = message });
             //}
         }
+        private void AutoStop(int data, string id)
+        {
+            //Console.WriteLine(data);
+            //Console.WriteLine(id == "主站");
+            //Console.WriteLine(AutoStopState);
+            //Console.WriteLine(TensionMode);
+            if (data == 20 && !AutoStopState)
+            {
+                if ((TensionMode == 1 || TensionMode == 3 || TensionMode == 4))
+                {
+                    if (id == "主站")
+                    {
+                        C.F05(PLCSite.M(550), true, (d) =>
+                        {
+                            AutoStopState = true;
+                        });
+                    } else
+                    {
+                        Z.F05(PLCSite.M(550), true, (d) =>
+                        {
+                            AutoStopState = true;
+                        });
+                    }
+
+                }
+                else if (id == "主站")
+                {
+                    AutoStopState = true;
+                }
+            }
+            if (data != 20)
+            {
+                bool b = false;
+                if (id == "主站")
+                {
+                    ZAutoStopState = true;
+                }
+                else
+                {
+                    CAutoStopState = true;
+                }
+                if ((TensionMode == 1 || TensionMode == 3 || TensionMode == 4))
+                {
+                    if (ZAutoStopState && CAutoStopState)
+                    {
+                        b = true;
+                    }
+                }
+                else if (ZAutoStopState)
+                {
+                    b = true;
+                }
+                if (b)
+                {
+                    ZAutoStopState = false;
+                    CAutoStopState = false;
+                    AutoStopState = false;
+
+                    if (AutoStopRunState)
+                    {
+                        AutoStopRunState = false;
+                        ZAutoStopRunState = false;
+                        CAutoStopRunState = false;
+                        _clients.All.SendAsync("Stop2Run", true);
+                    }
+                }
+            }
+        }
+        public void Stop2Run()
+        {
+            if (TensionMode == 1 || TensionMode == 3 || TensionMode == 4)
+            {
+                C.F05(PLCSite.M(550), false, (d) =>
+                {
+                    CAutoStopRunState = true;
+                    SetStop2Run();
+                });
+            } else
+            {
+                CAutoStopRunState = true;
+            }
+            Z.F05(PLCSite.M(550), false, (d) =>
+            {
+                ZAutoStopRunState = true;
+                SetStop2Run();
+            });
+        }
+        private void SetStop2Run()
+        {
+            if (ZAutoStopRunState && CAutoStopRunState)
+            {
+                AutoStopRunState = true;
+            }
+        }
+        /// <summary>
+        /// 数据下载
+        /// </summary>
+        /// <param name="t"></param>
         public void Tension(TensionModle t)
         {
             if (t.Mode == 0 || t.Mode == 1)
@@ -239,7 +370,7 @@ namespace DeviceClient.Hubs
                 int nowTime = 0;
                 Task.Run(() =>
                 {
-                    while (time >= nowTime)
+                    while (time >= nowTime && TensionMode > 0)
                     {
                         if (time == nowTime)
                         {
@@ -252,7 +383,11 @@ namespace DeviceClient.Hubs
 
                         }
                         Thread.Sleep(1000);
-                        nowTime++;
+                        if (!AutoStopState)
+                        {
+                            nowTime++;
+
+                        }
                     }
                 });
             }
@@ -269,7 +404,7 @@ namespace DeviceClient.Hubs
                 int nowTime = 0;
                 Task.Run(() =>
                 {
-                    while (time >= nowTime)
+                    while (time >= nowTime && TensionMode > 0)
                     {
                         if (time == nowTime)
                         {
@@ -282,7 +417,10 @@ namespace DeviceClient.Hubs
 
                         }
                         Thread.Sleep(1000);
-                        nowTime++;
+                        if (!AutoStopState)
+                        {
+                            nowTime++;
+                        }
                     }
                 });
             }
