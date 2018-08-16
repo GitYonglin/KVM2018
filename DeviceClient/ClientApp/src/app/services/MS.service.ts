@@ -3,7 +3,7 @@ import { HubConnectionBuilder, HubConnection } from '@aspnet/signalr';
 import { DeviceParameter, ConversionName, DeviceItemName } from '../model/DeviceParameter';
 import { PLC2Value, PLC100ms2s, Value2PLC, PLCM } from '../utils/PLC8Show';
 import { APIService } from './api.service';
-import { ShowValues, autoState, RecordData, SumData, funcSumData } from '../model/live.model';
+import { ShowValues, autoState, RecordData, SumData, funcSumData, runTensionData } from '../model/live.model';
 import { Observable } from 'rxjs';
 import { newFormData } from '../utils/form/constructor-FormData';
 
@@ -30,19 +30,7 @@ export class MSService {
     a2: false,
     b2: false,
   };
-  public runTensionData = {
-    state: false,
-    stage: 0,
-    delayState: false,
-    stateOk: false,
-    LodOffTime: 0,
-    nowLodOffTime: 0,
-    loadOffDelayState: false,
-    returnState: false,
-    returnTime: 5,
-    mmBalanceControl: 0,
-    stopState: false,
-  };
+  public runTensionData = JSON.parse(JSON.stringify(runTensionData));
   public tensionData: any;
   public recordData: RecordData;
   // 实时数据
@@ -53,7 +41,8 @@ export class MSService {
       mm: 0,
       alarmNumber: 0,
       alarm: [],
-      state: autoState[0]
+      state: autoState[0],
+      setPLCMpa: 0,
     },
     b1: {
       plcMpa: 0,
@@ -61,7 +50,8 @@ export class MSService {
       mm: 0,
       alarmNumber: 0,
       alarm: [],
-      state: autoState[0]
+      state: autoState[0],
+      setPLCMpa: 0,
     },
     a2: {
       plcMpa: 0,
@@ -69,7 +59,8 @@ export class MSService {
       mm: 0,
       alarmNumber: 0,
       alarm: [],
-      state: autoState[0]
+      state: autoState[0],
+      setPLCMpa: 0,
     },
     b2: {
       plcMpa: 0,
@@ -77,11 +68,14 @@ export class MSService {
       mm: 0,
       alarmNumber: 0,
       alarm: [],
-      state: autoState[0]
+      state: autoState[0],
+      setPLCMpa: 0,
     },
   };
   public liveSum: SumData;
   public liveState: any;
+  public ExitTime = 5;
+  private autoVerifyMpaState = false;
 
   constructor(
     @Inject('BASE_CONFIG') private config,
@@ -315,15 +309,35 @@ export class MSService {
     this.showValues[`b${i}`].alarm = this.setAlarm(data[5].toString(2).padStart(6, '0'));
     this.showValues[`a${i}`].state = autoState[data[6]];
     this.showValues[`b${i}`].state = autoState[data[7]];
+    this.showValues[`a${i}`].setPLCMpa = data[8];
+    this.showValues[`b${i}`].setPLCMpa = data[9];
     if (this.runTensionData.state) {
       this.autoMonitoring();
       if (!this.runTensionData.stateOk) {
         this.saveRecord();
+        this.autoVerifyMpa();
       }
     }
     // console.log(this.showValues, data[5].toString(2).padStart(6, '0'), data[5]);
   }
-
+  // PLC自动数据核对
+  private autoVerifyMpa() {
+    if (this.autoVerifyMpaState) {
+      const index = this.recordData.stage;
+      const mpa = this.tensionData.mpaPLC;
+      for (const name of this.tensionData.modes) {
+        console.log('核对数据', name, mpa[name][index], this.showValues[name].setPLCMpa);
+        if ((name === 'a1' || name === 'b1' && this.state.a1) || (name === 'a2' || name === 'b2' && this.state.a2)) {
+          if (mpa[name][index] !== this.showValues[name].setPLCMpa) {
+            this.autoVerifyMpaState = false;
+            this.upPLC();
+            return;
+          }
+        }
+      }
+      this.autoVerifyMpaState = false;
+    }
+  }
   // 报警实时数据转换
   private setAlarm(value) {
     const arr = [];
@@ -351,29 +365,28 @@ export class MSService {
   }
   // 上传自动张拉数据
   public upPLC() {
-    let data = null;
     const t = this.tensionData;
     const index = this.recordData.stage;
-    if (t.mode === 0) {
-      data = {mode: t.mode, a1: t.mpaPLC.a1[index]};
+    const data:  {
+      mode: number,
+      a1?: number,
+      a2?: number,
+      b1?: number,
+      b2?: number,
+    } = {
+      mode: t.mode,
+      a1: 0,
+      a2: 0,
+      b1: 0,
+      b2: 0
+    };
+    for (const name of this.tensionData.modes) {
+      data[name] = t.mpaPLC[name][index];
     }
-    if (t.mode === 1) {
-      data = {mode: t.mode, a1: t.mpaPLC.a1[index], a2: t.mpaPLC.a1[index]};
-    }
-    if (t.mode === 2) {
-      data = {mode: t.mode, b1: t.mpaPLC.b1[index]};
-    }
-    if (t.mode === 3) {
-      data = {mode: t.mode, b1: t.mpaPLC.b1[index], b2: t.mpaPLC.b2[index]};
-    }
-    if (t.mode === 4) {
-      data = {mode: t.mode,
-        a1: t.mpaPLC.a1[index], a2: t.mpaPLC.a1[index],
-        b1: t.mpaPLC.b1[index], b2: t.mpaPLC.b2[index]
-      };
-    }
-    console.log('下载数据到PLC', t, index, data, this.tensionData.checkData.time[this.runTensionData.stage]);
-    this.connection.invoke('Tension', data);
+    console.log('下载数据到PLC', data);
+    this.connection.invoke('Tension', data).then(() => {
+      this.autoVerifyMpaState = true;
+    });
     console.log('MS请求');
   }
   // 实时保存张拉数据
@@ -398,13 +411,17 @@ export class MSService {
     let by = false;
     let stop = false;
       for (const name of this.tensionData.modes) {
-        if (!this.runTensionData.stateOk && this.showValues[name].plcMpa >= this.tensionData.mpaPLC[name][this.recordData.stage]) {
+        if (!this.runTensionData.stateOk &&
+          this.showValues[name].plcMpa >= this.tensionData.mpaPLC[name][this.recordData.stage] &&
+          (this.showValues[name].state === '保压' || this.showValues[name].state === '补压') &&
+          !this.runTensionData.delayState
+        ) {
           delay = true;
           by = true;
         } else {
           delay = false;
         }
-        if (this.showValues[name].state === '卸荷完成') {
+        if (this.showValues[name].state === '卸荷完成'  && !this.runTensionData.loadOffDelayState) {
           loadOff = true;
         } else {
           loadOff = false;
@@ -422,14 +439,14 @@ export class MSService {
       // 张拉平衡
       this.balanceControl(by);
       // 进入保压
-      if (delay && !this.runTensionData.delayState) {
+      if (delay) {
           console.log('进入保压计时', this.tensionData.checkData.time[this.recordData.stage]);
           this.runTensionData.delayState = true;
           this.connection.invoke('Delay', this.tensionData.checkData.time[this.recordData.stage]);
           console.log('MS请求');
       }
     // 进入卸荷延时
-    if (loadOff && !this.runTensionData.loadOffDelayState) {
+    if (loadOff) {
       this.connection.invoke('LoadOffDelay', this.runTensionData.LodOffTime);
       console.log('MS请求');
       this.runTensionData.loadOffDelayState = true;
@@ -445,13 +462,13 @@ export class MSService {
       !this.runTensionData.delayState &&
       !this.runTensionData.stopState) {
 
-      if (this.tensionData.mode === 2) {
+      if (this.tensionData.modes.length === 2) {
         if (this.tensionData.modes.indexOf('a1') !== -1) {
           this.balanceControl2('a', by);
         } else {
           this.balanceControl2('b', by);
         }
-      } else {
+      } else if (this.tensionData.mode === 4) {
         this.balanceControl4(by);
       }
     }
@@ -459,8 +476,8 @@ export class MSService {
   // 两顶平衡
   balanceControl2(name, by) {
     const v = this.showValues;
-    const x1 = this.liveSum[`${name}2`].mm;
-    const x2 = this.liveSum[`${name}1`].mm;
+    const x1 = this.liveSum[`${name}1`].mm;
+    const x2 = this.liveSum[`${name}2`].mm;
     const b = this.runTensionData.mmBalanceControl;
     const x1b = x1 + Number(b);
     const x2b = x2 + Number(b);
@@ -472,12 +489,12 @@ export class MSService {
 
     if (!by && (x1 > x2b) && !x1State) {
       this.F05(1, address, true);
-    } else if (x1State && (x1 < x2) && by) {
+    } else if (x1State && (x1 < x2) || by) {
       this.F05(1, address, false);
     }
     if (!by && (x2 > x1b) && !x2State) {
       this.F05(2, address, true);
-    } else if (x2State && (x2 < x1) && by) {
+    } else if (x2State && (x2 < x1) || by) {
       this.F05(2, address, false);
     }
   }
@@ -537,21 +554,10 @@ export class MSService {
   // 张拉完成自动跳转上一个页面
   returnTime() {
     setTimeout(() => {
-      this.runTensionData.returnTime -- ;
-      if (this.runTensionData.returnTime === 0) {
-        this.runTensionData = {
-          state: false,
-          stage: 0,
-          delayState: false,
-          stateOk: false,
-          LodOffTime: 0,
-          nowLodOffTime: 0,
-          loadOffDelayState: false,
-          returnState: false,
-          returnTime: 5,
-          mmBalanceControl: 0,
-          stopState: false,
-        };
+      this.ExitTime -- ;
+      if (this.ExitTime === 0) {
+        this.runTensionData.returnState = false;
+        this.ExitTension();
         history.go(-1);
       }
       if (this.runTensionData.returnState) {
@@ -570,12 +576,18 @@ export class MSService {
     const message = { success: '记录保存', error: '' };
     this._service.http('post', this.recordData, '/record', message).subscribe(b => {
       console.log('返回数据', b);
-      this.runTensionData.returnState = true;
+      this.ExitTime = 5;
       this.returnTime();
-      this.connection.invoke('AutoOk');
-      this.liveSum = null;
+      this.runTensionData.returnState = true;
       console.log('MS请求');
     });
+  }
+  // 退出张拉
+  public ExitTension() {
+    this.runTensionData = JSON.parse(JSON.stringify(runTensionData)); // 初始化自动张拉数据
+    this.liveSum = null;
+    this.connection.invoke('AutoOk');
+    console.log('退出张拉');
   }
   private anew() {
     setTimeout(() => {

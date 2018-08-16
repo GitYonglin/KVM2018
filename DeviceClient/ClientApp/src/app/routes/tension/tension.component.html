@@ -161,7 +161,7 @@
   nzClosable="false">
   <div>
     <h1>张拉完成！数据保存完成！</h1>
-    <h2>{{_ms.runTensionData.returnTime}}s 自动退出！</h2>
+    <h2>{{_ms.ExitTime}}s 自动退出！</h2>
   </div>
   <ng-template #returnFooter>
     <button nz-button nzType="default" (click)="onStop()">停止退出</button>
@@ -183,15 +183,6 @@
             <h3 *ngIf="!_ms.state[name]">设备通信异常</h3>
           </nz-card>
         </div>
-        <!-- <p>{{_ms.tensionData.mode}}</p>
-        <p>{{_ms.showValues.a1.alarmNumber}}</p>
-        <p>{{_ms.showValues.a2.alarmNumber}}</p>
-        <p>{{_ms.showValues.b1.alarmNumber}}</p>
-        <p>{{_ms.showValues.b2.alarmNumber}}</p>
-        <p>{{_ms.state.a1}}</p>
-        <p>{{_ms.state.a2}}</p>
-        <p>{{_ms.state.b1}}</p>
-        <p>{{_ms.state.b2}}</p> -->
     </div>
   </div>
   <ng-template #stopFooter>
@@ -203,6 +194,6 @@
     ( _ms.tensionData.mode === 4 && _ms.showValues.a1.alarmNumber === 0 && _ms.showValues.a2.alarmNumber === 0 && _ms.showValues.b1.alarmNumber === 0 && _ms.showValues.b2.alarmNumber === 0 && _ms.state.a1 && _ms.state.a2)
     ">继续张拉</button>
     <button nz-button nzType="default" (click)="onSaveExit()">保存数据·退出张拉</button>
-    <button nz-button nzType="danger" (click)="onSaveExit()">不保存数据·退出</button>
+    <button nz-button nzType="danger" (click)="onExit()">不保存数据·退出</button>
   </ng-template>
 </nz-modal>

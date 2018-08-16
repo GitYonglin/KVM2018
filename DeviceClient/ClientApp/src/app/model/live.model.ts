@@ -1,4 +1,5 @@
 import { N2F } from '../utils/toFixed';
+import { deviceModes } from './device.model';
 
 export const manualState = ['待机', '张拉中', '卸荷中', '回程中', '保压'];
 export const autoState = ['待机', '张拉中', '卸荷中', '回程中', '保压', '卸荷完成', '补压', '压力确认', '回顶', '回顶完成', '平衡暂停',
@@ -19,6 +20,7 @@ interface ShowValuesItem {
   alarmNumber: number;
   alarm: string[];
   state: string;
+  setPLCMpa: number;
 }
 
 export interface RecordData {
@@ -82,15 +84,17 @@ export function funcSumData(mm, task, stage = 0): SumData {
   const mode = [];
   // tslint:disable-next-line:forin
   for (const name in mm) {
-    mode.push(name);
-    const m = mm[name];
-    r[name] = {};
-    if (stage === 0) {
-      stage = m.length - 1;
+    if (mm[name]) {
+      mode.push(name);
+      const m = mm[name];
+      r[name] = {};
+      if (stage === 0) {
+        stage = m.length - 1;
+      }
+      // workMm: 1, retractionMm: 2, theoryMm: 3
+      r[name].mm = N2F(m[stage] - m[0] + (m[1] - m[0]) - task[name].workMm - task[name].retractionMm);
+      // console.log('实时数据计算', mm, m[m.length - 1], m[1], m[0]);
     }
-    // workMm: 1, retractionMm: 2, theoryMm: 3
-    r[name].mm = N2F(m[stage] - m[0] + (m[1] - m[0]) - task[name].workMm - task[name].retractionMm);
-    // console.log('实时数据计算', mm, m[m.length - 1], m[1], m[0]);
   }
   if (mode.length === 1) {
     if (mode.indexOf('a1') !== -1) {
@@ -115,11 +119,25 @@ export function funcSumData(mm, task, stage = 0): SumData {
 // (终位移 - 回油位移) - (1 - 初张拉压力 / 终张拉压力) / 工作端伸长量
 export function funcRetraction (d: RecordData, task) {
   const r = {};
-  // tslint:disable-next-line:forin
-  for (const name in d.mm) {
+  for (const name of deviceModes[d.mode]) {
     const length = d.mpa[name].length - 1;
     console.log('力筋回缩量', length, d.mm[name][length], d.returnStart[name].mm, d.mpa[name][0], d.mpa[name][length], task[name].workMm);
     r[name] = N2F((d.mm[name][length] - d.returnStart[name].mm) - (1 - d.mpa[name][0] / d.mpa[name][length]) / task[name].workMm);
   }
   return r;
 }
+
+export const runTensionData = {
+  state: false,
+  stage: 0,
+  delayState: false,
+  stateOk: false,
+  LodOffTime: 0,
+  nowLodOffTime: 0,
+  loadOffDelayState: false,
+  returnState: false,
+  returnTime: 0,
+  mmBalanceControl: 0,
+  stopState: false,
+};
+

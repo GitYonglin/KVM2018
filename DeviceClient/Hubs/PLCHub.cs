@@ -197,9 +197,9 @@ namespace DeviceClient.Hubs
                 while (device.Client != null && device.Client.Connected && device.IsSuccess)
                 {
                     device.F05(PLCSite.M(0), true, null);
-                    device.F03(PLCSite.D(0), 8, (data) =>
+                    device.F03(PLCSite.D(0), 10, (data) =>
                     {
-                        var rdata = ReceiveData.F03(data, 8);
+                        var rdata = ReceiveData.F03(data, 10);
                         AutoStop(rdata[6], device.Name);
                         _clients.All.SendAsync("LiveData", new { name = device.Name, data = rdata });
                     });
@@ -213,10 +213,6 @@ namespace DeviceClient.Hubs
         }
         private void AutoStop(int data, string id)
         {
-            //Console.WriteLine(data);
-            //Console.WriteLine(id == "主站");
-            //Console.WriteLine(AutoStopState);
-            //Console.WriteLine(TensionMode);
             if (data == 20 && !AutoStopState)
             {
                 if ((TensionMode == 1 || TensionMode == 3 || TensionMode == 4))
@@ -309,29 +305,17 @@ namespace DeviceClient.Hubs
         /// 数据下载
         /// </summary>
         /// <param name="t"></param>
-        public void Tension(TensionModle t)
+        public bool Tension(TensionModle t)
         {
-            if (t.Mode == 0 || t.Mode == 1)
+            if (t.Mode == 0 || t.Mode == 2)
             {
-                Z.F06(PLCSite.D(410), t.A1, null);
-            }
-            if (t.Mode == 2 || t.Mode == 3)
-            {
-                Z.F06(PLCSite.D(411), t.B1, null);
-            }
-            if (t.Mode == 1)
-            {
-                C.F06(PLCSite.D(410), t.A2, null);
-            }
-            if (t.Mode == 3)
-            {
-                C.F06(PLCSite.D(411), t.B2, null);
-            }
-            if (t.Mode == 4)
+                Z.F16(PLCSite.D(410), new int[] { t.A1, t.B1 }, null);
+            } else
             {
                 Z.F16(PLCSite.D(410), new int[] { t.A1, t.B1 }, null);
                 C.F16(PLCSite.D(410), new int[] { t.A2, t.B2 }, null);
             }
+            return true;
         }
         /// <summary>
         /// 获取设备参数

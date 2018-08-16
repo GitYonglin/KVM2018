@@ -95,7 +95,9 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit {
     } else {
       // tslint:disable-next-line:forin
       for (const name in this.data.mm) {
-        this.data.mm[name].shift();
+        if (this.data.mm[name]) {
+          this.data.mm[name].shift();
+        }
       }
       this.mpaData = setCvs(this.data, 'mpa');
       this.mmData = setCvs(this.data, 'mm');
@@ -103,6 +105,7 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit {
     }
     this.mpaChart = this.corterChart(this.mpaCvs, this.mpaChart, this.mpaData);
     this.mmChart = this.corterChart(this.mmCvs, this.mmChart, this.mmData);
+    // this.mmChart.legend('gender', {position: 'right'});
   }
   corterChart(cvs, chart, data) {
     chart = new Chart({
@@ -112,6 +115,7 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit {
     });
 
     chart.source(data, defs);
+
     chart.axis('time', {
       label: (text, index, total) => {
         const textCfg = {
@@ -129,15 +133,51 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit {
       }
     });
 
-    chart.line().position('time*value').color('type').animate({
+    chart.line().position('time*value')
+    .color('type', (type) => { // 通过回调函数
+      switch (type) {
+        case 'a1':
+          return '#ff0033';
+          break;
+        case 'a2':
+          return '#ff00cc';
+          break;
+        case 'b1':
+          return '#00ccff';
+          break;
+        case 'b2':
+          return '#0033ff';
+          break;
+        default:
+          break;
+      }
+    })
+    .animate({
       update: {
         animation: 'lineUpdate'
       }
     });
-    // 设置图例居中显示
+    // // 设置图例居中显示
+    // chart.legend({
+    //   align: 'center',
+    //   itemWidth: null, // 图例项按照实际宽度渲染
+    // });
     chart.legend({
       align: 'center',
       itemWidth: null, // 图例项按照实际宽度渲染
+      marker: {
+        symbol: 'circle', // marker 的形状
+        radius: 10 // 半径大小
+      },
+      nameStyle: {
+        textAlign: 'middle', // 文本对齐方向，可取值为： start middle end
+        fill: '#fff', // 文本的颜色
+        fontSize: '20', // 文本大小
+        fontWeight: 'bold', // 文本粗细
+      },
+      itemFormatter(val) {
+        return val.toUpperCase(); // val 为每个图例项的文本值
+      }
     });
 
     chart.render();

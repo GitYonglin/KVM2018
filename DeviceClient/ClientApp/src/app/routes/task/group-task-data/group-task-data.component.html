@@ -168,10 +168,10 @@
             </td>
             <td>
               <nz-input-group nzAddOnAfter="Mpa">
-                <input type="number" nz-input [value]="recordData.returnStart?.a1.mpa">
+                <input type="number" nz-input [value]="recordData.returnStart[item].mpa">
               </nz-input-group>
               <nz-input-group nzAddOnAfter="mm">
-                <input type="number" nz-input [value]="recordData.returnStart?.a1.mm">
+                <input type="number" nz-input [value]="recordData.returnStart[item].mm">
               </nz-input-group>
             </td>
             <td >
@@ -209,7 +209,7 @@
     </div>
   </div>
 </form>
-<div *ngIf="holeGroupId !== null && recordData !== null"  style="background-color: lightgray;">
+<div *ngIf="holeGroupId !== null && recordData !== null"  >
   <app-canvas-cvs *ngIf="showCvs" [data]="recordData?.cvsData" height="360"></app-canvas-cvs>
   <div class="show-cvs" (click)="showCvs = true" *ngIf="!showCvs">
     <span>点击查看曲线 </span>

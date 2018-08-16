@@ -153,6 +153,7 @@ namespace KVM.LiteDB.DAL.Task
             if (v != null)
             {
                 int state = 0;
+                int state1 = 0;
                 foreach (var item in v)
                 {
                     if (item.Record != null)
@@ -169,10 +170,14 @@ namespace KVM.LiteDB.DAL.Task
                         {
                             state = 1;
                         }
-                    } else if (state == 1)
+                    } else
                     {
-                        state = 4;
+                        state1 = 4;
                     }
+                }
+                if (state1 == 4 && state == 1)
+                {
+                    return 4;
                 }
                 return state;
             }

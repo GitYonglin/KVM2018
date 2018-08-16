@@ -3,6 +3,8 @@ import { HubConnectionBuilder, HubConnection } from '@aspnet/signalr';
 import { MSService } from '../../services/MS.service';
 import { setCvs } from '../../utils/cvsData';
 import { Value2PLC } from '../../utils/PLC8Show';
+import { Router } from '@angular/router';
+import { runTensionData } from '../../model/live.model';
 
 @Component({
   selector: 'app-tension',
@@ -35,30 +37,19 @@ export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.stop) {
       this._ms.DF05(520, false);
       this._ms.DF05(10, false);
-      this._ms.runTensionData = {
-        state: false,
-        stage: 0,
-        delayState: false,
-        stateOk: false,
-        LodOffTime: 0,
-        nowLodOffTime: 0,
-        loadOffDelayState: false,
-        returnState: false,
-        returnTime: 5,
-        mmBalanceControl: 0,
-        stopState: false,
-      };
+      this._ms.ExitTension();
     }
   }
   constructor(
-    public _ms: MSService
+    public _ms: MSService,
+    private _router: Router,
   ) { }
 
   ngOnInit() {
     // this.tensionData = JSON.parse(localStorage.getItem('nowTensionData'));
     // this._ms.tensionData = this.tensionData;
     // console.log(this.tensionData);
-    console.log('预备', this._ms.tensionData, this._ms.runTensionData, this._ms.recordData, this._ms.deviceParameter);
+    this._ms.runTensionData = JSON.parse(JSON.stringify(runTensionData)); // 初始化自动张拉数据
     this._ms.upPLC();
     this.autoControl.maximumDeviationRate = this._ms.deviceParameter.maximumDeviationRate;
     this.autoControl.LowerDeviationRate = this._ms.deviceParameter.LowerDeviationRate;
@@ -66,6 +57,7 @@ export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
     this.autoControl.mmReturnLowerLimit = this._ms.deviceParameter.mmReturnLowerLimit;
     this._ms.runTensionData.mmBalanceControl = this._ms.deviceParameter.mmBalanceControl;
     this._ms.runTensionData.LodOffTime = this._ms.deviceParameter.unloadingDelay;
+    console.log('预备', this._ms.tensionData, this._ms.runTensionData, this._ms.recordData, this._ms.deviceParameter);
   }
   ngAfterViewInit() {
     this.heightCvs = this.elementCvs.nativeElement.offsetHeight - 5;
@@ -113,6 +105,13 @@ export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
   onSaveExit() {
 
   }
+  // 不保存数据退出
+  onExit() {
+    this.stop = true;
+    this._router.navigate(['/manual']);
+  }
+
+
   F05(id, address, data) {
     this._ms.connection.invoke('F05', { Id: id, Address: address, F05: data });
     console.log('MS请求');
