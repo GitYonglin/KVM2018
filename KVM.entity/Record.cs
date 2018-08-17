@@ -19,9 +19,7 @@ namespace KVM.entity
 
     public class CvsData
     {
-        public string TimeState { get; set; }
-        public string TimeEnd { get; set; }
-        public int Skep { get; set; }
+        public IEnumerable<ulong> Time { get; set; }
         public RecordMode Mpa { get; set; }
         public RecordMode Mm { get; set; }
         

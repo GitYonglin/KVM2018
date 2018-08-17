@@ -6,6 +6,7 @@ import { APIService } from './api.service';
 import { ShowValues, autoState, RecordData, SumData, funcSumData, runTensionData } from '../model/live.model';
 import { Observable } from 'rxjs';
 import { newFormData } from '../utils/form/constructor-FormData';
+import { N2F } from '../utils/toFixed';
 
 interface InPLC {
   Id: number;
@@ -43,6 +44,8 @@ export class MSService {
       alarm: [],
       state: autoState[0],
       setPLCMpa: 0,
+      affirmMm: 0,
+      affirmMm0: 0,
     },
     b1: {
       plcMpa: 0,
@@ -52,6 +55,8 @@ export class MSService {
       alarm: [],
       state: autoState[0],
       setPLCMpa: 0,
+      affirmMm: 0,
+      affirmMm0: 0,
     },
     a2: {
       plcMpa: 0,
@@ -61,6 +66,8 @@ export class MSService {
       alarm: [],
       state: autoState[0],
       setPLCMpa: 0,
+      affirmMm: 0,
+      affirmMm0: 0,
     },
     b2: {
       plcMpa: 0,
@@ -70,6 +77,8 @@ export class MSService {
       alarm: [],
       state: autoState[0],
       setPLCMpa: 0,
+      affirmMm: 0,
+      affirmMm0: 0,
     },
   };
   public liveSum: SumData;
@@ -108,6 +117,18 @@ export class MSService {
     } catch (error) {
       console.log(error);
     }
+  }
+  // 获取设备
+  public setDevice(callback: Function = null) {
+    const deviceId = localStorage.getItem('nowDevice');
+    console.log('获取设备', deviceId);
+    this._service.get(`/device/${deviceId}`).subscribe(r => {
+      this.nowDevice = r;
+      console.log('获取设备', r, this.nowDevice);
+      if (callback) {
+        callback(true);
+      }
+    });
   }
   // 链接后台socket
   public creation() {
@@ -163,10 +184,10 @@ export class MSService {
         });
         // 监听保压完成
         connection.on('DelayOk', data => {
-          console.log('延时完成', this.recordData.stage, this.tensionData.checkData.time.length - 1);
+          console.log('延时完成', this.recordData.stage, this.tensionData.stage);
           this.recordData.time[this.recordData.stage] = data;
-          if (this.recordData.stage < this.tensionData.checkData.time.length - 1) {
-            this.recordData.stage ++;
+          if (this.recordData.stage < this.tensionData.stage) {
+            this.recordData.stage++;
             this.upPLC();
             this.runTensionData.delayState = false;
           } else {
@@ -184,7 +205,7 @@ export class MSService {
           console.log('卸荷延时完成');
           // tslint:disable-next-line:forin
           for (const name in this.recordData.mm) {
-            this.recordData.returnStart[name] = {mpa: this.showValues[name].mpa, mm: this.showValues[name].mm};
+            this.recordData.returnStart[name] = { mpa: this.showValues[name].mpa, mm: this.showValues[name].mm };
           }
           this.saveRecordDb();
           this.autoReturn();
@@ -223,17 +244,17 @@ export class MSService {
   }
   // 设置单个线圈
   public F05(id: number, address: number, data: boolean) {
-    this.connection.invoke('F05', {id: id, address: address, F05: data});
+    this.connection.invoke('F05', { id: id, address: address, F05: data });
     console.log('MS请求');
   }
   // 设置单个寄存器
   public F06(id: number, address: number, data: any) {
-    this.connection.invoke('F06', {id: id, address: address, F06: data});
+    this.connection.invoke('F06', { id: id, address: address, F06: data });
     console.log('MS请求');
   }
   // 设备参数设置
   public SetDeviceParameter(address: number, value: number, callback: Function = null) {
-    this.connection.invoke('SetDeviceParameter', { address: address, value: value}).then( r => {
+    this.connection.invoke('SetDeviceParameter', { address: address, value: value }).then(r => {
       console.log('MS请求');
       callback(r);
     });
@@ -241,7 +262,7 @@ export class MSService {
   // 同时获取
   public DF03(address: number, data: number) {
     try {
-      this.connection.invoke('DF03', {address: address, F03: data});
+      this.connection.invoke('DF03', { address: address, F03: data });
       console.log('MS请求');
     } catch (error) {
       console.log('设备未连接不能操作');
@@ -250,7 +271,7 @@ export class MSService {
   // 同时设置线圈
   public DF05(address: number, state: boolean) {
     try {
-      this.connection.invoke('DF05', {address: address, F05: state});
+      this.connection.invoke('DF05', { address: address, F05: state });
       console.log('MS请求');
     } catch (error) {
       console.log('设备未连接不能操作');
@@ -320,6 +341,21 @@ export class MSService {
     }
     // console.log(this.showValues, data[5].toString(2).padStart(6, '0'), data[5]);
   }
+
+  // 报警实时数据转换
+  private setAlarm(value) {
+    const arr = [];
+    for (let index = 0; index < value.length; index++) {
+      let alarm = '';
+      if (value[index] === '1') {
+        alarm = alarmArr[index];
+      }
+      arr.push(alarm);
+    }
+    return arr;
+  }
+
+
   // PLC自动数据核对
   private autoVerifyMpa() {
     if (this.autoVerifyMpaState) {
@@ -338,36 +374,11 @@ export class MSService {
       this.autoVerifyMpaState = false;
     }
   }
-  // 报警实时数据转换
-  private setAlarm(value) {
-    const arr = [];
-    for (let index = 0; index < value.length; index++) {
-      let alarm = '';
-      if (value[index] === '1') {
-        alarm = alarmArr[index];
-      }
-      arr.push(alarm);
-    }
-    return arr;
-  }
-
-  // 获取设备
-  public setDevice(callback: Function = null) {
-    const deviceId = localStorage.getItem('nowDevice');
-    console.log('获取设备', deviceId);
-    this._service.get(`/device/${deviceId}`).subscribe(r => {
-      this.nowDevice = r;
-      console.log('获取设备', r, this.nowDevice);
-      if (callback) {
-        callback(true);
-      }
-    });
-  }
   // 上传自动张拉数据
   public upPLC() {
     const t = this.tensionData;
     const index = this.recordData.stage;
-    const data:  {
+    const data: {
       mode: number,
       a1?: number,
       a2?: number,
@@ -389,13 +400,50 @@ export class MSService {
     });
     console.log('MS请求');
   }
+  // 确认压力数据下载
+  public affirmMpaUpPLC() {
+    const t = this.tensionData;
+    const r = this.recordData;
+    const index = this.recordData.stage;
+    const data: {
+      mode: number,
+      a1?: number,
+      a2?: number,
+      b1?: number,
+      b2?: number,
+    } = {
+      mode: t.mode,
+      a1: 0,
+      a2: 0,
+      b1: 0,
+      b2: 0
+    };
+    for (const name of this.tensionData.modes) {
+      data[name] = this.Value2PLC(r.mpa[name][index], 'mpa', name);
+      this.showValues[name].affirmMm0 = this.recordData.mm[name][index];
+    }
+    console.log('确认压力下载数据到PLC', data, this.showValues);
+    this.connection.invoke('Affirm', data).then(() => {
+    });
+    console.log('MS请求');
+  }
   // 实时保存张拉数据
   private saveRecord() {
     const modes = this.tensionData.modes;
     const sumData = {};
     modes.forEach(name => {
-      this.recordData.mpa[name][this.recordData.stage] = this.showValues[name].mpa;
-      this.recordData.mm[name][this.recordData.stage] = this.showValues[name].mm;
+      if (this.tensionData.repeatedly) {
+        // console.log(name, this.showValues[name].affirmMm, this.showValues[name].mm,
+        //   N2F(this.showValues[name].mm - this.showValues[name].affirmMm));
+        if (this.showValues[name].affirmMm > 0) {
+          this.recordData.mm[name][this.recordData.stage] = this.showValues[name].affirmMm0 +
+            (N2F(this.showValues[name].mm - this.showValues[name].affirmMm));
+          this.recordData.mpa[name][this.recordData.stage] = this.showValues[name].mpa;
+        }
+      } else {
+        this.recordData.mpa[name][this.recordData.stage] = this.showValues[name].mpa;
+        this.recordData.mm[name][this.recordData.stage] = this.showValues[name].mm;
+      }
       sumData[name] = this.recordData.mm[name];
     });
     // 实时计算位移偏差率
@@ -410,41 +458,63 @@ export class MSService {
     let loadOff = false;
     let by = false;
     let stop = false;
-      for (const name of this.tensionData.modes) {
-        if (!this.runTensionData.stateOk &&
-          this.showValues[name].plcMpa >= this.tensionData.mpaPLC[name][this.recordData.stage] &&
-          (this.showValues[name].state === '保压' || this.showValues[name].state === '补压') &&
-          !this.runTensionData.delayState
-        ) {
-          delay = true;
-          by = true;
-        } else {
-          delay = false;
-        }
-        if (this.showValues[name].state === '卸荷完成'  && !this.runTensionData.loadOffDelayState) {
-          loadOff = true;
-        } else {
-          loadOff = false;
-        }
-        if (this.showValues[name].state === '张拉暂停') {
-          stop = true;
-        }
-        // console.log(this.showValues[name].state, name);
+    let balanceControlState = false;
+    for (const name of this.tensionData.modes) {
+      if (!this.tensionData.repeatedly || this.showValues[name].affirmMm > 0) {
+        balanceControlState = true;
       }
-      if (stop) {
-        this.runTensionData.stopState = true;
+      if (!this.runTensionData.stateOk &&
+        this.showValues[name].plcMpa >= this.tensionData.mpaPLC[name][this.recordData.stage] &&
+        (this.showValues[name].state === '保压' || this.showValues[name].state === '补压') &&
+        !this.runTensionData.delayState
+      ) {
+        delay = true;
+        by = true;
       } else {
-        this.runTensionData.stopState = false;
+        delay = false;
       }
-      // 张拉平衡
+      if (this.showValues[name].state === '卸荷完成' && !this.runTensionData.loadOffDelayState) {
+        loadOff = true;
+      } else {
+        loadOff = false;
+      }
+      if (this.showValues[name].state === '张拉暂停') {
+        stop = true;
+      }
+      if (this.showValues[name].state === '压力确认完成') {
+        this.showValues[name].affirmMm = this.showValues[name].mm;
+        console.log(name,  this.showValues[name].affirmMm, '压力确认完成');
+        let id = 1;
+        let address = 414;
+        const f06 = 0;
+        if (name === 'a2') {
+          id = 2;
+        } else if (name === 'b1') {
+          address = 415;
+        } else if (name === 'b2') {
+          id = 2;
+          address = 415;
+        }
+        this.connection.invoke('F06', {id: id, address: address, F06: f06});
+      }
+      // console.log(this.showValues[name].state, name);
+    }
+    if (stop) {
+      this.runTensionData.stopState = true;
+    } else {
+      this.runTensionData.stopState = false;
+    }
+    // 张拉平衡
+    if (balanceControlState) {
       this.balanceControl(by);
-      // 进入保压
-      if (delay) {
-          console.log('进入保压计时', this.tensionData.checkData.time[this.recordData.stage]);
-          this.runTensionData.delayState = true;
-          this.connection.invoke('Delay', this.tensionData.checkData.time[this.recordData.stage]);
-          console.log('MS请求');
-      }
+    }
+    // 进入保压
+    if (delay) {
+      console.log('进入保压计时', this.tensionData.checkData.time[this.recordData.stage]);
+      this.runTensionData.delayState = true;
+      this.connection.invoke('Delay', this.tensionData.checkData.time[this.recordData.stage]);
+      console.log('MS请求');
+    }
     // 进入卸荷延时
     if (loadOff) {
       this.connection.invoke('LoadOffDelay', this.runTensionData.LodOffTime);
@@ -540,7 +610,7 @@ export class MSService {
   // 自动卸荷
   autoLoadOff() {
     console.log('卸荷');
-    this.connection.invoke('AutoF05', { mode: this.tensionData.mode, address: 521, F05: true});
+    this.connection.invoke('AutoF05', { mode: this.tensionData.mode, address: 521, F05: true });
     console.log('MS请求');
 
   }
@@ -548,13 +618,13 @@ export class MSService {
   autoReturn() {
     // this.runTensionData.state = false;
     console.log('进入回程');
-    this.connection.invoke('AutoF05', { mode: this.tensionData.mode, address: 522, F05: true});
+    this.connection.invoke('AutoF05', { mode: this.tensionData.mode, address: 522, F05: true });
     console.log('MS请求');
   }
   // 张拉完成自动跳转上一个页面
   returnTime() {
     setTimeout(() => {
-      this.ExitTime -- ;
+      this.ExitTime--;
       if (this.ExitTime === 0) {
         this.runTensionData.returnState = false;
         this.ExitTension();
@@ -566,20 +636,38 @@ export class MSService {
     }, 1000);
   }
   // 保存数据到数据库
-  saveRecordDb() {
-    console.log('数据保存');
-    delete this.recordData .liveMmCvs;
-    delete this.recordData .liveMpaCvs;
-    this.recordData.state = 1;
+  saveRecordDb(state = false) {
+    console.log('数据保存', this.tensionData.twice, this.recordData.state);
+    delete this.recordData.liveMmCvs;
+    delete this.recordData.liveMpaCvs;
+    if (!state) {
+      if (this.tensionData.twice && (this.recordData.state === 0 || this.recordData.state === 4)) {
+        this.recordData.state = 2;
+      } else {
+        this.recordData.state = 1;
+      }
+    } else {
+      if (this.tensionData.twice && (this.recordData.state === 0 || this.recordData.state === 4)) {
+        this.recordData.state = 4;
+      } else {
+        this.recordData.state = 3;
+      }
+    }
+    const httpType = this.tensionData.repeatedly ? 'put' : 'post';
+    const url = this.tensionData.repeatedly ? `/record/${this.recordData.id}` : '/record';
     console.log('张拉记录数据', this.recordData);
     localStorage.setItem('recordData', JSON.stringify(this.recordData));
     const message = { success: '记录保存', error: '' };
-    this._service.http('post', this.recordData, '/record', message).subscribe(b => {
+    this._service.http(httpType, this.recordData, url, message).subscribe(b => {
       console.log('返回数据', b);
-      this.ExitTime = 5;
-      this.returnTime();
-      this.runTensionData.returnState = true;
-      console.log('MS请求');
+      if (state) {
+        this.runTensionData.returnState = false;
+        this.ExitTension();
+      } else {
+        this.ExitTime = 5;
+        this.returnTime();
+        this.runTensionData.returnState = true;
+      }
     });
   }
   // 退出张拉

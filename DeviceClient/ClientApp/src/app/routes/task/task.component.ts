@@ -382,12 +382,15 @@ export class TaskComponent implements OnInit, AfterViewInit {
           }
         }
         this.runTension.alarmState = false;
+        const twiceData = this.getTwice(); // 二次张拉数据
         const nowTensionData = {
           id: tensionData.id,
           holeName: tensionData.holeName,
           bridgeName: this.nowData.bridgeName,
           mode: tensionData.mode,
           modes: this.runTension.mode,
+          twice: this.groupTaskElem.nowTaskData.twice, // 二次张拉
+          repeatedly: twiceData.recordData !== null,
           mpaPLC: {
             // a1: [],
             // b1: [],
@@ -401,6 +404,7 @@ export class TaskComponent implements OnInit, AfterViewInit {
             stage: this.groupTaskElem.dbData.tensionStageValue,
             time: this.groupTaskElem.dbData.time
           },
+          stage: twiceData.stage,
           taskSum: {}
         };
         const recordData: RecordData = {
@@ -412,9 +416,7 @@ export class TaskComponent implements OnInit, AfterViewInit {
           mpa: {},
           mm: {},
           cvsData: {
-            timeState: new Date().getTime(),
-            timeEnd: new Date().getTime(),
-            skep: 1,
+            time: [],
             mpa: {},
             mm: {},
           },
@@ -425,8 +427,8 @@ export class TaskComponent implements OnInit, AfterViewInit {
         for (const name of this.runTension.mode) {
           recordData.mm[name] = [];
           recordData.mpa[name] = [];
-          recordData.cvsData.mpa[name] = [0];
-          recordData.cvsData.mm[name] = [0];
+          recordData.cvsData.mpa[name] = [];
+          recordData.cvsData.mm[name] = [];
           nowTensionData.mpaPLC[name] = [];
           // recordData.liveCvs.push({time: new Date().getTime(), type: name, value: 0});
           for (const mpa of tensionData.mpa[name]) {
@@ -444,7 +446,11 @@ export class TaskComponent implements OnInit, AfterViewInit {
           recordData.time = [0, 0, 0];
           break;
           case 4:
-          liveState = ['初张拉', '阶段一', '阶段二', '终张拉'];
+          if (twiceData.TwiceStage === 1) {
+            liveState = ['初张拉', '阶段一', '阶段二'];
+          } else {
+            liveState = ['初张拉', '阶段一', '阶段二', '终张拉'];
+          }
           recordData.time = [0, 0, 0, 0];
           break;
           case 5:
@@ -454,9 +460,19 @@ export class TaskComponent implements OnInit, AfterViewInit {
           default:
           break;
         }
+
         console.log(Number(this.groupTaskElem.nowTaskData.tensionStage), liveState, '555555555555555555555555');
         if (this.groupTaskElem.nowTaskData.super) {
-          liveState.push('超张拉');
+          recordData.time.push(0);
+          if (twiceData.TwiceStage !== 1) {
+            liveState.push('超张拉');
+          }
+        }
+        if (twiceData.recordData) {
+          Object.assign(recordData, twiceData.recordData);
+        }
+        if (twiceData.TwiceStage === 2 && twiceData.recordData.state === 2) {
+          recordData.time[2] = 0;
         }
         // for (const time of tensionData.time) {
         //   nowTensionData.timePLC.push(time * 10);
@@ -474,6 +490,24 @@ export class TaskComponent implements OnInit, AfterViewInit {
         console.log('设备链接异常');
       }
     });
+  }
+  getTwice() {
+    const gData = this.groupTaskElem.nowTaskData;
+    const rData = this.groupTaskElem.recordData;
+    let stage = 0;
+    let TwiceStage = 0;
+    if (gData.twice) {
+      if (rData !== null && (rData.state === 2 || rData.stage === 3)) {
+        stage = Number(gData.tensionStage) - 1;
+        TwiceStage = 2;
+      } else {
+        TwiceStage = 1;
+        stage = 2;
+      }
+    } else {
+      stage = Number(gData.tensionStage) - 1;
+    }
+    return {stage: stage, recordData: rData, TwiceStage: TwiceStage};
   }
   runTensionOk() {
     this.onTension();

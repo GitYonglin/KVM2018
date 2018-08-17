@@ -22,5 +22,10 @@ export class AppComponent implements OnInit {
   ngOnInit() {
     this._ms.creation();
     this._ms.setDevice();
+    this._router.events.subscribe((event) => {
+      if (event instanceof NavigationEnd) {
+        console.log('全局路由', event);
+      }
+    });
   }
 }

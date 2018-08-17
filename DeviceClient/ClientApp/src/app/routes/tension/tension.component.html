@@ -82,7 +82,7 @@
     </div>
     <div class="cvs">
       <div #cvs>
-        <app-canvas-cvs *ngIf="heightCvs && _ms.runTensionData.state" [width]="widthCvs" [height]="heightCvs"></app-canvas-cvs>
+        <app-canvas-cvs #cvsE *ngIf="heightCvs" [width]="widthCvs" [height]="heightCvs"></app-canvas-cvs>
       </div>
       <div>
         <!-- <app-canvas-cvs name="Mm" *ngIf="heightCvs && _ms.runTensionData.state" [width]="widthCvs" [height]="heightCvs" title="位移曲线·mm"
@@ -153,7 +153,7 @@
   </nz-card>
   <ng-template #runFooter>
     <button nz-button nzType="default" (click)="onCancelTension()">取 消</button>
-    <button nz-button nzType="primary" (click)="onRunTension()">启动张拉</button>
+    <button nz-button nzType="primary" (click)="onRunTension();">启动张拉</button>
   </ng-template>
 </nz-modal>
 
@@ -165,7 +165,6 @@
   </div>
   <ng-template #returnFooter>
     <button nz-button nzType="default" (click)="onStop()">停止退出</button>
-    <button nz-button nzType="primary" (click)="onAutoReturn()">继续回程退出</button>
   </ng-template>
 </nz-modal>
 

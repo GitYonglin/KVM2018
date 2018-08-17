@@ -4,7 +4,8 @@ import { MSService } from '../../services/MS.service';
 import { setCvs } from '../../utils/cvsData';
 import { Value2PLC } from '../../utils/PLC8Show';
 import { Router } from '@angular/router';
-import { runTensionData } from '../../model/live.model';
+import { runTensionData, showValues } from '../../model/live.model';
+import { CanvasCvsComponent } from '../../shared/canvas-cvs/canvas-cvs.component';
 
 @Component({
   selector: 'app-tension',
@@ -13,7 +14,9 @@ import { runTensionData } from '../../model/live.model';
 })
 export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('cvs') elementCvs: ElementRef;
-  heightCvs: any;
+    heightCvs: any;
+  @ViewChild(CanvasCvsComponent)
+    private cvs: CanvasCvsComponent;
   widthCvs: any;
   msg = 500;
   messages = '';
@@ -50,23 +53,30 @@ export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
     // this._ms.tensionData = this.tensionData;
     // console.log(this.tensionData);
     this._ms.runTensionData = JSON.parse(JSON.stringify(runTensionData)); // 初始化自动张拉数据
-    this._ms.upPLC();
     this.autoControl.maximumDeviationRate = this._ms.deviceParameter.maximumDeviationRate;
     this.autoControl.LowerDeviationRate = this._ms.deviceParameter.LowerDeviationRate;
     this.autoControl.mpaDeviation = this._ms.deviceParameter.mpaDeviation;
     this.autoControl.mmReturnLowerLimit = this._ms.deviceParameter.mmReturnLowerLimit;
     this._ms.runTensionData.mmBalanceControl = this._ms.deviceParameter.mmBalanceControl;
     this._ms.runTensionData.LodOffTime = this._ms.deviceParameter.unloadingDelay;
-    console.log('预备', this._ms.tensionData, this._ms.runTensionData, this._ms.recordData, this._ms.deviceParameter);
+    this._ms.showValues = JSON.parse(JSON.stringify(showValues));
+    this._ms.upPLC();
+    if (this._ms.recordData.stage > 0) {
+      this._ms.affirmMpaUpPLC();
+    }
+    console.log('预备', this._ms.tensionData, this._ms.runTensionData, this._ms.recordData, this._ms.deviceParameter, this._ms.showValues);
   }
   ngAfterViewInit() {
     this.heightCvs = this.elementCvs.nativeElement.offsetHeight - 5;
     this.widthCvs = this.elementCvs.nativeElement.offsetWidth - 5;
     console.log(this.heightCvs, this.widthCvs);
   }
+
   onCancelTension() {
     console.log('取消张拉');
-    this.runTension.runState = false;
+    this._ms.runTensionData.returnState = false;
+    this.stop = true;
+    history.go(-1);
   }
   onRunTension() {
     console.log('启动张拉', this._ms.tensionData.mode);
@@ -75,6 +85,7 @@ export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
     console.log('MS请求');
     this.runTension.runState = false;
     this._ms.runTensionData.state = true;
+    this.cvs.delayCvs();
     // this._ms.DelaySaveCvs();
   }
   onSet(address: number, event, make?) {
@@ -103,7 +114,9 @@ export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
     console.log('MS请求');
   }
   onSaveExit() {
-
+    console.log('保存退出');
+    this._ms.saveRecordDb(true);
+    this._router.navigate(['/manual']);
   }
   // 不保存数据退出
   onExit() {

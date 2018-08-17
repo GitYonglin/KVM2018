@@ -3,7 +3,7 @@ import { deviceModes } from './device.model';
 
 export const manualState = ['待机', '张拉中', '卸荷中', '回程中', '保压'];
 export const autoState = ['待机', '张拉中', '卸荷中', '回程中', '保压', '卸荷完成', '补压', '压力确认', '回顶', '回顶完成', '平衡暂停',
-                          '11', '12', '13', '14', '15', '16', '17', '18', '19',
+                          '压力确认完成', '12', '13', '14', '15', '16', '17', '18', '19',
                           '张拉暂停'
 ];
 export const liveState = ['初张拉', '阶段一', '阶段二', '阶段三', '终张拉', '超张拉', '卸荷', '回程'];
@@ -21,6 +21,8 @@ interface ShowValuesItem {
   alarm: string[];
   state: string;
   setPLCMpa: number;
+  affirmMm: number;
+  affirmMm0: number;
 }
 
 export interface RecordData {
@@ -43,9 +45,7 @@ interface RecordMode {
   b2?: number[];
 }
 export interface CvsData {
-  timeState: any;
-  timeEnd: any;
-  skep: number;
+  time: any[];
   mpa: RecordMode;
   mm: RecordMode;
 }
@@ -141,3 +141,49 @@ export const runTensionData = {
   stopState: false,
 };
 
+export const showValues: ShowValues = {
+  a1: {
+    plcMpa: 0,
+    mpa: 0,
+    mm: 0,
+    alarmNumber: 0,
+    alarm: [],
+    state: autoState[0],
+    setPLCMpa: 0,
+    affirmMm: 0,
+    affirmMm0: 0,
+  },
+  b1: {
+    plcMpa: 0,
+    mpa: 0,
+    mm: 0,
+    alarmNumber: 0,
+    alarm: [],
+    state: autoState[0],
+    setPLCMpa: 0,
+    affirmMm: 0,
+    affirmMm0: 0,
+  },
+  a2: {
+    plcMpa: 0,
+    mpa: 0,
+    mm: 0,
+    alarmNumber: 0,
+    alarm: [],
+    state: autoState[0],
+    setPLCMpa: 0,
+    affirmMm: 0,
+    affirmMm0: 0,
+  },
+  b2: {
+    plcMpa: 0,
+    mpa: 0,
+    mm: 0,
+    alarmNumber: 0,
+    alarm: [],
+    state: autoState[0],
+    setPLCMpa: 0,
+    affirmMm: 0,
+    affirmMm0: 0,
+  },
+};

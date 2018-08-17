@@ -24,5 +24,20 @@ namespace KVM.LiteDB.DAL.Record
             _col.Insert(data);
             return new ReturnPost() { Data = data, Message = true };
         }
+        /// <summary>
+        /// 修改一条数据
+        /// </summary>
+        /// <param name="id">Id</param>
+        /// <param name="data">数据</param>
+        /// <returns></returns>
+        public new ReturnPost UpData(string id, entity.Record data)
+        {
+            var old = _col.FindById(id);
+            if (_col.Update(data))
+            {
+                return new ReturnPost() { Data = data, Message = true };
+            }
+            return new ReturnPost() { Message = false };
+        }
     }
 }

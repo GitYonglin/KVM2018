@@ -93,6 +93,48 @@ namespace DeviceClient.Hubs
             C.F05(PLCSite.M(data.Address), data.F05, null);
             return true;
         }
+        
+        public void F06(InPLC data)
+        {
+            if (data.Id == 1)
+            {
+                Z.F06(PLCSite.D(data.Address), data.F06, null);
+            }
+            else
+            {
+                C.F06(PLCSite.D(data.Address), data.F06, null);
+            }
+        }
+        public bool F16(InPLC data)
+        {
+            if (data.Id == 1)
+            {
+                Z.F16(PLCSite.D(data.Address), data.F16, null);
+            }
+            else
+            {
+                C.F16(PLCSite.D(data.Address), data.F16, null);
+            }
+            return true;
+        }
+        public void F01(InPLC data)
+        {
+            if (data.Id == 1)
+            {
+                Z.F01(data.Address, data.F01, (rData) =>
+                {
+                    _clients.All.SendAsync("noe", rData);
+                });
+            }
+            else
+            {
+                C.F01(data.Address, data.F01, (rData) =>
+                {
+                    _clients.All.SendAsync("noe", rData);
+                });
+            }
+        }
+
         /// <summary>
         /// 自动张拉F05
         /// </summary>
@@ -130,35 +172,6 @@ namespace DeviceClient.Hubs
             AutoStopState = false;
             ZAutoStopState = false;
             CAutoStopState = false;
-        }
-        public void F06(InPLC data)
-        {
-
-            if (data.Id == 1)
-            {
-                Z.F06(PLCSite.D(data.Address), data.F06, null);
-            }
-            else
-            {
-                C.F06(PLCSite.D(data.Address), data.F06, null);
-            }
-        }
-        public void F01(InPLC data)
-        {
-            if (data.Id == 1)
-            {
-                Z.F01(data.Address, data.F01, (rData) =>
-                {
-                    _clients.All.SendAsync("noe", rData);
-                });
-            }
-            else
-            {
-                C.F01(data.Address, data.F01, (rData) =>
-                {
-                    _clients.All.SendAsync("noe", rData);
-                });
-            }
         }
         /// <summary>
         /// 通信错误事件
@@ -302,7 +315,7 @@ namespace DeviceClient.Hubs
             }
         }
         /// <summary>
-        /// 数据下载
+        /// 阶段压力数据下载
         /// </summary>
         /// <param name="t"></param>
         public bool Tension(TensionModle t)
@@ -314,6 +327,23 @@ namespace DeviceClient.Hubs
             {
                 Z.F16(PLCSite.D(410), new int[] { t.A1, t.B1 }, null);
                 C.F16(PLCSite.D(410), new int[] { t.A2, t.B2 }, null);
+            }
+            return true;
+        }
+        /// <summary>
+        /// 确认压力数据下载
+        /// </summary>
+        /// <param name="t"></param>
+        public bool Affirm(TensionModle t)
+        {
+            if (t.Mode == 0 || t.Mode == 2)
+            {
+                Z.F16(PLCSite.D(414), new int[] { t.A1, t.B1 }, null);
+            }
+            else
+            {
+                Z.F16(PLCSite.D(414), new int[] { t.A1, t.B1 }, null);
+                C.F16(PLCSite.D(414), new int[] { t.A2, t.B2 }, null);
             }
             return true;
         }
@@ -419,6 +449,7 @@ namespace DeviceClient.Hubs
         public int F06 { get; set; }
         public int F03 { get; set; }
         public int Mode { get; set; }
+        public int[] F16 { get; set; }
     }
     public class SetDeviceParameterData
     {

@@ -38,5 +38,10 @@ namespace DeviceClient.Controllers.Record
             //var r = JsonConvert.DeserializeObject<KVM.entity.Record>(data.Id);
             return Json(_col.Insert(data));
         }
+        [HttpPut("{id}")]
+        public IActionResult Put(string id, [FromBody]KVM.entity.Record data)
+        {
+            return Json(_col.UpData(id, data));
+        }
     }
 }

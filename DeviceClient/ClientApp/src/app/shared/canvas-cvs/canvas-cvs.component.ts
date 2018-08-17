@@ -71,16 +71,6 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit {
   width = '100%';
   @Input()
   data = null;
-  @Input()
-  title = '压力曲线·Mpa';
-  @Input()
-  yMax = 60;
-  @Input()
-  ticks = [0, 10, 20, 30, 40, 50, 60];
-  @Input()
-  mode = [];
-  @Input()
-  name = null;
 
   constructor(private _ms: MSService) { }
 
@@ -90,15 +80,9 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit {
   ngAfterViewInit() {
     if (this.data === null) {
       this.saveCvs();
-      this.setCvs();
       console.log('初始化曲线', this.data, this.mpaChart);
     } else {
-      // tslint:disable-next-line:forin
-      for (const name in this.data.mm) {
-        if (this.data.mm[name]) {
-          this.data.mm[name].shift();
-        }
-      }
+      console.log(this.data);
       this.mpaData = setCvs(this.data, 'mpa');
       this.mmData = setCvs(this.data, 'mm');
       // console.log('44444444', this.data);
@@ -184,49 +168,29 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit {
     return chart;
   }
   // 自动张拉曲线监听
-  setCvs() {
-    console.log('监听曲线');
+  public delayCvs() {
+    // console.log('监听曲线');
     setTimeout(() => {
       if (this._ms.runTensionData.state && !this._ms.runTensionData.returnState) {
         this.saveCvs();
-        this.setCvs();
+        this.delayCvs();
       }
     }, this.ms);
   }
   public saveCvs(state = false) {
+    // console.log('曲线保存', this._ms.recordData.cvsData);1534412452423 4294967295
     const showValue = this._ms.showValues;
+    const time = new Date().getTime();
+    this._ms.recordData.cvsData.time.push(time);
     this._ms.tensionData.modes.forEach(name => {
-      this._ms.recordData.cvsData.timeEnd = new Date().getTime();
       this._ms.recordData.cvsData.mpa[name].push(showValue[name].mpa);
       this._ms.recordData.cvsData.mm[name].push(showValue[name].mm);
-      this._ms.recordData.liveMpaCvs.push({time: new Date().getTime(), type: name, value: showValue[name].mpa});
-      this._ms.recordData.liveMmCvs.push({time: new Date().getTime(), type: name, value: showValue[name].mm});
     });
+    this.mpaData = setCvs(this._ms.recordData.cvsData, 'mpa');
+    this.mmData = setCvs(this._ms.recordData.cvsData, 'mm');
     if (this.mpaChart !== null && this.mmChart !== null) {
-      this.mpaChart.changeData(this._ms.recordData.liveMpaCvs);
-      this.mmChart.changeData(this._ms.recordData.liveMmCvs);
-    } else {
-      this.mpaData = this._ms.recordData.liveMpaCvs;
-      this.mmData = this._ms.recordData.liveMmCvs;
-      console.log('11111', this.data, this._ms.recordData[`live${this.name}Cvs`]);
+      this.mpaChart.changeData(this.mpaData);
+      this.mmChart.changeData(this.mmData );
     }
-  }
-  // 测试 添加数据，模拟数据，可以指定当前时间的偏移的秒
-  getRecord(offset?) {
-    offset = offset || 0;
-    const time = new Date().getTime() + offset * 1000;
-    return [
-      {
-        time: time,
-        value: Math.floor(Math.random() * this.yMax),
-        type: 'A1'
-      },
-      {
-        // time: new Date().getTime() + offset * 1000,
-        time: time,
-        value: Math.floor(Math.random() * this.yMax),
-        type: 'A2'
-      }
-    ];
   }
 }
