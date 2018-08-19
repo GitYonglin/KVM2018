@@ -37,6 +37,7 @@ export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     console.log('自动结束');
+    this._ms.passSate = false;
     if (this.stop) {
       this._ms.DF05(520, false);
       this._ms.DF05(10, false);
@@ -52,6 +53,15 @@ export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
     // this.tensionData = JSON.parse(localStorage.getItem('nowTensionData'));
     // this._ms.tensionData = this.tensionData;
     // console.log(this.tensionData);
+    this.upPLC();
+  }
+  ngAfterViewInit() {
+    this.heightCvs = this.elementCvs.nativeElement.offsetHeight - 5;
+    this.widthCvs = this.elementCvs.nativeElement.offsetWidth - 5;
+    console.log(this.heightCvs, this.widthCvs);
+  }
+
+  upPLC() {
     this._ms.runTensionData = JSON.parse(JSON.stringify(runTensionData)); // 初始化自动张拉数据
     this.autoControl.maximumDeviationRate = this._ms.deviceParameter.maximumDeviationRate;
     this.autoControl.LowerDeviationRate = this._ms.deviceParameter.LowerDeviationRate;
@@ -60,18 +70,13 @@ export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
     this._ms.runTensionData.mmBalanceControl = this._ms.deviceParameter.mmBalanceControl;
     this._ms.runTensionData.LodOffTime = this._ms.deviceParameter.unloadingDelay;
     this._ms.showValues = JSON.parse(JSON.stringify(showValues));
+    this._ms.passSate = false;
     this._ms.upPLC();
     if (this._ms.recordData.stage > 0) {
       this._ms.affirmMpaUpPLC();
     }
     console.log('预备', this._ms.tensionData, this._ms.runTensionData, this._ms.recordData, this._ms.deviceParameter, this._ms.showValues);
   }
-  ngAfterViewInit() {
-    this.heightCvs = this.elementCvs.nativeElement.offsetHeight - 5;
-    this.widthCvs = this.elementCvs.nativeElement.offsetWidth - 5;
-    console.log(this.heightCvs, this.widthCvs);
-  }
-
   onCancelTension() {
     console.log('取消张拉');
     this._ms.runTensionData.returnState = false;
@@ -109,6 +114,7 @@ export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
     // 返回上一页
     history.go(-1);
   }
+  // 暂停启动
   onStop2run() {
     this._ms.connection.invoke('Stop2Run');
     console.log('MS请求');
@@ -122,6 +128,18 @@ export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
   onExit() {
     this.stop = true;
     this._router.navigate(['/manual']);
+  }
+  // 回顶
+  onReturn() {
+    this._ms.saveRecordDb(true, true);
+  }
+  // 继续张拉
+  onContinue() {
+    // this._ms.recordData = JSON.parse(localStorage.getItem('TData'));
+    // this._ms.tensionData = JSON.parse(localStorage.getItem('TResedData'));
+    console.log(JSON.parse(localStorage.getItem('TData')),  JSON.parse(localStorage.getItem('TResedData')));
+    this.upPLC();
+    this.onRunTension();
   }
 
 

@@ -226,7 +226,7 @@ namespace DeviceClient.Hubs
         }
         private void AutoStop(int data, string id)
         {
-            if (data == 20 && !AutoStopState)
+            if (data == 20 || data == 21 && !AutoStopState)
             {
                 if ((TensionMode == 1 || TensionMode == 3 || TensionMode == 4))
                 {
@@ -261,7 +261,7 @@ namespace DeviceClient.Hubs
                 {
                     CAutoStopState = true;
                 }
-                if ((TensionMode == 1 || TensionMode == 3 || TensionMode == 4))
+                if (TensionMode == 1 || TensionMode == 3 || TensionMode == 4)
                 {
                     if (ZAutoStopState && CAutoStopState)
                     {
@@ -272,22 +272,20 @@ namespace DeviceClient.Hubs
                 {
                     b = true;
                 }
-                if (b)
+                if (b && AutoStopRunState)
                 {
                     ZAutoStopState = false;
                     CAutoStopState = false;
                     AutoStopState = false;
-
-                    if (AutoStopRunState)
-                    {
-                        AutoStopRunState = false;
-                        ZAutoStopRunState = false;
-                        CAutoStopRunState = false;
-                        _clients.All.SendAsync("Stop2Run", true);
-                    }
+                    AutoStopRunState = false;
+                    ZAutoStopRunState = false;
+                    CAutoStopRunState = false;
                 }
             }
         }
+        /// <summary>
+        /// 暂停启动
+        /// </summary>
         public void Stop2Run()
         {
             if (TensionMode == 1 || TensionMode == 3 || TensionMode == 4)

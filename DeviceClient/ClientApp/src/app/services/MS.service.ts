@@ -84,6 +84,8 @@ export class MSService {
   public liveSum: SumData;
   public liveState: any;
   public ExitTime = 5;
+  public passSate = false;
+  public returnMmOk = false;
   private autoVerifyMpaState = false;
 
   constructor(
@@ -339,6 +341,9 @@ export class MSService {
         this.autoVerifyMpa();
       }
     }
+    if (this.passSate) {
+      this.passMonitoring();
+    }
     // console.log(this.showValues, data[5].toString(2).padStart(6, '0'), data[5]);
   }
 
@@ -497,6 +502,11 @@ export class MSService {
         }
         this.connection.invoke('F06', {id: id, address: address, F06: f06});
       }
+      if (this.showValues[name].state === '超工作位移上限') {
+        this.returnMmOk = false;
+        this.passSate = true;
+        return;
+      }
       // console.log(this.showValues[name].state, name);
     }
     if (stop) {
@@ -520,6 +530,17 @@ export class MSService {
       this.connection.invoke('LoadOffDelay', this.runTensionData.LodOffTime);
       console.log('MS请求');
       this.runTensionData.loadOffDelayState = true;
+    }
+  }
+  // 回顶监控
+  private passMonitoring() {
+    for (const name of this.tensionData.modes) {
+      if (this.showValues[name].state === '回顶完成') {
+        this.returnMmOk = true;
+      } else {
+        this.returnMmOk = false;
+        return;
+      }
     }
   }
   // 平衡控制
@@ -636,7 +657,7 @@ export class MSService {
     }, 1000);
   }
   // 保存数据到数据库
-  saveRecordDb(state = false) {
+  saveRecordDb(state = false, returnState = false) {
     console.log('数据保存', this.tensionData.twice, this.recordData.state);
     delete this.recordData.liveMmCvs;
     delete this.recordData.liveMpaCvs;
@@ -660,13 +681,17 @@ export class MSService {
     const message = { success: '记录保存', error: '' };
     this._service.http(httpType, this.recordData, url, message).subscribe(b => {
       console.log('返回数据', b);
-      if (state) {
-        this.runTensionData.returnState = false;
-        this.ExitTension();
+      if (!returnState) {
+        if (state) {
+          this.runTensionData.returnState = false;
+          this.ExitTension();
+        } else {
+          this.ExitTime = 5;
+          this.returnTime();
+          this.runTensionData.returnState = true;
+        }
       } else {
-        this.ExitTime = 5;
-        this.returnTime();
-        this.runTensionData.returnState = true;
+        this.passMmStop();
       }
     });
   }
@@ -675,6 +700,17 @@ export class MSService {
     this.runTensionData = JSON.parse(JSON.stringify(runTensionData)); // 初始化自动张拉数据
     this.liveSum = null;
     this.connection.invoke('AutoOk');
+    console.log('退出张拉');
+  }
+  // 回顶数据保存
+  public passMmStop() {
+    this.DF05(520, false);
+    this.runTensionData = JSON.parse(JSON.stringify(runTensionData)); // 初始化自动张拉数据
+    this.connection.invoke('AutoOk');
+    this.DF05(560, true);
+    this.tensionData.repeatedly = true;
+    localStorage.setItem('TData', JSON.stringify(this.tensionData));
+    localStorage.setItem('TResedData', JSON.stringify(this.recordData));
     console.log('退出张拉');
   }
   private anew() {

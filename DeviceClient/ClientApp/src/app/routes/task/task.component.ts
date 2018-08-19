@@ -464,8 +464,9 @@ export class TaskComponent implements OnInit, AfterViewInit {
         console.log(Number(this.groupTaskElem.nowTaskData.tensionStage), liveState, '555555555555555555555555');
         if (this.groupTaskElem.nowTaskData.super) {
           recordData.time.push(0);
-          if (twiceData.TwiceStage !== 1) {
+          if (twiceData.TwiceStage !== 1 && twiceData.TwiceStage !== 4) {
             liveState.push('超张拉');
+            nowTensionData.stage += 1;
           }
         }
         if (twiceData.recordData) {
