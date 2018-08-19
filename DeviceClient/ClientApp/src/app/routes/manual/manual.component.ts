@@ -4,6 +4,7 @@ import { DeviceParameter } from '../../model/DeviceParameter';
 import { MSService } from '../../services/MS.service';
 import { Router, NavigationEnd, ActivatedRoute } from '@angular/router';
 import { DeviceItemComponent } from './device-item/device-item.component';
+import { N2F } from '../../utils/toFixed';
 
 @Component({
   selector: 'app-manual',
@@ -56,6 +57,7 @@ export class ManualComponent implements OnInit, OnDestroy, AfterViewInit {
   selectDeviceId = null;
   // deviceParameter: DeviceParameter;
   correctionIndex: any;
+  resetMm: 0;
 
   @Input()
     deviceData: any;
@@ -179,7 +181,7 @@ export class ManualComponent implements OnInit, OnDestroy, AfterViewInit {
     if (name.indexOf('Mpa') !== -1) {
       this.nowValue = this._ms.showValues[this.correctionName].mpa;
     } else {
-      this.nowValue = this._ms.showValues[this.correctionName].mm;
+      this.nowValue = N2F(this._ms.showValues[this.correctionName].mm - this.resetMm);
     }
     this.calculate();
     console.log(name, this.deviceItem.data);

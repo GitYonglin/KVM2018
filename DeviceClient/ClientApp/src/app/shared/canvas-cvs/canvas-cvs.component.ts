@@ -118,19 +118,19 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit {
     });
 
     chart.line().position('time*value')
-    .color('type', (type) => { // 通过回调函数
+    .color('type', (type) => { // 通过回调函数 '#1890FF', '#13C2C2', '#2FC25B', '#FACC14', '#F04864', '#8543E0'
       switch (type) {
         case 'a1':
           return '#ff0033';
           break;
         case 'a2':
-          return '#ff00cc';
+          return '#FFCC14';
           break;
         case 'b1':
-          return '#00ccff';
+          return '#8543E0';
           break;
         case 'b2':
-          return '#0033ff';
+          return '#2FC25B';
           break;
         default:
           break;
@@ -155,7 +155,7 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit {
       },
       nameStyle: {
         textAlign: 'middle', // 文本对齐方向，可取值为： start middle end
-        fill: '#fff', // 文本的颜色
+        fill: '#1890FF', // 文本的颜色
         fontSize: '20', // 文本大小
         fontWeight: 'bold', // 文本粗细
       },

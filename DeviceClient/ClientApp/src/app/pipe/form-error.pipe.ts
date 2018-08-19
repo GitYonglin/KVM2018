@@ -46,3 +46,21 @@ export class DeviceMode implements PipeTransform {
     return modeStr[mode];
   }
 }
+
+// 浮点数格式化
+@Pipe({ name: 'N2F' })
+export class Number2Float implements PipeTransform {
+  constructor(@Inject('BASE_CONFIG') private config) {}
+  transform(value: number, no: number = 2): number {
+    return Number(value.toFixed(no));
+  }
+}
+
+// 大小写转换
+@Pipe({ name: 'L2U' })
+export class Lower2Upper implements PipeTransform {
+  constructor(@Inject('BASE_CONFIG') private config) {}
+  transform(value: string): string {
+    return value.toUpperCase();
+  }
+}

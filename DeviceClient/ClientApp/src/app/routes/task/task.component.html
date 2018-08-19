@@ -16,8 +16,8 @@
               <form nz-form [formGroup]="formGroup">
                 <div class="task-base">
                   <nz-form-item>
-                    <nz-form-label [nzSpan]="3">构件/孔号</nz-form-label>
-                    <nz-form-control [nzSpan]="19">
+                    <nz-form-label [nzSpan]="4">构件/孔号</nz-form-label>
+                    <nz-form-control [nzSpan]="18">
                       <input type="text" readonly="readonly" nz-input formControlName="componentName" style="width: 50%;" (click)="onSelectComponent()">
                       <input type="text" readonly="readonly" nz-input formControlName="holeName" style="width:50%;" (click)="onSelectComponent()">
                       <nz-form-explain *ngIf="formGroup.controls['componentName'].errors || formGroup.controls['holeName'].errors">
@@ -27,8 +27,8 @@
                     </nz-form-control>
                   </nz-form-item>
                   <nz-form-item>
-                    <nz-form-label [nzSpan]="3">设备</nz-form-label>
-                    <nz-form-control [nzSpan]="19">
+                    <nz-form-label [nzSpan]="4">设备</nz-form-label>
+                    <nz-form-control [nzSpan]="18">
                       <nz-input-group nzSearch [nzSuffix]="suffixButton">
                         <input type="text" readonly="readonly" nz-input formControlName="deviceName" (click)="onSelectDevice()">
                       </nz-input-group>
@@ -41,8 +41,8 @@
                     </nz-form-control>
                   </nz-form-item>
                   <nz-form-item>
-                    <nz-form-label [nzSpan]="3">梁号</nz-form-label>
-                    <nz-form-control [nzSpan]="19">
+                    <nz-form-label [nzSpan]="4">梁号</nz-form-label>
+                    <nz-form-control [nzSpan]="18">
                       <input type="text" nz-input formControlName="bridgeName">
                       <nz-form-explain *ngIf="formGroup.controls['bridgeName'].errors">
                         {{formGroup.controls['bridgeName'].errors | formError: formTypes.bridgeName.errors }}
@@ -50,8 +50,8 @@
                     </nz-form-control>
                   </nz-form-item>
                   <nz-form-item>
-                    <nz-form-label [nzSpan]="3">钢绞线</nz-form-label>
-                    <nz-form-control [nzSpan]="19">
+                    <nz-form-label [nzSpan]="4">钢绞线</nz-form-label>
+                    <nz-form-control [nzSpan]="18">
                       <input type="text" readonly="readonly" nz-input formControlName="steelStrandName" (click)="onSelectSteelStrand()">
                       <nz-form-explain *ngIf="formGroup.controls['steelStrandName'].errors">
                         {{formGroup.controls['steelStrandName'].errors | formError: formTypes.steelStrandName.errors }}

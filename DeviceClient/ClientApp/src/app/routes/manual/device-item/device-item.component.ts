@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { MSService } from '../../../services/MS.service';
 
 @Component({
@@ -7,6 +7,8 @@ import { MSService } from '../../../services/MS.service';
   styleUrls: ['./device-item.component.less']
 })
 export class DeviceItemComponent implements OnInit {
+  relativeMm = 0;
+
   @Input()
   name: string;
   @Input()
@@ -15,6 +17,9 @@ export class DeviceItemComponent implements OnInit {
   data: any;
   @Input()
   disabled = false;
+
+  @Output()
+    resetZero = new EventEmitter<any>();
 
   constructor(public _ms: MSService) { }
 
@@ -53,5 +58,10 @@ export class DeviceItemComponent implements OnInit {
     }
     this._ms.F06(id, address, value);
     console.log(id, address, value);
+  }
+  reset() {
+    this.relativeMm = this._ms.showValues[this.name].mm;
+    this.resetZero.emit(this.relativeMm);
+    console.log(this._ms.showValues[this.name].mm, this.relativeMm);
   }
 }

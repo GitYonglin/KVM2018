@@ -1,7 +1,7 @@
 
 <div style="width: 100%; height: 100%;;" [ngClass]="{'enforcement': enforcement}">
   <header>
-    <h1 *ngIf="correctionState">{{deviceName}}--{{correctionName}}设备校正</h1>
+    <h1 *ngIf="correctionState">{{deviceName}}--{{correctionName | L2U}}设备校正</h1>
     <app-menu-button *ngIf="!correctionState"></app-menu-button>
     <div class="header" *ngIf="!correctionState">
       <div>
@@ -31,12 +31,12 @@
   <nz-spin nzTip='设备参数没有设置' [nzSpinning]="!_ms.deviceParameter">
   <main #main [ngClass]="{'correction': correctionState}" *ngIf="_ms.deviceParameter">
     <div class="device-group">
-      <app-device-item name="a1" [title]="'A1 - ' + _ms.showValues.a1.state" [data]="a1"></app-device-item>
-      <app-device-item name="a2" [title]="'A2 - ' + _ms.showValues.a2.state" [data]="a2"></app-device-item>
+      <app-device-item name="a1" [title]="'A1 - ' + _ms.showValues.a1.state" [data]="a1" (resetZero)="resetMm = $event"></app-device-item>
+      <app-device-item name="a2" [title]="'A2 - ' + _ms.showValues.a2.state" [data]="a2" (resetZero)="resetMm = $event"></app-device-item>
     </div>
     <div class="device-group">
-      <app-device-item name="b1" [title]="'B1 - ' + _ms.showValues.b1.state" [data]="b1"></app-device-item>
-      <app-device-item name="b2" [title]="'B2 - ' + _ms.showValues.b2.state" [data]="b2"></app-device-item>
+      <app-device-item name="b1" [title]="'B1 - ' + _ms.showValues.b1.state" [data]="b1" (resetZero)="resetMm = $event"></app-device-item>
+      <app-device-item name="b2" [title]="'B2 - ' + _ms.showValues.b2.state" [data]="b2" (resetZero)="resetMm = $event"></app-device-item>
     </div>
     <div class="device-group"  *ngIf="correctionState">
       <nz-card>

@@ -4,7 +4,7 @@
     <div *ngFor="let key of workMode">
       <div *ngIf="correctionName === null || correctionName === key">
     <div class="title">
-      <h3>{{key}}</h3>
+      <h3>{{key | L2U}}</h3>
       <button nz-button nzType="primary" ng-button (click)="onCorrection(key)" [disabled]="!_appService.editState">{{ correctionName === null ? '校正参数' : '完成'}}</button>
     </div>
     <div class="{{formClass}}">

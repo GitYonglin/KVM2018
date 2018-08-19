@@ -48,7 +48,7 @@
       </nz-form-item>
     </div>
     <div class="task-data-mode">
-      <table style="width: 100%">
+      <table style="width: 100%; text-align: center;">
         <thead>
           <tr>
             <th width="70">张拉数据</th>
@@ -86,8 +86,8 @@
               </nz-input-group>
             </td>
           </tr>
-          <tr *ngFor="let item of modeStrArr; index as i">
-            <td>{{item}}</td>
+          <tr *ngFor="let item of modeStrArr; index as i" [ngClass]="item">
+            <td>{{item | L2U}}</td>
             <td *ngFor="let mpa of countKM.mpa[item]">
               <nz-input-group nzAddOnAfter="Mpa">
                 <input type="number" nz-input [value]="mpa">
@@ -126,7 +126,7 @@
       </table>
     </div>
     <div class="task-data-mode" *ngIf="recordData !== null">
-      <table style="width: 100%">
+      <table style="width: 100%; text-align: center;">
         <thead>
           <tr>
             <th width="70">张拉记录</th>
@@ -156,8 +156,8 @@
             <td></td>
             <td></td>
           </tr>
-          <tr *ngFor="let item of modeStrArr">
-            <td>{{item}}</td>
+          <tr *ngFor="let item of modeStrArr" [ngClass]="item">
+            <td>{{item | L2U}}</td>
             <td *ngFor="let mpa of recordData.mpa[item]; index as i">
               <nz-input-group nzAddOnAfter="Mpa">
                 <input type="number" nz-input [value]="mpa">
