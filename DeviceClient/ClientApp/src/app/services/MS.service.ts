@@ -87,6 +87,7 @@ export class MSService {
   public passSate = false;
   public returnMmOk = false;
   private autoVerifyMpaState = false;
+  public mmReturnLowerLimit = 0;
 
   constructor(
     @Inject('BASE_CONFIG') private config,
@@ -428,7 +429,7 @@ export class MSService {
       this.showValues[name].affirmMm0 = this.recordData.mm[name][index];
     }
     console.log('确认压力下载数据到PLC', data, this.showValues);
-    this.connection.invoke('Affirm', data).then(() => {
+    this.connection.invoke('AffirmMpa', data).then(() => {
     });
     console.log('MS请求');
   }
@@ -505,6 +506,18 @@ export class MSService {
       if (this.showValues[name].state === '超工作位移上限') {
         this.returnMmOk = false;
         this.passSate = true;
+        if (this.recordData.stage > 0) {
+          for (const key of this.tensionData.modes) {
+            if (this.liveSum[key].sub > 120) {
+              this.mmReturnLowerLimit = 0;
+            } else {
+              this.mmReturnLowerLimit = 65;
+              return;
+            }
+          }
+        } else {
+          this.mmReturnLowerLimit = 0;
+        }
         return;
       }
       // console.log(this.showValues[name].state, name);
@@ -573,7 +586,7 @@ export class MSService {
     const x1b = x1 + Number(b);
     const x2b = x2 + Number(b);
 
-    const x1State = v[`${name}2`].state === '平衡暂停';
+    const x1State = v[`${name}1`].state === '平衡暂停';
     const x2State = v[`${name}2`].state === '平衡暂停';
 
     const address = name === 'a' ? PLCM(43) : PLCM(53);
@@ -609,30 +622,48 @@ export class MSService {
     // || a1 > b2b, a2 > a1b || a2 > b1b || a2 > b2b, b1 > a1b || b1 > a2b || b1 > b2b, b2 > a1b || b2 > a2b || b2 > b1b);
     if (!by && (a1 > a2b || a1 > b1b || a1 > b2b) && !a1State) {
       this.F05(1, PLCM(43), true);
+      console.log('a1平衡');
     } else if (a1State && (a1 < a2 || a1 < b1 || a1 < b2) || by) {
       this.F05(1, PLCM(43), false);
+      console.log('a1平衡1');
     }
     if (!by && (a2 > a1b || a2 > b1b || a2 > b2b) && !a2State) {
       this.F05(2, PLCM(43), true);
+      console.log('a2平衡');
     } else if (a2State && (a2 < a1 || a2 < b1 || a2 < b2) || by) {
       this.F05(2, PLCM(43), false);
+      console.log('a2平衡0');
     }
     if (!by && (b1 > a1b || b1 > a2b || b1 > b2b) && !b1State) {
       this.F05(1, PLCM(53), true);
+      console.log('b1平衡');
     } else if (b1State && (b1 < a1 || b1 < a2 || b1 < b2) || by) {
       this.F05(1, PLCM(53), false);
+      console.log('b1平衡0');
     }
     if (!by && (b2 > a1b || b2 > a2b || b2 > b1b) && !b2State) {
       this.F05(2, PLCM(53), true);
+      console.log('b2平衡');
     } else if (b2State && (b2 < a1 || b2 < a2 || b2 < b1) || by) {
       this.F05(2, PLCM(53), false);
+      console.log('b2平衡0');
     }
   }
   // 自动卸荷
   autoLoadOff() {
     console.log('卸荷');
-    this.connection.invoke('AutoF05', { mode: this.tensionData.mode, address: 521, F05: true });
-    console.log('MS请求');
+    // this.connection.invoke('AutoF05', { mode: this.tensionData.mode, address: 521, F05: true });
+    const mpa = {
+      a1: 0,
+      a2: 0,
+      b1: 0,
+      b2: 0,
+    };
+    for (const name of this.tensionData.modes) {
+      mpa[name] = this.Value2PLC(this.recordData.mpa[name][0], 'mpa', name);
+    }
+    this.connection.invoke('AutoLoadOff', mpa);
+    console.log('卸荷MS请求');
 
   }
   // 自动回程
@@ -708,7 +739,9 @@ export class MSService {
     this.runTensionData = JSON.parse(JSON.stringify(runTensionData)); // 初始化自动张拉数据
     this.connection.invoke('AutoOk');
     this.DF05(560, true);
-    this.tensionData.repeatedly = true;
+    if (this.recordData.stage > 0) {
+      this.tensionData.repeatedly = true;
+    }
     localStorage.setItem('TData', JSON.stringify(this.tensionData));
     localStorage.setItem('TResedData', JSON.stringify(this.recordData));
     console.log('退出张拉');

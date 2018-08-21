@@ -1,6 +1,6 @@
-<nz-card *ngIf="data.state">
+<nz-card *ngIf="data.state" [ngClass]="name">
   <div class="item">
-    <h3>{{title}}</h3>
+    <h3 [ngClass]="name">{{title}}</h3>
     <nz-input-group nzAddOnBefore="设备压力" nzAddOnAfter="Mpa">
       <div class="input-progress">
         <nz-progress nz-tooltip [nzPercent]="_ms.showValues[name]?.mpa / _ms.deviceParameter.mpaUpperLimit * 100" [nzShowInfo]="false"
@@ -16,8 +16,8 @@
     </nz-input-group>
     <nz-input-group nzAddOnBefore="相对位移" nzAddOnAfter="mm">
         <div style="display: flex;">
-            <input type="number" [value]="(_ms.showValues[name]?.mm - relativeMm) | N2F" nz-input nzSize="large" readonly="readonly">
-            <button nz-button nzType="primary" (click)="reset()" >清 零</button>
+            <input type="number" [value]="(_ms.showValues[name]?.mm - relativeMm) | N2F" nz-input nzSize="large" readonly="readonly" style="flex: 300%; margin-right: 7px;">
+            <button nz-button nzType="primary" (click)="reset()" style="width: 100%;">清 零</button>
           </div>
     </nz-input-group>
     <nz-input-group nzAddOnBefore="绝对位移" nzAddOnAfter="mm">

@@ -76,6 +76,7 @@ interface SumItem {
   mm: number;
   sum?: number;
   deviation?: number;
+  sub?: number;
 }
 // 伸长量 = 100% - 10% + %20 - 10% - 内缩值 - 工作端伸长量
 // 偏差率 = (总伸长量 - 理论伸长量) / 理论伸长量 * 100
@@ -100,18 +101,22 @@ export function funcSumData(mm, task, stage = 0): SumData {
     if (mode.indexOf('a1') !== -1) {
       r.a1.sum = N2F(r.a1.mm);
       r.a1.deviation = N2F(((r.a1.sum - task.a1.theoryMm) / task.a1.theoryMm) * 100);
+      r.a1.sub = task.a1.theoryMm - r.a1.sum;
     } else {
       r.b1.sum = N2F(r.b1.mm);
       r.b1.deviation = N2F(((r.b1.sum - task.b1.theoryMm) / task.b1.theoryMm) * 100);
+      r.b1.sub = task.b1.theoryMm - r.b1.sum;
     }
   } else {
     if (mode.indexOf('a1') !== -1) {
       r.a1.sum = N2F(r.a1.mm + r.a2.mm);
       r.a1.deviation = N2F(((r.a1.sum - task.a1.theoryMm) / task.a1.theoryMm) * 100);
+      r.a1.sub = task.a1.theoryMm - r.a1.sum;
     }
     if (mode.indexOf('b1') !== -1) {
       r.b1.sum = N2F(r.b1.mm + r.b2.mm);
       r.b1.deviation = N2F(((r.b1.sum - task.b1.theoryMm) / task.b1.theoryMm) * 100);
+      r.b1.sub = task.b1.theoryMm - r.b1.sum;
     }
   }
   return r;

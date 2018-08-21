@@ -24,6 +24,9 @@ namespace DeviceClient.Hubs
         private static bool ZAutoStopRunState = false;
         private static bool CAutoStopRunState = false;
 
+        private Affirm AutoLoadAffirm = new Affirm();
+        private Affirm Stop2RunAffirm = new Affirm();
+        private Affirm AutoStopAffirm = new Affirm();
         public PLCHub()
         {
             TaskFactory tf = new TaskFactory();
@@ -93,7 +96,7 @@ namespace DeviceClient.Hubs
             C.F05(PLCSite.M(data.Address), data.F05, null);
             return true;
         }
-        
+
         public void F06(InPLC data)
         {
             if (data.Id == 1)
@@ -142,7 +145,11 @@ namespace DeviceClient.Hubs
         /// <returns></returns>
         public Boolean AutoF05(InPLC data)
         {
-            TensionMode = data.Mode;
+            if (TensionMode == -1)
+            {
+                TensionMode = data.Mode;
+
+            }
             Console.WriteLine("张拉启动");
             Console.WriteLine(TensionMode);
             if (TensionMode == 1 || TensionMode == 3 || TensionMode == 4)
@@ -160,6 +167,31 @@ namespace DeviceClient.Hubs
             ZAutoStopState = false;
             CAutoStopState = false;
             return true;
+        }
+        /// <summary>
+        /// 卸荷
+        /// </summary>
+        /// <param name="data"></param>
+        public void AutoLoadOff(TensionModle data)
+        {
+            AutoLoadAffirm.No = 1;
+            AutoLoadAffirm.AffirmNo = 0;
+            if (TensionMode == 1 || TensionMode == 3 || TensionMode == 4)
+            {
+                AutoLoadAffirm.No = 2;
+                C.F16(PLCSite.D(412), new int[] { data.A2, data.B2 }, (d) =>
+                {
+                    AutoLoadOffAffirm();
+                });
+            }
+            C.F16(PLCSite.D(412), new int[] { data.A1, data.B1 }, (d) =>
+            {
+                AutoLoadOffAffirm();
+            });
+        }
+        private void AutoLoadOffAffirm()
+        {
+            AutoLoadAffirm.AffirmIf(() => { AutoF05(new InPLC { Mode = TensionMode, Address = 521, F05 = true }); });
         }
         public void AutoOk()
         {
@@ -200,7 +232,8 @@ namespace DeviceClient.Hubs
             if (id == "从站")
             {
                 device = C;
-            } else
+            }
+            else
             {
                 GetDeviceParameter(); // 获取设备参数
             }
@@ -213,7 +246,10 @@ namespace DeviceClient.Hubs
                     device.F03(PLCSite.D(0), 10, (data) =>
                     {
                         var rdata = ReceiveData.F03(data, 10);
-                        AutoStop(rdata[6], device.Name);
+                        if (TensionMode > 0 && !AutoStopRunState && !AutoStopState)
+                        {
+                            AutoStop(rdata[6], device.Name);
+                        }
                         _clients.All.SendAsync("LiveData", new { name = device.Name, data = rdata });
                     });
                     Thread.Sleep(10);
@@ -226,29 +262,34 @@ namespace DeviceClient.Hubs
         }
         private void AutoStop(int data, string id)
         {
-            if (data == 20 || data == 21 && !AutoStopState)
+            Console.WriteLine(id == "主站");
+            Console.WriteLine(data);
+            if ((data == 20 || data == 21) && !AutoStopState && !AutoStopRunState)
             {
+                AutoStopAffirm.No = 1;
+                AutoStopAffirm.AffirmNo = 0;
                 if ((TensionMode == 1 || TensionMode == 3 || TensionMode == 4))
                 {
-                    if (id == "主站")
+                    AutoStopAffirm.No = 2;
+                    if (C.Client != null && C.Client.Connected && C.IsSuccess && id == "主站")
                     {
                         C.F05(PLCSite.M(550), true, (d) =>
                         {
                             AutoStopState = true;
                         });
-                    } else
-                    {
-                        Z.F05(PLCSite.M(550), true, (d) =>
-                        {
-                            AutoStopState = true;
-                        });
                     }
-
-                }
-                else if (id == "主站")
+                } else if (id == "主站")
                 {
                     AutoStopState = true;
                 }
+                if (Z.Client != null && Z.Client.Connected && Z.IsSuccess && id == "从站")
+                {
+                    Z.F05(PLCSite.M(550), true, (d) =>
+                    {
+                        AutoStopState = true;
+                    });
+                }
+
             }
             if (data != 20)
             {
@@ -272,7 +313,7 @@ namespace DeviceClient.Hubs
                 {
                     b = true;
                 }
-                if (b && AutoStopRunState)
+                if (b)
                 {
                     ZAutoStopState = false;
                     CAutoStopState = false;
@@ -288,29 +329,34 @@ namespace DeviceClient.Hubs
         /// </summary>
         public void Stop2Run()
         {
-            if (TensionMode == 1 || TensionMode == 3 || TensionMode == 4)
+            Stop2RunAffirm.No = 1;
+            Stop2RunAffirm.AffirmNo = 0;
+            AutoStopRunState = true;
+            Task.Run(() =>
             {
-                C.F05(PLCSite.M(550), false, (d) =>
+                Task.Delay(100);
+                if (TensionMode == 1 || TensionMode == 3 || TensionMode == 4)
                 {
-                    CAutoStopRunState = true;
-                    SetStop2Run();
+                    Stop2RunAffirm.No = 2;
+                    C.F05(PLCSite.M(550), false, (d) =>
+                    {
+                        Stop2RunAffirm.AffirmIf(() => SetStop2Run());
+                    });
+                }
+                Z.F05(PLCSite.M(550), false, (d) =>
+                {
+                    Stop2RunAffirm.AffirmIf(() => SetStop2Run());
                 });
-            } else
-            {
-                CAutoStopRunState = true;
-            }
-            Z.F05(PLCSite.M(550), false, (d) =>
-            {
-                ZAutoStopRunState = true;
-                SetStop2Run();
             });
         }
         private void SetStop2Run()
         {
-            if (ZAutoStopRunState && CAutoStopRunState)
-            {
-                AutoStopRunState = true;
-            }
+            ZAutoStopState = false;
+            CAutoStopState = false;
+            AutoStopState = false;
+            AutoStopRunState = false;
+            ZAutoStopRunState = false;
+            CAutoStopRunState = false;
         }
         /// <summary>
         /// 阶段压力数据下载
@@ -321,7 +367,8 @@ namespace DeviceClient.Hubs
             if (t.Mode == 0 || t.Mode == 2)
             {
                 Z.F16(PLCSite.D(410), new int[] { t.A1, t.B1 }, null);
-            } else
+            }
+            else
             {
                 Z.F16(PLCSite.D(410), new int[] { t.A1, t.B1 }, null);
                 C.F16(PLCSite.D(410), new int[] { t.A2, t.B2 }, null);
@@ -332,7 +379,7 @@ namespace DeviceClient.Hubs
         /// 确认压力数据下载
         /// </summary>
         /// <param name="t"></param>
-        public bool Affirm(TensionModle t)
+        public bool AffirmMpa(TensionModle t)
         {
             if (t.Mode == 0 || t.Mode == 2)
             {
@@ -344,6 +391,18 @@ namespace DeviceClient.Hubs
                 C.F16(PLCSite.D(414), new int[] { t.A2, t.B2 }, null);
             }
             return true;
+        }
+        public void ReturnSetMm(InPLC data)
+        {
+            if (TensionMode == 0 || TensionMode == 2)
+            {
+                Z.F16(PLCSite.D(416), new int[] { data.F06 }, null);
+            }
+            else
+            {
+                Z.F16(PLCSite.D(406), new int[] { data.F06 }, null);
+                C.F16(PLCSite.D(406), new int[] { data.F06 }, null);
+            }
         }
         /// <summary>
         /// 获取设备参数

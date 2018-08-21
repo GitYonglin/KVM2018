@@ -234,5 +234,4 @@ _Pvt_Extensions
 #
 **/dist
 **/node_modules 
-**/wwwroot/data
-DeviceClient/wwwroot/data/db.db
+**/wwwroot/data/**/*

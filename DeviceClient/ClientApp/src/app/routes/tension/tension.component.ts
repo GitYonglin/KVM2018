@@ -69,7 +69,8 @@ export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
     this.autoControl.mmReturnLowerLimit = this._ms.deviceParameter.mmReturnLowerLimit;
     this._ms.runTensionData.mmBalanceControl = this._ms.deviceParameter.mmBalanceControl;
     this._ms.runTensionData.LodOffTime = this._ms.deviceParameter.unloadingDelay;
-    this._ms.showValues = JSON.parse(JSON.stringify(showValues));
+    this._ms.mmReturnLowerLimit = this._ms.deviceParameter.mmReturnLowerLimit;
+    // this._ms.showValues = JSON.parse(JSON.stringify(showValues));
     this._ms.passSate = false;
     this._ms.upPLC();
     if (this._ms.recordData.stage > 0) {
@@ -117,6 +118,9 @@ export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
   // 暂停启动
   onStop2run() {
     this._ms.connection.invoke('Stop2Run');
+    if (this._ms.runTensionData.loadOffDelayState) {
+      this.connection.invoke('LoadOffDelay', this._ms.runTensionData.LodOffTime);
+    }
     console.log('MS请求');
   }
   onSaveExit() {
@@ -131,6 +135,7 @@ export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
   }
   // 回顶
   onReturn() {
+    this._ms.connection.invoke('ReturnSetMm', {F06: this._ms.Value2PLC(this._ms.mmReturnLowerLimit, 'mm', 'a1')});
     this._ms.saveRecordDb(true, true);
   }
   // 继续张拉

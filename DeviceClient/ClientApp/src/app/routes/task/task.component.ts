@@ -424,6 +424,7 @@ export class TaskComponent implements OnInit, AfterViewInit {
           liveMpaCvs: [],
           liveMmCvs: [],
         };
+        console.log('张拉数据', recordData);
         for (const name of this.runTension.mode) {
           recordData.mm[name] = [];
           recordData.mpa[name] = [];
@@ -439,6 +440,7 @@ export class TaskComponent implements OnInit, AfterViewInit {
             recordData.returnStart[name] = { mpa: 0, mm: 0};
           }
         }
+
         let liveState = [];
         switch (Number(this.groupTaskElem.nowTaskData.tensionStage)) {
           case 3:

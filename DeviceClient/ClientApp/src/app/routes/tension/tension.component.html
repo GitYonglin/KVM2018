@@ -23,10 +23,10 @@
           <div class="top">
             <button nz-button [nzType]=" _ms.recordData.stage >= i ? 'primary': 'dashed'" nzShape="circle">{{item}}</button>
             <nz-progress [nzPercent]="(_ms.recordData.time[i] / _ms.tensionData.checkData.time[i]) * 100"  [nzStatus]="'active'" [nzShowInfo]="false" ></nz-progress>
-            <span>{{_ms.recordData.time[i]}} / {{_ms.tensionData.checkData.time[i]}}</span>
+            <span style="font-size: 22px;">{{_ms.recordData.time[i]}} / {{_ms.tensionData.checkData.time[i]}}</span>
           </div>
           <div class="bottom">
-            <p>延时30/30</p>
+            <!-- <p>延时30/30</p> -->
           </div>
         </div>
         <div class="item">
@@ -119,7 +119,7 @@
       </nz-form-item>
       <nz-form-item>
         <nz-input-group nzAddOnBefore="倒顶位移下限" nzAddOnAfter="mm">
-          <input type="number" nz-input nzSize="large" [value]="autoControl.mmReturnLowerLimit" (change)="onSet(512, $event, 'mm')">
+          <input type="number" nz-input nzSize="large" [(ngModel)]="_ms.mmReturnLowerLimit">
         </nz-input-group>
       </nz-form-item>
       <nz-form-item>
@@ -140,7 +140,7 @@
           <td>张拉应力</td>
           <td *ngFor="let item of _ms.tensionData.checkData.kn">{{item}}</td>
         </tr>
-        <tr *ngFor="let name of _ms.tensionData.modes">
+        <tr *ngFor="let name of _ms.tensionData.modes" [ngClass]="name">
           <td>{{name}}</td>
           <td *ngFor="let item of _ms.tensionData.checkData.mpa[name]">{{item}}</td>
         </tr>
@@ -202,6 +202,11 @@
   nzClosable="false">
   <div>
     <h1>超位移暂停！</h1>
+    <nz-form-item>
+        <nz-input-group nzAddOnBefore="倒顶位移下限" nzAddOnAfter="mm">
+          <input type="number" nz-input nzSize="large" [(ngModel)]="_ms.mmReturnLowerLimit">
+        </nz-input-group>
+      </nz-form-item>
     <h1 *ngIf="_ms.returnMmOk">回顶完成！装载完成可以继续张拉！</h1>
   </div>
   <ng-template #returnFooter>
