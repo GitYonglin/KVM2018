@@ -23,6 +23,7 @@ export class LeftMenuComponent implements OnInit {
   componentId = null;
   deviceLinkZ = '主站';
   deviceLinkC = '从站';
+  bridgeStr: string;
 
   @Input() disabledState = false;
   @Output() operation = new EventEmitter<string>();
@@ -128,5 +129,15 @@ export class LeftMenuComponent implements OnInit {
     console.log('484848', url);
     this._router.navigate([url, data]);
   }
-
+  selectGroup(event: Array<any>) {
+    const c = event.join('');
+    this.bridgeStr = c;
+    console.log(c, c.indexOf('0'), c.indexOf('1'), c.indexOf('2'), c.indexOf('3'), c.indexOf('4'));
+  }
+  bridgeStrFunc(state) {
+    if (!this.bridgeStr) {
+      return true;
+    }
+    return this.bridgeStr.indexOf(state) > -1;
+  }
 }

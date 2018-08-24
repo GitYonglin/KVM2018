@@ -38,6 +38,12 @@
     <None Include="wwwroot\data\db.db" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="EdgeJs">
+      <HintPath>C:\Users\Peach\.nuget\packages\edgejs\9.3.4\lib\netcoreapp2.0\EdgeJs.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
   <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">
     <!-- Ensure Node.js is installed -->
     <Exec Command="node --version" ContinueOnError="true">

@@ -17,6 +17,7 @@ import { MSService } from '../../services/MS.service';
 import { deviceModes } from '../../model/device.model';
 import { RecordData } from '../../model/live.model';
 import { Http, Headers } from '@angular/http';
+import { ElectronService } from 'ngx-electron';
 
 const baseUri = '/task';
 
@@ -56,6 +57,14 @@ export class TaskComponent implements OnInit, AfterViewInit {
     mode: null,
     title: '',
   };
+  inputValue: string;
+  searchData = [];
+  exportRecord = {
+    state: false,
+    msg: '',
+    templatePath: '',
+    savePath: ''
+  };
 
   constructor(
     private _servers: APIService,
@@ -64,6 +73,7 @@ export class TaskComponent implements OnInit, AfterViewInit {
     private _router: Router,
     public _ms: MSService,
     private _http: Http,
+    private _electronService: ElectronService
   ) { }
 
   ngOnInit() {
@@ -437,30 +447,30 @@ export class TaskComponent implements OnInit, AfterViewInit {
             nowTensionData.taskSum[name] = this.groupTaskElem.nowSumData[name];
             recordData.mm[name].push(0);
             recordData.mpa[name].push(0);
-            recordData.returnStart[name] = { mpa: 0, mm: 0};
+            recordData.returnStart[name] = { mpa: 0, mm: 0 };
           }
         }
 
         let liveState = [];
         switch (Number(this.groupTaskElem.nowTaskData.tensionStage)) {
           case 3:
-          liveState = ['初张拉', '阶段一', '终张拉'];
-          recordData.time = [0, 0, 0];
-          break;
+            liveState = ['初张拉', '阶段一', '终张拉'];
+            recordData.time = [0, 0, 0];
+            break;
           case 4:
-          if (twiceData.TwiceStage === 1) {
-            liveState = ['初张拉', '阶段一', '阶段二'];
-          } else {
-            liveState = ['初张拉', '阶段一', '阶段二', '终张拉'];
-          }
-          recordData.time = [0, 0, 0, 0];
-          break;
+            if (twiceData.TwiceStage === 1) {
+              liveState = ['初张拉', '阶段一', '阶段二'];
+            } else {
+              liveState = ['初张拉', '阶段一', '阶段二', '终张拉'];
+            }
+            recordData.time = [0, 0, 0, 0];
+            break;
           case 5:
-          liveState = ['初张拉', '阶段一', '阶段二', '阶段三', '终张拉'];
-          recordData.time = [0, 0, 0, 0, 0];
-          break;
+            liveState = ['初张拉', '阶段一', '阶段二', '阶段三', '终张拉'];
+            recordData.time = [0, 0, 0, 0, 0];
+            break;
           default:
-          break;
+            break;
         }
 
         console.log(Number(this.groupTaskElem.nowTaskData.tensionStage), liveState, '555555555555555555555555');
@@ -510,9 +520,48 @@ export class TaskComponent implements OnInit, AfterViewInit {
     } else {
       stage = Number(gData.tensionStage) - 1;
     }
-    return {stage: stage, recordData: rData, TwiceStage: TwiceStage};
+    return { stage: stage, recordData: rData, TwiceStage: TwiceStage };
   }
   runTensionOk() {
     this.onTension();
+  }
+  onSearch(value: string) {
+    this.searchData = this.LeftMenu.bridges.filter(b => b.name.indexOf(value) !== -1);
+  }
+  onExportRecord(state = false) {
+    if (!state) {
+      this.exportRecord.state = true;
+    } else if (this.exportRecord.templatePath && this.exportRecord.savePath) {
+      if (this._electronService.isElectronApp) {
+        const data = [
+          {name: 'N1', kh: 'A1'},
+          {name: 'N1', kh: 'A2'},
+          {name: 'N2', kh: 'B1'},
+          {name: 'N2', kh: 'B2'},
+        ];
+        this._electronService.ipcRenderer.send('exportRecord',
+          {templatePath: this.exportRecord.templatePath, savePath: this.exportRecord.savePath, data: data});
+        this._electronService.ipcRenderer.on('exportRecordOK', (event, msg) => {
+          this.exportRecord.msg = msg;
+        });
+      } else {
+        console.log('只能在Electron中使用');
+      }
+    }
+  }
+  exportFilePath(t) {
+      // console.log(file);
+      if (this._electronService.isElectronApp) {
+        this._electronService.ipcRenderer.send('exportFilePath', t);
+        this._electronService.ipcRenderer.on('exportFilePathOK', (event, data) => {
+          if (data.t) {
+            this.exportRecord.savePath = data.path;
+          } else {
+            this.exportRecord.templatePath = data.path;
+          }
+        });
+      } else {
+        console.log('只能在Electron中使用');
+      }
   }
 }

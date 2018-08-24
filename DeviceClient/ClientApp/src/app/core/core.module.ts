@@ -5,6 +5,7 @@ import { HttpModule } from '@angular/http';
 
 import { AppRoutingModule } from '../routes/app.routing';
 import { ProtectEditGuard } from '../routes/protect/edit-guard';
+import { NgxElectronModule } from 'ngx-electron';
 
 // // import 'hammerjs';
 // import 'rxjs/add/operator/take';
@@ -17,6 +18,7 @@ import { ProtectEditGuard } from '../routes/protect/edit-guard';
     HttpModule,
     AppRoutingModule,
     BrowserAnimationsModule,
+    NgxElectronModule
   ],
   declarations: [
   ],

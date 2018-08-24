@@ -102,18 +102,33 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit {
 
     chart.axis('time', {
       label: (text, index, total) => {
-        const textCfg = {
+        // const textCfg = {
+        //   text: '',
+        //   textAlign: 'center'
+        // };
+        // if (index === 0) {
+        //   textCfg.textAlign = 'left';
+        //   textCfg.text = text;
+        // } else if (index === total - 1) {
+        //   textCfg.textAlign = 'right';
+        //   textCfg.text = text;
+        // }
+        // return textCfg;
+
+        const cfg = {
           text: '',
           textAlign: 'center'
         };
+        cfg.text = text;  // cfg.text 支持文本格式化处理
         if (index === 0) {
-          textCfg.textAlign = 'left';
-          textCfg.text = text;
-        } else if (index === total - 1) {
-          textCfg.textAlign = 'right';
-          textCfg.text = text;
+          cfg.text = `${text}\n初张拉`;
+          cfg.textAlign = 'start';
         }
-        return textCfg;
+        if (index > 0 && index === total - 1) {
+          cfg.text = `${text}\n完成3`;
+          cfg.textAlign = 'end';
+        }
+        return cfg;
       }
     });
 

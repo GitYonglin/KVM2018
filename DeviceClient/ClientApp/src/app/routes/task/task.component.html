@@ -4,8 +4,26 @@
   </nz-sider>
   <div class="flex-content">
     <header class="block-17 header">
+      <div>
+        <!-- <nz-input-group nzSuffixIcon="anticon anticon-search">
+          <input type="text" nz-input placeholder="请输入梁号">
+        </nz-input-group> -->
+        <nz-input-group nzSearch nzSize="large" [nzSuffix]="suffixIconButton">
+            <input placeholder="请输入梁号" nz-input [(ngModel)]="inputValue" (ngModelChange)="onSearch($event)" [nzAutocomplete]="auto"/>
+          </nz-input-group>
+          <ng-template #suffixIconButton>
+            <button nz-button nzSize="large" nzSearch><i class="anticon anticon-search"></i></button>
+          </ng-template>
+          <nz-autocomplete #auto>
+            <nz-auto-option class="bridge-list" *ngFor="let bridge of searchData" [nzValue]="bridge.name" (click)="menu.onBridge(bridge.id)" >
+                <span class="state" [ngClass]="'state' + bridge.state"></span>
+                <span mat-line>{{bridge.name}}</span>
+            </nz-auto-option>
+          </nz-autocomplete>
+      </div>
       <div class="header-right">
         <button (click)="onCopy()" style="height: 100%;" nz-button *ngIf="!menu.operationState && menu.bridgeId !== null">复制</button>
+        <button (click)="onExportRecord()" style="height: 100%;" nz-button *ngIf="!menu.operationState && menu.bridgeId !== null">导出</button>
       </div>
     </header>
     <main>
@@ -122,4 +140,15 @@
       </div>
     </div>
   </div>
+</nz-modal>
+
+<nz-modal [nzVisible]="exportRecord.state" nzTitle="导出数据" (nzOnCancel)="exportRecord.state = false"
+  (nzOnOk)="onExportRecord(true)">
+  <h3>导出数据</h3>
+  <p>模板路径：{{exportRecord.templatePath}}</p>
+  <p>模板路径：{{exportRecord.savePath}}</p>
+  <p>{{exportRecord.msg}}</p>
+  <!-- <input type="file" (change)="exportFileTempate($event)"> -->
+  <button (click)="exportFilePath(false)" nz-button>选择模板</button>
+  <button (click)="exportFilePath(true)" nz-button>选择导出路径</button>
 </nz-modal>
