@@ -17,6 +17,7 @@ export class LeftMenuComponent implements OnInit {
   bridgeId: any;
   menus = [];
   bridges: any;
+  selectBridges = [];
   bridgeItem: any;
   menuDataState = false;
   operationState = false;
@@ -24,6 +25,7 @@ export class LeftMenuComponent implements OnInit {
   deviceLinkZ = '主站';
   deviceLinkC = '从站';
   bridgeStr: string;
+  groupBridgeStr = [];
 
   @Input() disabledState = false;
   @Output() operation = new EventEmitter<string>();
@@ -41,6 +43,8 @@ export class LeftMenuComponent implements OnInit {
     this.getMenuData();
     this.deviceLinkZ = this._ms.deviceLinkZ;
     this.deviceLinkC = this._ms.deviceLinkC;
+    this.groupBridgeStr = JSON.parse(localStorage.getItem('bridgeStr'));
+    console.log(JSON.parse(localStorage.getItem('bridgeStr')),  this.groupBridgeStr);
   }
 
   getMenuData() {
@@ -77,6 +81,7 @@ export class LeftMenuComponent implements OnInit {
       console.log('000000000', r);
       if (r) {
         this.bridges = r;
+        this.bridgeStrFunc();
         this.indexActive = index;
       } else {
         this.bridges = null;
@@ -130,14 +135,22 @@ export class LeftMenuComponent implements OnInit {
     this._router.navigate([url, data]);
   }
   selectGroup(event: Array<any>) {
-    const c = event.join('');
-    this.bridgeStr = c;
-    console.log(c, c.indexOf('0'), c.indexOf('1'), c.indexOf('2'), c.indexOf('3'), c.indexOf('4'));
+    // const c = event.join('');
+    // this.bridgeStr = c;
+    this.groupBridgeStr = event;
+    console.log(this.groupBridgeStr);
+    localStorage.setItem('bridgeStr', JSON.stringify(this.groupBridgeStr));
+    this.bridgeStrFunc();
+    // console.log(c, c.indexOf('0'), c.indexOf('1'), c.indexOf('2'), c.indexOf('3'), c.indexOf('4'));
   }
-  bridgeStrFunc(state) {
-    if (!this.bridgeStr) {
-      return true;
+  bridgeStrFunc() {
+    if (this.groupBridgeStr.length > 0) {
+      const d = this.groupBridgeStr.join('');
+      console.log(d);
+      this.selectBridges =  this.bridges.filter(b => d.indexOf(b.state) > -1);
+    } else {
+      this.selectBridges = this.bridges;
     }
-    return this.bridgeStr.indexOf(state) > -1;
+    // return d.indexOf(state) > -1;
   }
 }

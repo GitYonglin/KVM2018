@@ -14,7 +14,7 @@ import { CanvasCvsComponent } from '../../shared/canvas-cvs/canvas-cvs.component
 })
 export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('cvs') elementCvs: ElementRef;
-    heightCvs: any;
+  heightCvs: any;
   @ViewChild(CanvasCvsComponent)
     private cvs: CanvasCvsComponent;
   widthCvs: any;
@@ -54,6 +54,12 @@ export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
     // this._ms.tensionData = this.tensionData;
     // console.log(this.tensionData);
     this.upPLC();
+    document.addEventListener('testEvent', () => {
+      console.log('自检全部完成！！！');
+      if (!this._ms.runTensionData.state) {
+        this.onRunTension(true);
+      }
+    });
   }
   ngAfterViewInit() {
     this.heightCvs = this.elementCvs.nativeElement.offsetHeight - 5;
@@ -84,18 +90,24 @@ export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
     this.stop = true;
     history.go(-1);
   }
-  onRunTension() {
+  // 启动张拉
+  onRunTension(s = false) {
+    this._ms.runTensionData.selfState = true;
     console.log('启动张拉', this._ms.tensionData.mode);
-    // this._ms.saveCvs();
-    this._ms.connection.invoke('AutoF05', { mode: this._ms.tensionData.mode, address: 520, F05: true});
-    console.log('MS请求');
-    this.runTension.runState = false;
-    this._ms.runTensionData.state = true;
-    this.cvs.delayCvs();
-    // this._ms.DelaySaveCvs();
+    if (s) {
+      // this._ms.saveCvs();
+      this._ms.connection.invoke('AutoF05', { mode: this._ms.tensionData.mode, address: 520, F05: true });
+      console.log('MS请求');
+      this.runTension.runState = false;
+      this._ms.runTensionData.state = true;
+      this.cvs.delayCvs();
+      // document.dispatchEvent(new Event('cvsStartEvent'));
+    } else {
+      this._ms.connection.invoke('AutoF05', { mode: this._ms.tensionData.mode, address: 527, F05: true });
+    }
   }
   onSet(address: number, event, make?) {
-    console.log(address, );
+    console.log(address);
     let value = event.target.valueAsNumber;
     if (make === 'mpa') {
       value = Value2PLC(value, this._ms.deviceParameter.mpaCoefficient, 5);
@@ -135,14 +147,14 @@ export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
   }
   // 回顶
   onReturn() {
-    this._ms.connection.invoke('ReturnSetMm', {F06: this._ms.Value2PLC(this._ms.mmReturnLowerLimit, 'mm', 'a1')});
+    this._ms.connection.invoke('ReturnSetMm', { F06: this._ms.Value2PLC(this._ms.mmReturnLowerLimit, 'mm', 'a1') });
     this._ms.saveRecordDb(true, true);
   }
   // 继续张拉
   onContinue() {
     // this._ms.recordData = JSON.parse(localStorage.getItem('TData'));
     // this._ms.tensionData = JSON.parse(localStorage.getItem('TResedData'));
-    console.log(JSON.parse(localStorage.getItem('TData')),  JSON.parse(localStorage.getItem('TResedData')));
+    console.log(JSON.parse(localStorage.getItem('TData')), JSON.parse(localStorage.getItem('TResedData')));
     this.upPLC();
     this.onRunTension();
   }

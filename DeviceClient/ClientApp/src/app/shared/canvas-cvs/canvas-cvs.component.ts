@@ -76,6 +76,10 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit {
 
   ngOnInit() {
     console.log(this.height, this.width);
+    // document.addEventListener('cvsStartEvent', () => {
+    //   console.log('曲线开始');
+    //     this.delayCvs();
+    // });
   }
   ngAfterViewInit() {
     if (this.data === null) {

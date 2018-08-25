@@ -64,3 +64,14 @@ export class Lower2Upper implements PipeTransform {
     return value.toUpperCase();
   }
 }
+// 多选框是否选择
+@Pipe({ name: 'CheckboxSelect' })
+export class CheckboxSelect implements PipeTransform {
+  constructor(@Inject('BASE_CONFIG') private config) {}
+  transform(value: string, datas: Array<any>): boolean {
+    const ds = datas.join('');
+    console.log('pipe', datas, ds);
+    return ds.indexOf(value) > -1;
+  }
+}
+

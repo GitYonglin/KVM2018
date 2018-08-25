@@ -335,19 +335,38 @@ export class MSService {
     this.showValues[`b${i}`].state = autoState[data[7]];
     this.showValues[`a${i}`].setPLCMpa = data[8];
     this.showValues[`b${i}`].setPLCMpa = data[9];
-    if (this.runTensionData.state) {
-      this.autoMonitoring();
-      if (!this.runTensionData.stateOk) {
-        this.saveRecord();
-        this.autoVerifyMpa();
+    if (!this.runTensionData.selfState) {
+      if (this.runTensionData.state) {
+        this.autoMonitoring();
+        if (!this.runTensionData.stateOk) {
+          this.saveRecord();
+          this.autoVerifyMpa();
+        }
       }
-    }
-    if (this.passSate) {
-      this.passMonitoring();
+      if (this.passSate) {
+        this.passMonitoring();
+      }
+    } else {
+      this.selfTest();
     }
     // console.log(this.showValues, data[5].toString(2).padStart(6, '0'), data[5]);
   }
-
+  // 自检
+  selfTest() {
+    for (const name of this.tensionData.modes) {
+      console.log(name, this.showValues[name].state);
+      if (this.showValues[name].state === '自检错误') {
+        this.runTensionData.selfErrorState = true;
+        return;
+      }
+      if (!(this.showValues[name].state === '自检完成')) {
+        return;
+      }
+    }
+    this.runTensionData.selfState = false;
+    document.dispatchEvent(new Event('testEvent'));
+    console.log('自检完成！！！');
+  }
   // 报警实时数据转换
   private setAlarm(value) {
     const arr = [];
