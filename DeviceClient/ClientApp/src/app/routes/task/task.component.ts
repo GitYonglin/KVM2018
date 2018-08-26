@@ -2,7 +2,6 @@ import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
 import { APIService } from '../../services/api.service';
 import { LeftMenuComponent } from '../../shared/left-menu/left-menu.component';
 import { FormGroup } from '@angular/forms';
-import { newFormData, getFormData } from '../../utils/form/constructor-FormData';
 import { constructFormData, constructHoleFromGroup, setHoleFormValue } from './form.data';
 import { setFromValue } from '../../utils/form/construct-form';
 import { SelectComponentComponent } from './select-component/select-component.component';
@@ -204,7 +203,6 @@ export class TaskComponent implements OnInit, AfterViewInit {
       const fd = new FormData;
       // 复制梁
       if (this.copyState) {
-        console.log('4456456456456456456456456456');
         url = '/task/copy';
         fd.append('id', this.nowData.id);
         fd.append('bridgeName', this.formGroup.controls['bridgeName'].value);
@@ -429,10 +427,12 @@ export class TaskComponent implements OnInit, AfterViewInit {
             time: [],
             mpa: {},
             mm: {},
+            mark: {
+              index: [],
+              doc: [],
+            }
           },
           returnStart: {},
-          liveMpaCvs: [],
-          liveMmCvs: [],
         };
         console.log('张拉数据', recordData);
         for (const name of this.runTension.mode) {

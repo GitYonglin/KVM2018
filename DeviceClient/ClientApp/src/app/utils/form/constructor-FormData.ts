@@ -1,37 +1,42 @@
-const fd = new FormData();
-export function getFormData(v, k = '') {
-  // tslint:disable-next-line:forin
-  for (const key in v) {
-    let rKey = k + key;
-    if (k[k.length - 1] === '[') {
-      rKey += ']';
-    }
-    console.log(v[key]);
-    if (v[key]) {
-      switch (true) {
-        case v[key].constructor === Array:
-        getFormData(v[key], `${rKey}[`);
-        break;
-        case v[key].constructor === Object:
-        getFormData(v[key], `${rKey}.`);
-        break;
-        case v[key].constructor === Date:
-        fd.append(rKey, v[key].toString().replace('GMT+0800 (中国标准时间)', ''));
-        break;
-      default:
-      fd.append(rKey, v[key]);
-      break;
+export class NewFD {
+  public fd: FormData;
+  constructor(data) {
+    this.fd = new FormData();
+    this.getFormData(data);
+  }
+  getFormData(v, k = '') {
+    console.log('创建', v);
+    // tslint:disable-next-line:forin
+    for (const key in v) {
+      let rKey = k + key;
+      if (k[k.length - 1] === '[') {
+        rKey += ']';
+      }
+      console.log(key, v[key]);
+      if (v[key]) {
+        switch (true) {
+          case v[key].constructor === Array:
+            this.getFormData(v[key], `${rKey}[`);
+            break;
+          case v[key].constructor === Object:
+            this.getFormData(v[key], `${rKey}.`);
+            break;
+          case v[key].constructor === Date:
+            this.fd.append(rKey, v[key].toString().replace('GMT+0800 (中国标准时间)', ''));
+            break;
+          default:
+            this.fd.append(rKey, v[key]);
+            break;
+        }
+      }
     }
   }
-  }
-  return fd;
 }
-
 
 function formDataArray(data) {
   const r = [];
   data.forEach((item, index) => {
-    r.push({value: item, index: index});
+    r.push({ value: item, index: index });
   });
   return r;
 }

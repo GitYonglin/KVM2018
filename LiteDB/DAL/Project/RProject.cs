@@ -43,11 +43,14 @@ namespace KVM.LiteDB.DAL.Project
         /// <returns></returns>
         public new ReturnPost UpData(string id, entity.Project data)
         {
-            var old = _col.FindById(id);
-            var updata = Class2Class.C2C(old, data);
-            if (_col.Update(updata))
+            if (_col.FindOne(p => p.sProjectName == data.sProjectName) == null)
             {
-                return new ReturnPost() { Data = updata, Message = true };
+                var old = _col.FindById(id);
+                var updata = Class2Class.C2C(old, data);
+                if (_col.Update(updata))
+                {
+                    return new ReturnPost() { Data = updata, Message = true };
+                }
             }
             return new ReturnPost() { Message = false };
         }

@@ -74,12 +74,11 @@ export class FullMenuComponent implements OnInit {
   }
   showModal(): void {
     let url = this._router.url;
-    console.log(url, JSON.parse(localStorage.getItem('project')));
     if (url.indexOf(';') !== -1) {
       url = url.match(/(\S*);/)[1];
     }
     this.url = url;
-    if (JSON.parse(localStorage.getItem('project')) != null && 'id' in JSON.parse(localStorage.getItem('project'))) {
+    if (JSON.parse(localStorage.getItem('project') || null)) {
       this.menus = [{
         name: '任务',
         icon: 'anticon-profile',

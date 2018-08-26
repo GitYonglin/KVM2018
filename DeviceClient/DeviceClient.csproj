@@ -32,10 +32,7 @@
 
   <ItemGroup>
     <Folder Include="Models\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="wwwroot\data\db.db" />
+    <Folder Include="wwwroot\data\" />
   </ItemGroup>
 
   <ItemGroup>

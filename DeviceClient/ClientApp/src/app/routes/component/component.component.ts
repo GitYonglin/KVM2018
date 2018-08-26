@@ -3,10 +3,10 @@ import { LeftMenuComponent } from '../../shared/left-menu/left-menu.component';
 import { FormGroup } from '@angular/forms';
 import { APIService } from '../../services/api.service';
 import { setFromValue } from '../../utils/form/construct-form';
-import { getFormData, upDataFormData } from '../../utils/form/constructor-FormData';
+import { NewFD } from '../../utils/form/constructor-FormData';
 import { constructFormData, holeFormData } from './form.data';
 import { ModalFormDataComponent } from '../../shared/form/modal-form-data/modal-form-data.component';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AppService } from '../app.service';
 
 @Component({
@@ -31,6 +31,7 @@ export class ComponentComponent implements OnInit {
     private _servers: APIService,
     private _activatedRoute: ActivatedRoute,
     private _appService: AppService,
+    private _router: Router,
   ) { }
 
   ngOnInit() {
@@ -125,7 +126,8 @@ export class ComponentComponent implements OnInit {
         url = `/component/${this.nowProjectData.id}`;
       } else {
       }
-      this._servers.http(http, getFormData(this.formGroup.value), url, message).subscribe(r => {
+      const fd: FormData = new NewFD(this.formGroup.value).fd;
+      this._servers.http(http, fd, url, message).subscribe(r => {
         if (r.state) {
           console.log(r);
           if (r.data.message) {
@@ -133,7 +135,8 @@ export class ComponentComponent implements OnInit {
             this.LeftMenu.operationState = false;
             this.LeftMenu.titleId = r.data.data.id;
             this.LeftMenu.getMenuData();
-            setFromValue(r.data.data, this.formGroup);
+            this.menuSwitch();
+            this._router.navigate(['/component', {id: r.data.data.id}]);
             this._appService.editState = false;
           } else {
           }
@@ -163,27 +166,29 @@ export class ComponentComponent implements OnInit {
   }
   outClose(data) {
     console.log(data);
+    if (!data) {
+      this.holeEditElement.isVisible = false;
+      return;
+    }
     // this.nowEditData = JSON.parse(JSON.stringify(data)) || {};
     // // this.nowEditData = this.nowEditData || {};
     // const d = Object.assign({}, this.nowEditData, data);
-    this.holeEditElement.isVisible = false;
-    let fd = new FormData;
+    data.parentId = this.LeftMenu.titleId;
+    let fd: FormData = null;
     let http = 'post';
-    let url = '/hole';
+    const url = '/hole';
     let message = { success: '孔添加', error: '孔名称' };
     if (this.nowEditData) {
       http = 'put';
-      url = `${url}/${this.nowEditData.id}`;
       message = { success: '孔修改', error: '孔名称' };
-      fd = upDataFormData(data, this.nowEditData);
-    } else {
-      fd = getFormData(data);
-      fd.append('parentId', this.LeftMenu.titleId);
+      data.id = this.nowEditData.id;
     }
+    fd = new NewFD(data).fd;
     this._servers.http(http, fd, url, message).subscribe(r => {
       console.log(r);
       if (r.state) {
         this.holeData = r.data.data;
+        this.holeEditElement.isVisible = false;
       }
     });
   }

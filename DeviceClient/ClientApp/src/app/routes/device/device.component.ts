@@ -5,7 +5,7 @@ import { FormGroup } from '@angular/forms';
 import { APIService } from '../../services/api.service';
 import { newFormData, upDataFormData } from '../../utils/form/constructor-FormData';
 import { constructFormData, setFormValue } from './form.data';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AppService } from '../app.service';
 
 const baseUri = '/device';
@@ -31,6 +31,7 @@ export class DeviceComponent implements OnInit {
     private _servers: APIService,
     private _activatedRoute: ActivatedRoute,
     public _appService: AppService,
+    private _router: Router,
   ) { }
 
   ngOnInit() {
@@ -131,7 +132,8 @@ export class DeviceComponent implements OnInit {
             this.LeftMenu.operationState = false;
             this.LeftMenu.titleId = r.data.data.id;
             this.LeftMenu.getMenuData();
-            setFormValue(r.data.data, this.formGroup);
+            this.menuSwitch();
+            this._router.navigate([baseUri, {id: r.data.data.id}]);
             this._appService.editState = false;
           } else {
           }

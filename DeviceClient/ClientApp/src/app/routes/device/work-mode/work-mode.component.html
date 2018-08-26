@@ -1,7 +1,7 @@
 <form  nz-form [formGroup]="formGroup">
-  <div  *ngFor="let key of workMode">
+  <div  *ngFor="let key of workMode" [ngClass]="key">
     <div class="title">
-      <h3>{{key}}</h3>
+      <h3>{{key | L2U}}</h3>
     </div>
       <div class="{{formClass}}">
         <ng-container *ngFor="let field of formTypes">

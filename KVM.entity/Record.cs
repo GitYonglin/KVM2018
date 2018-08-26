@@ -22,7 +22,13 @@ namespace KVM.entity
         public IEnumerable<ulong> Time { get; set; }
         public RecordMode Mpa { get; set; }
         public RecordMode Mm { get; set; }
-        
+        public Mark Mark { get; set; }
+
+    }
+    public class Mark
+    {
+        public IEnumerable<int> Index { get; set; }
+        public IEnumerable<string> Doc { get; set; }
     }
     public class RecordMode
     {

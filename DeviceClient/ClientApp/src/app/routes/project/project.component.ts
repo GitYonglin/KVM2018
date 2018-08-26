@@ -3,11 +3,11 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { APIService } from '../../services/api.service';
 import { constructFormData, operatorFormData, supervisionFormData, steelStrandFormData  } from './form.data';
 import { FormGroup } from '@angular/forms';
-import { newFormData, upDataFormData } from '../../utils/form/constructor-FormData';
+import { newFormData, upDataFormData, NewFD } from '../../utils/form/constructor-FormData';
 import { LeftMenuComponent } from '../../shared/left-menu/left-menu.component';
 import { setFromValue } from '../../utils/form/construct-form';
 import { ModalFormDataComponent } from '../../shared/form/modal-form-data/modal-form-data.component';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AppService } from '../app.service';
 
 @Component({
@@ -36,6 +36,7 @@ export class ProjectComponent implements OnInit {
     private _servers: APIService,
     private _activatedRoute: ActivatedRoute,
     private _appService: AppService,
+    private _router: Router,
   ) { }
 
   ngOnInit() {
@@ -118,7 +119,7 @@ export class ProjectComponent implements OnInit {
     console.log('云');
   }
   onSave() {
-    console.log('保存');
+    console.log('保存', this.nowProjectData, this.formGroup.value);
     // tslint:disable-next-line:forin
     for (const key in this.formGroup.controls) {
       this.formGroup.controls[key].markAsDirty();
@@ -128,13 +129,14 @@ export class ProjectComponent implements OnInit {
       let http = 'post';
       let message = { success: '项目添加', error: '项目名称' };
       let url = '/project';
+
       if (this.nowProjectData) {
         http = 'put';
         message = { success: '项目修改', error: '项目名称' };
         url = `/project/${this.nowProjectData.id}`;
-      } else {
       }
-      this._servers.http(http, newFormData(this.formGroup.value), url, message).subscribe(r => {
+      const fd: FormData = new NewFD(this.formGroup.value).fd;
+      this._servers.http(http, fd, url, message).subscribe(r => {
         if (r.state) {
           console.log(r);
           if (r.data.message) {
@@ -142,7 +144,9 @@ export class ProjectComponent implements OnInit {
             this.LeftMenu.operationState = false;
             this.LeftMenu.titleId = r.data.data.id;
             this.LeftMenu.getMenuData();
-            setFromValue(r.data.data, this.formGroup);
+            this.menuSwitch();
+            this._router.navigate(['/project', {id: r.data.data.id}]);
+            // setFromValue(r.data.data, this.formGroup);
             this._appService.editState = false;
           } else {
           }
@@ -179,7 +183,10 @@ export class ProjectComponent implements OnInit {
     this.editOther.formTypes = editFormData[this.tabIndex].form.formTypes;
   }
   editCancel(data) {
-    this.editOther.isVisible = false;
+    if (!data) {
+      this.editOther.isVisible = false;
+      return;
+    }
     this.nowEditData = this.nowEditData || {};
     if (data) {
       const d = Object.assign({}, this.nowEditData, data);
@@ -206,7 +213,7 @@ export class ProjectComponent implements OnInit {
     }
   }
   editSave(data, uri: string, msg: any, callback: Function) {
-    let fd = new FormData;
+    // let fd = new FormData;
     let http = 'post';
     let url = uri;
     let message = msg[0];
@@ -214,15 +221,18 @@ export class ProjectComponent implements OnInit {
       http = 'put';
       url = `${url}/${this.nowEditData.id}`;
       message = msg[1];
-      fd = upDataFormData(data, this.nowEditData);
+      // fd = upDataFormData(data, this.nowEditData);
     } else {
-      fd = newFormData(data);
-      fd.append('parentId', this.LeftMenu.titleId);
+      // fd = newFormData(data);
+      // fd.append('parentId', this.LeftMenu.titleId);
+      data.parentId = this.LeftMenu.titleId;
     }
+    const fd: FormData = new NewFD(data).fd;
     this._servers.http(http, fd, url, message).subscribe(r => {
       console.log(r);
       if (r.state) {
         callback(r);
+        this.editOther.isVisible = false;
       }
     });
   }

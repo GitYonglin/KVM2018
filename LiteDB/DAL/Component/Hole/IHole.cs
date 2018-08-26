@@ -6,5 +6,6 @@ namespace KVM.LiteDB.DAL.Component.Hole
 {
   public interface IHole : ISubset<entity.Hole>
   {
+        ReturnPost UpData(entity.Hole data);
   }
 }

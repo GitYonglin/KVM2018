@@ -17,11 +17,13 @@ export class LoginComponent implements OnInit {
   formGroup: FormGroup;
   formTypes: any;
   projectList: any;
-  selectProject = {name: '没有选择项目' };
+  selectProject = {name: '没有选择项目', id: null };
   adminIsVisible = false;
   menuIsVisible = false;
   loginState = false;
   adminLoginState = false;
+  userGroup = [];
+  clickTimeId: any;
 
   constructor(
     private _http: Http,
@@ -54,24 +56,40 @@ export class LoginComponent implements OnInit {
         const project = JSON.parse(localStorage.getItem('project'));
         if (project) {
           this.selectProject = project;
+          this.onSelectProject();
         }
         // this.menuDataState = p ? true : false;
       } else {
         this.projectList = null;
       }
+      if (!this.projectList) {
+        localStorage.setItem('project', null);
+      }
     });
   }
-  onSelectProject(data) {
+  onSelectProject(data = this.selectProject) {
     this.selectProject = data;
+    this._service.get(`/Operator/${data.id}`).subscribe(p => {
+      this.userGroup = p;
+      console.log(p);
+    });
     localStorage.setItem('project', JSON.stringify(this.selectProject));
   }
   adminLogin() {
     console.log('111');
+    // 取消上次延时未执行的方法
+    clearTimeout(this.clickTimeId);
     this.post('/admin/login');
   }
-  login() {
-    console.log('222');
-    this.post(`/admin/user/login/${JSON.parse(localStorage.getItem('project')).id}`);
+  login(event) {
+    console.log('222', event);
+    // 取消上次延时未执行的方法
+    clearTimeout(this.clickTimeId);
+    // 执行延时
+    this.clickTimeId = setTimeout(() => {
+      // 此处为单击事件要执行的代码
+      this.post(`/admin/user/login/${JSON.parse(localStorage.getItem('project')).id}`);
+    }, 300);
   }
 
   post(url) {

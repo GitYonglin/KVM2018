@@ -13,48 +13,57 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DeviceClient.Controllers
 {
-  [Route("api/[controller]")]
-  public class OperatorController : Controller
-  {
-    public IOperator _col;
-    private string rootPath;
-    public OperatorController([FromServices]IHostingEnvironment env, IOperator col)
+    [Route("api/[controller]")]
+    public class OperatorController : Controller
     {
-      rootPath = env.WebRootPath;
-      _col = col;
-    }
-    // GET: /<controller>/
-    public IActionResult Index()
-    {
-      return Json(_col.GetAll());
-    }
+        public IOperator _col;
+        private string rootPath;
+        public OperatorController([FromServices]IHostingEnvironment env, IOperator col)
+        {
+            rootPath = env.WebRootPath;
+            _col = col;
+        }
+        // GET: /<controller>/
+        public IActionResult Index()
+        {
+            return Json(_col.GetAll());
+        }
+        /// <summary>
+        /// 获取一个项目的所有用户
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpGet("{id}")]
+        public IActionResult Index(string id)
+        {
+            return Json(_col.GetAll(id).Select(o => new { name = o.sName }));
+        }
+        [HttpPost]
+        public IActionResult Post(Operator data)
+        {
+            data.Id = Guid.NewGuid().ToString();
+            data.ImgUrl = FileOperation.FileImg(data.ImgFile, data.Id, rootPath, Path(data.ParentId));
+            return Json(_col.Insert(data));
+        }
 
-    [HttpPost]
-    public IActionResult Post(Operator data)
-    {
-      data.Id = Guid.NewGuid().ToString();
-      data.ImgUrl = FileOperation.FileImg(data.ImgFile, data.Id, rootPath, Path(data.ParentId));
-      return Json(_col.Insert(data));
-    }
+        [HttpPut("{id}")]
+        public IActionResult Put(string id, Operator data)
+        {
+            data.ImgUrl = FileOperation.FileImg(data.ImgFile, data.Id, rootPath, Path(data.ParentId));
+            return Json(_col.UpData(id, data));
+        }
 
-    [HttpPut("{id}")]
-    public IActionResult Put(string id, Operator data)
-    {
-      data.ImgUrl = FileOperation.FileImg(data.ImgFile, data.Id, rootPath, Path(data.ParentId));
-      return Json(_col.UpData(id, data));
-    }
+        [HttpDelete("{id}")]
+        public IActionResult Delete(string id)
+        {
+            var delete = _col.GetOne(id);
+            FileOperation.DeleteFile(rootPath, delete.ImgUrl);
+            return Json(_col.Delete(delete));
+        }
 
-    [HttpDelete("{id}")]
-    public IActionResult Delete(string id)
-    {
-      var delete = _col.GetOne(id);
-      FileOperation.DeleteFile(rootPath, delete.ImgUrl);
-      return Json(_col.Delete(delete));
+        private string Path(string path)
+        {
+            return $@"data/project/operator/{path}";
+        }
     }
-
-    private string Path(string path)
-    {
-      return $@"data/project/operator/{path}";
-    }
-  }
 }

@@ -423,6 +423,8 @@ export class MSService {
     this.connection.invoke('Tension', data).then(() => {
       this.autoVerifyMpaState = true;
     });
+    this.recordData.cvsData.mark.doc.push(this.liveState[index]);
+    this.recordData.cvsData.mark.index.push(this.recordData.cvsData.time.length - 1);
     console.log('MS请求');
   }
   // 确认压力数据下载
@@ -709,8 +711,6 @@ export class MSService {
   // 保存数据到数据库
   saveRecordDb(state = false, returnState = false) {
     console.log('数据保存', this.tensionData.twice, this.recordData.state);
-    delete this.recordData.liveMmCvs;
-    delete this.recordData.liveMpaCvs;
     if (!state) {
       if (this.tensionData.twice && (this.recordData.state === 0 || this.recordData.state === 4)) {
         this.recordData.state = 2;

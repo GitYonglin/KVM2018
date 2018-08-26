@@ -18,7 +18,7 @@
       <label nz-checkbox nzValue="234" style="color: #108ee9;" [ngModel]="234 | CheckboxSelect: groupBridgeStr">在</label>
     </nz-checkbox-wrapper>
   </div>
-  <div class="main" [ngStyle]="{'overflow-y': menuDataState ? 'hidden' : 'auto'}" (dblclick)="menuButton.showFullMenu()">
+  <div class="main" [ngStyle]="{'overflow-y': menuDataState ? 'hidden' : 'auto'}" (dblclick)="$event.stopPropagation(); menuButton.showFullMenu()">
     <ng-container *ngIf="menus; else elseBlock">
       <div [ngStyle]="{'height': menuDataState && titleId === item.id ? '100%' : 'auto'}" *ngFor="let item of menus; index as i">
         <ul *ngIf="!menuDataState || (titleId === item.id || titleId === null)">

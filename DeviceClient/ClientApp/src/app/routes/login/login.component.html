@@ -1,5 +1,5 @@
 <div class="content">
-  <div nz-row  class="project-list">
+  <div nz-row class="project-list">
     <div nz-col nzSpan="20" nzOffset="2">
       <div *ngFor="let item of projectList">
         <nz-card style="width:150px;" [ngClass]="{'active': item.id === selectProject.id}" [nzCover]="coverTemplate" (click)="onSelectProject(item)">
@@ -24,25 +24,42 @@
       <nz-card style="width:100%">
         <h1 style="text-align: center;">登录</h1>
         <form nz-form [formGroup]="formGroup">
-          <nz-form-item *ngFor="let field of formTypes">
+          <nz-form-item>
+            <nz-form-label [nzSpan]="4">用户名</nz-form-label>
+            <nz-form-control [nzSpan]="20">
 
-            <nz-form-label [nzSpan]="4">{{field.prefix}}</nz-form-label>
+              <nz-input-group nzSize="large">
+                <input placeholder="input here" formControlName="Name" nz-input [nzAutocomplete]="auto"/>
+              </nz-input-group>
+              <nz-autocomplete #auto>
+                <nz-auto-option *ngFor="let user of userGroup" [nzLabel]="user.name" [nzValue]="user.name">
+                  <h1>{{user.name}}</h1>
+                </nz-auto-option>
+              </nz-autocomplete>
+            </nz-form-control>
+
+          </nz-form-item>
+          <nz-form-item>
+
+            <nz-form-label [nzSpan]="4">密 码</nz-form-label>
 
             <nz-form-control [nzSpan]="20">
-              <input nz-input [formControlName]="field.key" >
+              <input nz-input [formControlName]="'Password'">
 
-              <nz-form-explain *ngIf="formGroup.controls[field.key].errors">
+              <nz-form-explain *ngIf="formGroup.controls['Password'].errors">
                 <ng-container>
-                  {{formGroup.controls[field.key].errors | formError: field.errors }}
+                  {{formGroup.controls['Password'].errors | formError: formTypes[1].errors }}
                 </ng-container>
               </nz-form-explain>
             </nz-form-control>
           </nz-form-item>
           <nz-form-item>
-            <nz-form-control >
+            <nz-form-control>
               <div class="login-btn">
-                <button nz-button nzType="primary" class="login-form-button" (click)="login()" [nzLoading]="loginState" [disabled]="adminLoginState">登 录</button>
-                <button nz-button class="login-form-button" (click)="adminLogin()" [nzLoading]="adminLoginState" [disabled]="loginState">管理员登录</button>
+                <button nz-button class="login-form-button" nzType="primary"
+                  (click)="login($event)"
+                  (dblclick)="adminLogin()"
+                  [nzLoading]="adminLoginState" [disabled]="loginState">登 录</button>
               </div>
             </nz-form-control>
           </nz-form-item>
@@ -55,4 +72,4 @@
 <div class="bg bg2"></div>
 <div class="bg bg3"></div> -->
 <app-admin [isVisible]="adminIsVisible"></app-admin>
-<app-full-menu ></app-full-menu>
+<app-full-menu></app-full-menu>

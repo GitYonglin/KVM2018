@@ -34,8 +34,6 @@ export interface RecordData {
   mpa: RecordMode;
   mm: RecordMode;
   cvsData: CvsData;
-  liveMpaCvs: LiveCvs[];
-  liveMmCvs: LiveCvs[];
   returnStart: ReturnStart;
 }
 interface RecordMode {
@@ -45,6 +43,10 @@ interface RecordMode {
   b2?: number[];
 }
 export interface CvsData {
+  mark: {
+    index: number[];
+    doc: string[];
+  };
   time: any[];
   mpa: RecordMode;
   mm: RecordMode;

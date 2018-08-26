@@ -6,10 +6,6 @@ namespace KVM.LiteDB.DAL.Project.Operator
 {
   public interface IOperator : ISubset<entity.Operator>
   {
+        IEnumerable<entity.Operator> GetAll(string id);
   }
-  //public interface IOperator: IBase<entity.Operator>
-  //{
-  //    IEnumerable<entity.Operator> FindGetAll(string operatorId);
-  //    IEnumerable<entity.Operator> Delete(entity.Operator o);
-  //}
 }

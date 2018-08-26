@@ -6,6 +6,7 @@ import { Value2PLC } from '../../utils/PLC8Show';
 import { Router } from '@angular/router';
 import { runTensionData, showValues } from '../../model/live.model';
 import { CanvasCvsComponent } from '../../shared/canvas-cvs/canvas-cvs.component';
+import { NzModalService } from 'ng-zorro-antd';
 
 @Component({
   selector: 'app-tension',
@@ -47,6 +48,7 @@ export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     public _ms: MSService,
     private _router: Router,
+    private modal: NzModalService,
   ) { }
 
   ngOnInit() {
@@ -101,6 +103,7 @@ export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
       this.runTension.runState = false;
       this._ms.runTensionData.state = true;
       this.cvs.delayCvs();
+      this.modal.closeAll();
       // document.dispatchEvent(new Event('cvsStartEvent'));
     } else {
       this._ms.connection.invoke('AutoF05', { mode: this._ms.tensionData.mode, address: 527, F05: true });

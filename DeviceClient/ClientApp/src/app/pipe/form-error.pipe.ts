@@ -30,8 +30,12 @@ export class FormErrorPipe implements PipeTransform {
 export class ImgUrlPipe implements PipeTransform {
   constructor(@Inject('BASE_CONFIG') private config) {}
   transform(imgUrl: any): string {
+    console.log('图片地址', imgUrl === null);
+    if (imgUrl === null) {
+      return null;
+    }
     if (imgUrl && !imgUrl.startsWith('blob')) {
-      return `${this.config.uri}/${imgUrl}`;
+      return `${imgUrl}`;
     } else {
       return imgUrl;
     }

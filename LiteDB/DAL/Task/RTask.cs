@@ -43,7 +43,7 @@ namespace KVM.LiteDB.DAL.Task
             return new ReturnPost() { Message = false };
         }
         /// <summary>
-        /// 添加一条数据
+        /// 复制
         /// </summary>
         /// <param name="data">数据</param>
         /// <returns></returns>
