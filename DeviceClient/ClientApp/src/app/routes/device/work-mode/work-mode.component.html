@@ -1,7 +1,8 @@
 <form  nz-form [formGroup]="formGroup">
   <div  *ngFor="let key of workMode" [ngClass]="key">
     <div class="title">
-      <h3>{{key | L2U}}</h3>
+      <!-- <h3 [ngClass]="key">{{key | L2U}}</h3> -->
+      <nz-divider [nzText]="key | L2U"  nzOrientation="left" [ngClass]="key"></nz-divider>
     </div>
       <div class="{{formClass}}">
         <ng-container *ngFor="let field of formTypes">
@@ -9,7 +10,7 @@
             <nz-form-label [nzSpan]="labelSpan">{{field.prefix}}</nz-form-label>
             <nz-form-control [nzSpan]="controlSpan" [ngSwitch]="field.type">
 
-              <input nz-input [formControlName]="field.key" type="field.type">
+              <input (focus)="$event.target.select()" nz-input [formControlName]="field.key" [type]="field.type">
 
               <nz-form-explain *ngIf="formGroup.controls[field.key].errors">
                 <ng-container>

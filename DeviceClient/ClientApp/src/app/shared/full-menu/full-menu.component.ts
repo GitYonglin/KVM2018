@@ -8,7 +8,7 @@ const menuArr = [
   //   name: '任务',
   //   icon: 'anticon-profile',
   //   url: `/task`
-  // },
+  // },<i class="anticon anticon-setting"></i><i class="anticon anticon-dashboard"></i>
   {
     name: '构件',
     icon: 'anticon-api',
@@ -26,7 +26,7 @@ const menuArr = [
   },
   {
     name: '设置',
-    icon: 'anticon-ie',
+    icon: 'anticon-setting',
     url: '/deviceSet'
   },
   {
@@ -34,14 +34,14 @@ const menuArr = [
     icon: 'anticon-question',
     url: '/manual'
   },
-  {
-    name: '监控',
-    icon: 'anticon-ie',
-    url: '/tension'
-  },
+  // {
+  //   name: '监控',
+  //   icon: 'anticon-ie',
+  //   url: '/tension'
+  // },
   {
     name: '手动',
-    icon: 'anticon-question',
+    icon: 'anticon-dashboard',
     url: '/manual'
   },
 ];

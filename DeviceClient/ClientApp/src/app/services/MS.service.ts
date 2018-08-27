@@ -355,6 +355,7 @@ export class MSService {
   }
   // 自检
   selfTest() {
+    this.autoVerifyMpa();
     if (!this.runTensionData.selfState) {
       return;
     }

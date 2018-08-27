@@ -44,16 +44,16 @@
           <h3>{{nowSetItem}}·校正系数计算</h3>
           <nz-input-group nzAddOnBefore="设备显示值" >
             <div style="display: flex;">
-              <input type="number" [(ngModel)]="nowValue" nz-input nzSize="large" (input)="calculate()">
+              <input (focus)="$event.target.select()" type="number" [(ngModel)]="nowValue" nz-input nzSize="large" (input)="calculate()">
               <button nz-button nzType="primary" (click)="getNowValue()" [disabled]="nowKey === null">获取设备值</button>
             </div>
           </nz-input-group>
 
           <nz-input-group nzAddOnBefore="实际测量值" >
-            <input type="number" [(ngModel)]="realityValue" nz-input nzSize="large" (input)="calculate()">
+            <input (focus)="$event.target.select()" type="number" [(ngModel)]="realityValue" nz-input nzSize="large" (input)="calculate()">
           </nz-input-group>
           <nz-input-group nzAddOnBefore="数据校正值" >
-            <input type="number" [(value)]="correctionValue" nz-input nzSize="large" >
+            <input (focus)="$event.target.select()" type="number" [(value)]="correctionValue" nz-input nzSize="large" >
           </nz-input-group>
           <nz-input-group  >
               <button style="width: 100%;" nz-button nzType="primary" [disabled]="nowKey === null" (click)="onSaveCorrectionValue()">确认校正值</button>

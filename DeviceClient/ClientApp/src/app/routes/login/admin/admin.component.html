@@ -10,7 +10,7 @@
       <nz-form-label [nzSpan]="7">{{field.prefix}}</nz-form-label>
 
       <nz-form-control [nzSpan]="12">
-        <input nz-input [formControlName]="field.key" >
+        <input (focus)="$event.target.select()" nz-input [formControlName]="field.key" >
 
         <nz-form-explain *ngIf="formGroup.controls[field.key].errors">
           <ng-container>

@@ -13,9 +13,9 @@ export class WorkModeComponent implements OnInit {
   correctionName = null;
 
   @Input()
-  labelSpan = 4;
+  labelSpan = 8;
   @Input()
-  controlSpan = 19;
+  controlSpan = 15;
   @Input()
   formGroup: FormGroup;
   @Input()

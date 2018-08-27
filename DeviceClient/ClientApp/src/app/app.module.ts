@@ -27,7 +27,9 @@ registerLocaleData(zh);
     // NgZorroAntdModule,
     CoreModule,
     SharedModule,
-    LoginModule
+    LoginModule,
+    FormsModule,
+    NgZorroAntdModule
   ],
   providers: [{ provide: NZ_I18N, useValue: zh_CN }],
   bootstrap: [AppComponent]

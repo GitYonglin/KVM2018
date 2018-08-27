@@ -3,7 +3,6 @@ import { F2, Chart, Animate } from '@antv/f2';
 import { deviceModes } from '../../model/device.model';
 import { setCvs } from '../../utils/cvsData';
 import { MSService } from '../../services/MS.service';
-import { CvsData } from '../../model/live.model';
 
 
 // 自定义线图变更动画
@@ -58,8 +57,8 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit {
   @ViewChild('mmCvs')
     mmCvs: ElementRef;
 
-  mpaChart: any = null;
-  mmChart: any = null;
+  mpaChart: Chart = null;
+  mmChart: Chart = null;
   mpaData: any;
   mmData: any;
 
@@ -71,16 +70,12 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit {
   @Input()
   width = '100%';
   @Input()
-  data: CvsData = null;
+  data = null;
 
   constructor(private _ms: MSService) { }
 
   ngOnInit() {
     console.log(this.height, this.width);
-    // document.addEventListener('cvsStartEvent', () => {
-    //   console.log('曲线开始');
-    //     this.delayCvs();
-    // });
   }
   ngAfterViewInit() {
     if (this.data === null) {
@@ -107,12 +102,24 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit {
 
     chart.axis('time', {
       label: (text, index, total) => {
+        // const textCfg = {
+        //   text: '',
+        //   textAlign: 'center'
+        // };
+        // if (index === 0) {
+        //   textCfg.textAlign = 'left';
+        //   textCfg.text = text;
+        // } else if (index === total - 1) {
+        //   textCfg.textAlign = 'right';
+        //   textCfg.text = text;
+        // }
+        // return textCfg;
+
         const cfg = {
           text: '',
           textAlign: 'center'
         };
         cfg.text = text;  // cfg.text 支持文本格式化处理
-        console.log('cvs', index, this.data.mark.index.indexOf(index));
         if (index === 0) {
           cfg.text = `${text}\n初张拉`;
           cfg.textAlign = 'start';

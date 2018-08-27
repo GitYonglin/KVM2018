@@ -23,7 +23,7 @@ namespace KVM.LiteDB.DAL.Task.HoleGroup
         /// <returns>成功：返回项目中所有操作员，失败：放回状态false</returns>
         public ReturnPost UpData(entity.HoleGroup data)
         {
-            var searchData = _col.Find(item => item.Name == data.Name);
+            var searchData = _col.Find(item => item.Name == data.Name && item.Id == data.Id);
             if (searchData.Count() == 0 || (searchData.Count() == 1 && searchData.Select(s => s.Id == data.Id).Count() == 1))
             {
                 var old = _col.FindById(data.Id);

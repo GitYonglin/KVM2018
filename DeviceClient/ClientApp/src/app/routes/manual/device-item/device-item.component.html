@@ -5,18 +5,18 @@
       <div class="input-progress">
         <nz-progress nz-tooltip [nzPercent]="_ms.showValues[name]?.mpa / _ms.deviceParameter.mpaUpperLimit * 100" [nzShowInfo]="false"
           [nzStrokeWidth]="32"></nz-progress>
-        <input type="number" [value]="_ms.showValues[name]?.mpa" nz-input nzSize="large" readonly="readonly">
+        <input (focus)="$event.target.select()" type="number" [value]="_ms.showValues[name]?.mpa" nz-input nzSize="large" readonly="readonly">
       </div>
     </nz-input-group>
     <nz-input-group nzAddOnBefore="设置压力" nzAddOnAfter="Mpa">
       <div class="input-col">
         <nz-slider [nzDisabled]="!_ms.state[name]" [nzStep]="0.5" [nzMin]="0" [nzMax]="55" [(ngModel)]="data.setMpa" (ngModelChange)="onSet('mpa')"></nz-slider>
-        <input type="number" [disabled]="!_ms.state[name]" [(ngModel)]="data.setMpa" max="55" min="0" nz-input nzSize="large" (change)="onSet('mpa')">
+        <input (focus)="$event.target.select()" type="number" [disabled]="!_ms.state[name]" [(ngModel)]="data.setMpa" max="55" min="0" nz-input nzSize="large" (change)="onSet('mpa')">
       </div>
     </nz-input-group>
     <nz-input-group nzAddOnBefore="相对位移" nzAddOnAfter="mm">
         <div style="display: flex;">
-            <input type="number" [value]="(_ms.showValues[name]?.mm - relativeMm) | N2F" nz-input nzSize="large" readonly="readonly" style="flex: 300%; margin-right: 7px;">
+            <input (focus)="$event.target.select()" type="number" [value]="(_ms.showValues[name]?.mm - relativeMm) | N2F" nz-input nzSize="large" readonly="readonly" style="flex: 300%; margin-right: 7px;">
             <button nz-button nzType="primary" (click)="reset()" style="width: 100%;">清 零</button>
           </div>
     </nz-input-group>
@@ -24,14 +24,14 @@
       <div class="input-progress">
         <nz-progress nz-tooltip [nzPercent]="_ms.showValues[name]?.mm / _ms.deviceParameter.mmWorkUpperLimit * 100" [nzShowInfo]="false"
           [nzStrokeWidth]="32"></nz-progress>
-        <input type="number" [value]="_ms.showValues[name]?.mm" nz-input nzSize="large" readonly="readonly">
+        <input (focus)="$event.target.select()" type="number" [value]="_ms.showValues[name]?.mm" nz-input nzSize="large" readonly="readonly">
       </div>
     </nz-input-group>
 
     <nz-input-group nzAddOnBefore="设置位移" nzAddOnAfter="mm">
       <div class="input-col">
         <nz-slider [nzDisabled]="!_ms.state[name]" [nzMin]="0" [nzMax]="_ms.deviceParameter.mmWorkUpperLimit" [(ngModel)]="data.setMm" (ngModelChange)="onSet('mm')"></nz-slider>
-        <input type="number" [disabled]="!_ms.state[name]" [(ngModel)]="data.setMm" [max]="_ms.deviceParameter.mmWorkUpperLimit" min="0" nz-input nzSize="large" (change)="onSet('mm')">
+        <input (focus)="$event.target.select()" type="number" [disabled]="!_ms.state[name]" [(ngModel)]="data.setMm" [max]="_ms.deviceParameter.mmWorkUpperLimit" min="0" nz-input nzSize="large" (change)="onSet('mm')">
       </div>
     </nz-input-group>
   </div>
