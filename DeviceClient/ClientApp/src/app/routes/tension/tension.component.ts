@@ -94,7 +94,6 @@ export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
   }
   // 启动张拉
   onRunTension(s = false) {
-    this._ms.runTensionData.selfState = true;
     console.log('启动张拉', this._ms.tensionData.mode);
     if (s) {
       // this._ms.saveCvs();
@@ -106,6 +105,7 @@ export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
       this.modal.closeAll();
       // document.dispatchEvent(new Event('cvsStartEvent'));
     } else {
+      this._ms.runTensionData.selfState = true;
       this._ms.connection.invoke('AutoF05', { mode: this._ms.tensionData.mode, address: 527, F05: true });
     }
   }

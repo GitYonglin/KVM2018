@@ -2,6 +2,7 @@ using LiteDB;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace KVM.LiteDB.DAL.Component.Hole
@@ -39,7 +40,8 @@ namespace KVM.LiteDB.DAL.Component.Hole
         /// <returns></returns>
         public ReturnPost UpData(entity.Hole data)
         {
-            if (_col.FindOne(h => h.ParentId == data.ParentId && h.sName == data.sName) == null)
+            var searchData = _col.Find(h => h.ParentId == data.ParentId && h.sName == data.sName);
+            if (searchData.Count() == 0 || (searchData.Count() == 1 && searchData.Select(s => s.Id == data.Id).Count() == 1))
             {
                 var old = _col.FindById(data.Id);
                 var updata = Class2Class.C2C(old, data);

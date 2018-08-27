@@ -2,7 +2,7 @@ import { Component, OnInit, Input } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { constructHoleFromGroup, setHoleFormValue } from '../form.data';
 import { APIService } from '../../../services/api.service';
-import { newFormData } from '../../../utils/form/constructor-FormData';
+import { newFormData, NewFD } from '../../../utils/form/constructor-FormData';
 import { AppService } from '../../app.service';
 import { RecordData, SumData, funcSumData, funcRetraction } from '../../../model/live.model';
 import { deviceModes } from '../../../model/device.model';
@@ -285,10 +285,10 @@ export class GroupTaskDataComponent implements OnInit {
   }
   // 保存数据到数据库
   save() {
-    console.log('保存');
-    const fd = newFormData(this.nowTaskData);
+    console.log('保存', this.nowTaskData);
+    const fd: FormData = new NewFD(this.nowTaskData).fd;
     const http = 'put';
-    const url = `/HoleGroup/${this.nowTaskData.id}`;
+    const url = `/HoleGroup`;
     this._service.http(http, fd, url, { success: '张拉组修改', error: '' }).subscribe(r => {
       console.log(r);
       if (r.state) {

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Options;
 using System.Text;
+using System.Linq;
 
 namespace KVM.LiteDB.DAL
 {
@@ -50,7 +51,8 @@ namespace KVM.LiteDB.DAL
         /// <returns>成功：返回项目中所有操作员，失败：放回状态false</returns>
         public new ReturnPost UpData(string id, T data)
         {
-            if (_col.FindOne(item => item.sName == data.sName) == null)
+            var searchData = _col.Find(item => item.sName == data.sName);
+            if (searchData.Count() == 0 || (searchData.Count() == 1 && searchData.Select(s => s.Id == id).Count() == 1))
             {
                 var old = _col.FindById(id);
                 var updata = Class2Class.C2C(old, data);

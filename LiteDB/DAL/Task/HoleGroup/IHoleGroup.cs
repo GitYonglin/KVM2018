@@ -6,5 +6,6 @@ namespace KVM.LiteDB.DAL.Task.HoleGroup
 {
   public interface IHoleGroup: ISubset<entity.HoleGroup>
   {
+        ReturnPost UpData(entity.HoleGroup data);
   }
 }

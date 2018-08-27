@@ -157,9 +157,9 @@
     <div>
       <div *ngFor="let name of _ms.tensionData.modes">
         <!-- <h3>{{_ms.showValues[name].state}}</h3> -->
-        <nz-alert nzType="error" *ngIf="_ms.showValues[name].state === '自检错误'; else elseBlock" [nzMessage]="_ms.showValues[name].state" nzShowIcon></nz-alert>
+        <nz-alert nzType="error" *ngIf="_ms.showValues[name].state === '自检错误'; else elseBlock" [nzMessage]="(name | L2U) + _ms.showValues[name].state" nzShowIcon></nz-alert>
         <ng-template #elseBlock>
-          <nz-alert [nzType]="_ms.showValues[name].state === '自检完成'? 'success' : 'info'" [nzMessage]="_ms.showValues[name].state" nzShowIcon></nz-alert>
+          <nz-alert [nzType]="_ms.showValues[name].state === '自检完成'? 'success' : 'info'" [nzMessage]="(name | L2U) +_ms.showValues[name].state" nzShowIcon></nz-alert>
         </ng-template>
       </div>
     </div>

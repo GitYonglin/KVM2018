@@ -43,13 +43,13 @@ interface RecordMode {
   b2?: number[];
 }
 export interface CvsData {
-  mark: {
+  mark?: {
     index: number[];
     doc: string[];
   };
-  time: any[];
-  mpa: RecordMode;
-  mm: RecordMode;
+  time?: any[];
+  mpa?: RecordMode;
+  mm?: RecordMode;
 }
 interface LiveCvs {
   time: any;

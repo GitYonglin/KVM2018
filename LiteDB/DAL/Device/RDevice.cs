@@ -3,6 +3,7 @@ using LiteDB;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace KVM.LiteDB.DAL.Device
@@ -36,7 +37,8 @@ namespace KVM.LiteDB.DAL.Device
         /// <returns></returns>
         public new ReturnPost UpData(string id, entity.Device data)
         {
-            if (_col.FindOne(p => p.sName == data.sName) == null)
+            var searchData = _col.Find(p => p.sName == data.sName);
+            if (searchData.Count() == 0 || (searchData.Count() == 1 && searchData.Select(s => s.Id == id).Count() == 1))
             {
                 var old = _col.FindById(id);
                 var updata = Class2Class.C2C(old, data);

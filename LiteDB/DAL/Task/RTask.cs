@@ -84,11 +84,15 @@ namespace KVM.LiteDB.DAL.Task
         /// <returns></returns>
         public new ReturnPost UpData(string id, entity.Task data)
         {
-            var old = _col.FindById(id);
-            var updata = Class2Class.C2C(old, data);
-            if (_col.Update(updata))
+            var searchData = _col.Find(p => p.ComponentId == data.ComponentId && p.BridgeName == data.BridgeName);
+            if (searchData.Count() == 0 || (searchData.Count() == 1 && searchData.Select(s => s.Id == id).Count() == 1))
             {
-                return new ReturnPost() { Data = updata, Message = true };
+                var old = _col.FindById(id);
+                var updata = Class2Class.C2C(old, data);
+                if (_col.Update(updata))
+                {
+                    return new ReturnPost() { Data = updata, Message = true };
+                }
             }
             return new ReturnPost() { Message = false };
         }
@@ -101,7 +105,7 @@ namespace KVM.LiteDB.DAL.Task
         {
             var Task = _col.FindById(new BsonValue(id));
             Task.HoleGroupsRadio = _holeGroup.Find(o => o.ParentId == id).Select(h => new HoleGroupsRadio
-                { Hole = h.Name, Id = h.Id, State = GetRecordState(h.Id) }
+            { Hole = h.Name, Id = h.Id, State = GetRecordState(h.Id) }
             );
             Task.Device = _Device.FindById(Task.DeviceId);
             return Task;
@@ -170,7 +174,8 @@ namespace KVM.LiteDB.DAL.Task
                         {
                             state = 1;
                         }
-                    } else
+                    }
+                    else
                     {
                         state1 = 4;
                     }

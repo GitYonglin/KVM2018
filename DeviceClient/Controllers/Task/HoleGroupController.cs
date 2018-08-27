@@ -43,10 +43,10 @@ namespace DeviceClient.Controllers.Task
             return Json(_col.Insert(data));
         }
 
-        [HttpPut("{id}")]
-        public IActionResult Put(string id, HoleGroup data)
+        [HttpPut]
+        public IActionResult Put(HoleGroup data)
         {
-            return Json(_col.UpData(id, data));
+            return Json(_col.UpData(data));
         }
 
         [HttpDelete("{id}")]

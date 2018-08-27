@@ -189,10 +189,12 @@ export class MSService {
         connection.on('DelayOk', data => {
           console.log('延时完成', this.recordData.stage, this.tensionData.stage);
           this.recordData.time[this.recordData.stage] = data;
+          this.recordMarkSave(`${this.liveState[this.recordData.stage]}·保压完成`);
           if (this.recordData.stage < this.tensionData.stage) {
             this.recordData.stage++;
             this.upPLC();
             this.runTensionData.delayState = false;
+            this.recordMarkSave(`${this.liveState[this.recordData.stage]}·开始`);
           } else {
             this.runTensionData.stateOk = true;
             this.autoLoadOff();
@@ -353,6 +355,9 @@ export class MSService {
   }
   // 自检
   selfTest() {
+    if (!this.runTensionData.selfState) {
+      return;
+    }
     for (const name of this.tensionData.modes) {
       console.log(name, this.showValues[name].state);
       if (this.showValues[name].state === '自检错误') {
@@ -362,6 +367,9 @@ export class MSService {
       if (!(this.showValues[name].state === '自检完成')) {
         return;
       }
+    }
+    if (this.runTensionData.selfState) {
+      this.recordMarkSave(`${this.liveState[this.recordData.stage]}·开始`);
     }
     this.runTensionData.selfState = false;
     document.dispatchEvent(new Event('testEvent'));
@@ -423,8 +431,6 @@ export class MSService {
     this.connection.invoke('Tension', data).then(() => {
       this.autoVerifyMpaState = true;
     });
-    this.recordData.cvsData.mark.doc.push(this.liveState[index]);
-    this.recordData.cvsData.mark.index.push(this.recordData.cvsData.time.length - 1);
     console.log('MS请求');
   }
   // 确认压力数据下载
@@ -487,9 +493,11 @@ export class MSService {
     let stop = false;
     let balanceControlState = false;
     for (const name of this.tensionData.modes) {
+      // 张拉平衡
       if (!this.tensionData.repeatedly || this.showValues[name].affirmMm > 0) {
         balanceControlState = true;
       }
+      // 保压判断
       if (!this.runTensionData.stateOk &&
         this.showValues[name].plcMpa >= this.tensionData.mpaPLC[name][this.recordData.stage] &&
         (this.showValues[name].state === '保压' || this.showValues[name].state === '补压') &&
@@ -558,6 +566,7 @@ export class MSService {
       this.runTensionData.delayState = true;
       this.connection.invoke('Delay', this.tensionData.checkData.time[this.recordData.stage]);
       console.log('MS请求');
+      this.recordMarkSave(`${this.liveState[this.recordData.stage]}·保压`);
     }
     // 进入卸荷延时
     if (loadOff) {
@@ -769,5 +778,9 @@ export class MSService {
     setTimeout(() => {
       this.creation();
     }, 5000);
+  }
+  private recordMarkSave(doc: string) {
+    this.recordData.cvsData.mark.doc.push(doc);
+    this.recordData.cvsData.mark.index.push(this.recordData.cvsData.time.length);
   }
 }
