@@ -358,20 +358,17 @@ export class MSService {
         this.autoLoadOffVerify();
       }
     } else {
-      console.log('自检监控');
       this.selfTest();
     }
     // console.log(this.showValues, data[5].toString(2).padStart(6, '0'), data[5]);
   }
   // 自检
   selfTest() {
-    console.log('自检');
     this.autoVerifyMpa();
     if (!this.runTensionData.selfState) {
       return;
     }
     for (const name of this.tensionData.modes) {
-      console.log(name, this.showValues[name].state);
       if (this.showValues[name].state === '自检错误') {
         this.runTensionData.selfErrorState = true;
         return;
