@@ -31,7 +31,7 @@
         </div>
         <div class="item">
             <div class="top">
-              <button nz-button [nzType]=" _ms.runTensionData.loadOffDelayState ? 'primary': 'dashed'" nzShape="circle">卸荷</button>
+              <button nz-button [nzType]=" _ms.runTensionData.loadOffDelayState || _ms.autoVerifyLoadOff ? 'primary': 'dashed'" nzShape="circle">卸荷</button>
               <nz-progress [nzPercent]="(_ms.runTensionData.nowLodOffTime / _ms.runTensionData.LodOffTime) *100"  [nzStatus]="'active'" [nzShowInfo]="false" ></nz-progress>
               <span >{{_ms.runTensionData.nowLodOffTime}} / {{_ms.runTensionData.LodOffTime}}</span>
             </div>
@@ -81,6 +81,7 @@
       </table>
     </div>
     <div class="cvs">
+      <!-- <button (click)="onCvsShow()" nz-button>显示</button> -->
       <div #cvs>
         <app-canvas-cvs #cvsE *ngIf="heightCvs" [width]="widthCvs" [height]="heightCvs"></app-canvas-cvs>
       </div>

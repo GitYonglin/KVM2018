@@ -88,6 +88,7 @@ export class MSService {
   public returnMmOk = false;
   private autoVerifyMpaState = false;
   public mmReturnLowerLimit = 0;
+  public autoVerifyLoadOff = false;
 
   constructor(
     @Inject('BASE_CONFIG') private config,
@@ -197,6 +198,7 @@ export class MSService {
             this.recordMarkSave(`${this.liveState[this.recordData.stage]}·开始`);
           } else {
             this.runTensionData.stateOk = true;
+            console.log('全部保压完成');
             this.autoLoadOff();
           }
         });
@@ -323,6 +325,7 @@ export class MSService {
   }
   // PLC实时数据
   private setShowValue(data, i) {
+    // console.log('实时数据');
     this.showValues[`a${i}`].plcMpa = data[0];
     this.showValues[`b${i}`].plcMpa = data[2];
     this.showValues[`a${i}`].mpa = this.PLC2Value(data[0], 'mpa', `a${i}`);
@@ -338,6 +341,7 @@ export class MSService {
     this.showValues[`a${i}`].setPLCMpa = data[8];
     this.showValues[`b${i}`].setPLCMpa = data[9];
     if (!this.runTensionData.selfState) {
+      // 自动张拉监控
       if (this.runTensionData.state) {
         this.autoMonitoring();
         if (!this.runTensionData.stateOk) {
@@ -345,16 +349,23 @@ export class MSService {
           this.autoVerifyMpa();
         }
       }
+      // 过位移监控
       if (this.passSate) {
+        console.log('过位移监控');
         this.passMonitoring();
       }
+      if (this.autoVerifyLoadOff) {
+        this.autoLoadOffVerify();
+      }
     } else {
+      console.log('自检监控');
       this.selfTest();
     }
     // console.log(this.showValues, data[5].toString(2).padStart(6, '0'), data[5]);
   }
   // 自检
   selfTest() {
+    console.log('自检');
     this.autoVerifyMpa();
     if (!this.runTensionData.selfState) {
       return;
@@ -378,6 +389,7 @@ export class MSService {
   }
   // 报警实时数据转换
   private setAlarm(value) {
+    // console.log('实时数据');
     const arr = [];
     for (let index = 0; index < value.length; index++) {
       let alarm = '';
@@ -388,7 +400,6 @@ export class MSService {
     }
     return arr;
   }
-
 
   // PLC自动数据核对
   private autoVerifyMpa() {
@@ -425,7 +436,7 @@ export class MSService {
       b1: 0,
       b2: 0
     };
-    for (const name of this.tensionData.modes) {
+    for (const name of t.modes) {
       data[name] = t.mpaPLC[name][index];
     }
     console.log('下载数据到PLC', data);
@@ -691,11 +702,25 @@ export class MSService {
       b2: 0,
     };
     for (const name of this.tensionData.modes) {
-      mpa[name] = this.Value2PLC(this.recordData.mpa[name][0], 'mpa', name);
+      mpa[name] = this.tensionData.mpaPLC[name][0];
     }
     this.connection.invoke('AutoLoadOff', mpa);
     console.log('卸荷MS请求');
-
+    this.autoVerifyLoadOff = true;
+  }
+  // 卸荷确认
+  autoLoadOffVerify() {
+    this.autoVerifyLoadOff = false;
+    const state = this.showValues;
+    for (const name of this.tensionData.modes) {
+      if ((name === 'a1' || name === 'b1' && this.state.a1) || (name === 'a2' || name === 'b2' && this.state.a2)) {
+        if (state[name].state !== '卸荷中' && state[name].state !== '卸荷完成') {
+          console.log('卸荷确认', state[name].state);
+          this.autoLoadOff();
+          return;
+        }
+      }
+    }
   }
   // 自动回程
   autoReturn() {
@@ -759,6 +784,8 @@ export class MSService {
   public ExitTension() {
     this.runTensionData = JSON.parse(JSON.stringify(runTensionData)); // 初始化自动张拉数据
     this.liveSum = null;
+    this.tensionData = null;
+    this.recordData = null;
     this.connection.invoke('AutoOk');
     console.log('退出张拉');
   }

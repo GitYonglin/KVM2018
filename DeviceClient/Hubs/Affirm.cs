@@ -17,6 +17,8 @@ namespace DeviceClient.Hubs
             if (AffirmNo >= No)
             {
                 a.Invoke();
+                No = 0;
+                AffirmNo = 0;
             }
             return AffirmNo >= No;
         }

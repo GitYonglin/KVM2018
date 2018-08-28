@@ -174,8 +174,11 @@ namespace DeviceClient.Hubs
         /// <param name="data"></param>
         public void AutoLoadOff(TensionModle data)
         {
-            AutoLoadAffirm.No = 1;
-            AutoLoadAffirm.AffirmNo = 0;
+            if (AutoLoadAffirm.No == 0)
+            {
+                AutoLoadAffirm.No = 1;
+                AutoLoadAffirm.AffirmNo = 0;
+            }
             if (TensionMode == 1 || TensionMode == 3 || TensionMode == 4)
             {
                 AutoLoadAffirm.No = 2;
@@ -184,7 +187,7 @@ namespace DeviceClient.Hubs
                     AutoLoadOffAffirm();
                 });
             }
-            C.F16(PLCSite.D(412), new int[] { data.A1, data.B1 }, (d) =>
+            Z.F16(PLCSite.D(412), new int[] { data.A1, data.B1 }, (d) =>
             {
                 AutoLoadOffAffirm();
             });

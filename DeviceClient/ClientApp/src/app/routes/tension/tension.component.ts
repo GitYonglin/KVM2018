@@ -14,10 +14,12 @@ import { NzModalService } from 'ng-zorro-antd';
   styleUrls: ['./tension.component.less']
 })
 export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
-  @ViewChild('cvs') elementCvs: ElementRef;
-  heightCvs: any;
+  @ViewChild('cvs')
+    private  elementCvs: ElementRef;
   @ViewChild(CanvasCvsComponent)
     private cvs: CanvasCvsComponent;
+
+  heightCvs: any;
   widthCvs: any;
   msg = 500;
   messages = '';
@@ -68,7 +70,6 @@ export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
     this.widthCvs = this.elementCvs.nativeElement.offsetWidth - 5;
     console.log(this.heightCvs, this.widthCvs);
   }
-
   upPLC() {
     this._ms.runTensionData = JSON.parse(JSON.stringify(runTensionData)); // 初始化自动张拉数据
     this.autoControl.maximumDeviationRate = this._ms.deviceParameter.maximumDeviationRate;
@@ -94,6 +95,7 @@ export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
   }
   // 启动张拉
   onRunTension(s = false) {
+    // this.cvs.delayCvs();
     console.log('启动张拉', this._ms.tensionData.mode);
     if (s) {
       // this._ms.saveCvs();
@@ -101,7 +103,6 @@ export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
       console.log('MS请求');
       this.runTension.runState = false;
       this._ms.runTensionData.state = true;
-      this.cvs.delayCvs();
       this.modal.closeAll();
       // document.dispatchEvent(new Event('cvsStartEvent'));
     } else {

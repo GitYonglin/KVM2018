@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, Input } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, Input, OnDestroy } from '@angular/core';
 import { F2, Chart, Animate } from '@antv/f2';
 import { deviceModes } from '../../model/device.model';
 import { setCvs } from '../../utils/cvsData';
@@ -51,19 +51,21 @@ const defs = {
   styleUrls: ['./canvas-cvs.component.less']
 })
 
-export class CanvasCvsComponent implements OnInit, AfterViewInit {
+export class CanvasCvsComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('mpaCvs')
-    mpaCvs: ElementRef;
+  mpaCvs: ElementRef;
   @ViewChild('mmCvs')
-    mmCvs: ElementRef;
+  mmCvs: ElementRef;
 
   mpaChart: Chart = null;
   mmChart: Chart = null;
   mpaData: any;
   mmData: any;
+  hehe = false;
 
   legendItems = [];
   ms = 1000;
+  iTime = null;
 
   @Input()
   height = '100%';
@@ -79,20 +81,26 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit {
   }
   ngAfterViewInit() {
     if (this.data === null) {
+      this.iTime = setInterval(() => {
+        if (this._ms.runTensionData.state && !this._ms.runTensionData.returnState) {
+          this.saveCvs();
+        }
+      }, this.ms);
       this.saveCvs();
-      console.log('初始化曲线', this.data, this.mpaChart);
     } else {
-      console.log(this.data);
-      this.mpaData = setCvs(this.data, 'mpa');
-      this.mmData = setCvs(this.data, 'mm');
-      // console.log('44444444', this.data);
+      const data = setCvs(this.data);
+      this.mpaChart = this.corterChart(this.mpaCvs, data.mpa);
+      this.mmChart = this.corterChart(this.mmCvs, data.mm);
     }
-    this.mpaChart = this.corterChart(this.mpaCvs, this.mpaChart, this.mpaData);
-    this.mmChart = this.corterChart(this.mmCvs, this.mmChart, this.mmData);
-    // this.mmChart.legend('gender', {position: 'right'});
   }
-  corterChart(cvs, chart, data) {
-    chart = new Chart({
+
+  ngOnDestroy(): void {
+    clearInterval(this.iTime);
+    console.log('曲线结束');
+  }
+
+  corterChart(cvs, data) {
+    const chart = new Chart({
       // id: 'mountNode',
       el: cvs.nativeElement,
       pixelRatio: window.devicePixelRatio
@@ -102,19 +110,6 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit {
 
     chart.axis('time', {
       label: (text, index, total) => {
-        // const textCfg = {
-        //   text: '',
-        //   textAlign: 'center'
-        // };
-        // if (index === 0) {
-        //   textCfg.textAlign = 'left';
-        //   textCfg.text = text;
-        // } else if (index === total - 1) {
-        //   textCfg.textAlign = 'right';
-        //   textCfg.text = text;
-        // }
-        // return textCfg;
-
         const cfg = {
           text: '',
           textAlign: 'center'
@@ -133,34 +128,28 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit {
     });
 
     chart.line().position('time*value')
-    .color('type', (type) => { // 通过回调函数 '#1890FF', '#13C2C2', '#2FC25B', '#FACC14', '#F04864', '#8543E0'
-      switch (type) {
-        case 'a1':
-          return '#ff0033';
-          break;
-        case 'a2':
-          return '#FFCC14';
-          break;
-        case 'b1':
-          return '#8543E0';
-          break;
-        case 'b2':
-          return '#2FC25B';
-          break;
-        default:
-          break;
-      }
-    })
-    .animate({
-      update: {
-        animation: 'lineUpdate'
-      }
-    });
-    // // 设置图例居中显示
-    // chart.legend({
-    //   align: 'center',
-    //   itemWidth: null, // 图例项按照实际宽度渲染
-    // });
+      .color('type', (type) => {
+        switch (type) {
+          case 'a1':
+            return '#ff0033';
+            break;
+          case 'a2':
+            return '#FFCC14';
+            break;
+          case 'b1':
+            return '#8543E0';
+            break;
+          case 'b2':
+            return '#2FC25B';
+            break;
+          default:
+            break;
+        }
+      }).animate({
+        update: {
+          animation: 'lineUpdate'
+        }
+      });
     chart.legend({
       align: 'center',
       itemWidth: null, // 图例项按照实际宽度渲染
@@ -182,18 +171,10 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit {
     chart.render();
     return chart;
   }
-  // 自动张拉曲线监听
-  public delayCvs() {
-    // console.log('监听曲线');
-    setTimeout(() => {
-      if (this._ms.runTensionData.state && !this._ms.runTensionData.returnState) {
-        this.saveCvs();
-        this.delayCvs();
-      }
-    }, this.ms);
-  }
-  public saveCvs(state = false) {
-    // console.log('曲线保存', this._ms.recordData.cvsData);1534412452423 4294967295
+  public saveCvs() {
+    if (!this._ms.tensionData) {
+      return;
+    }
     const showValue = this._ms.showValues;
     const time = new Date().getTime();
     this._ms.recordData.cvsData.time.push(time);
@@ -201,11 +182,13 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit {
       this._ms.recordData.cvsData.mpa[name].push(showValue[name].mpa);
       this._ms.recordData.cvsData.mm[name].push(showValue[name].mm);
     });
-    this.mpaData = setCvs(this._ms.recordData.cvsData, 'mpa');
-    this.mmData = setCvs(this._ms.recordData.cvsData, 'mm');
+    const data = setCvs(this._ms.recordData.cvsData);
     if (this.mpaChart !== null && this.mmChart !== null) {
-      this.mpaChart.changeData(this.mpaData);
-      this.mmChart.changeData(this.mmData );
+      this.mpaChart.changeData(data.mpa);
+      this.mmChart.changeData(data.mm);
+    } else {
+      this.mpaChart = this.corterChart(this.mpaCvs, data.mpa);
+      this.mmChart = this.corterChart(this.mmCvs, data.mm);
     }
   }
 }
