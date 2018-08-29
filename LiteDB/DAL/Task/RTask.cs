@@ -14,12 +14,14 @@ namespace KVM.LiteDB.DAL.Task
         private LiteCollection<entity.HoleGroup> _holeGroup;
         private LiteCollection<entity.Device> _Device;
         private LiteCollection<entity.Record> _record;
+        private LiteCollection<entity.Component> _component;
         public RTask(IOptions<DbString> dbString) : base(dbString)
         {
             _col = DbCollection<entity.Task>();
             _holeGroup = DbCollection<entity.HoleGroup>();
             _Device = DbCollection<entity.Device>();
             _record = DbCollection<entity.Record>();
+            _component = DbCollection<entity.Component>();
         }
         /// <summary>
         /// 添加一条数据
@@ -28,7 +30,7 @@ namespace KVM.LiteDB.DAL.Task
         /// <returns></returns>
         public new ReturnPost Insert(entity.Task data)
         {
-            if (_col.FindOne(p => p.ComponentId == data.ComponentId && p.BridgeName == data.BridgeName) == null)
+            if (_col.FindOne(p => p.ComponentId == data.ComponentId && p.BridgeName == data.BridgeName && p.ProjectId == data.ProjectId) == null)
             {
                 data.Id = Guid.NewGuid().ToString();
                 _col.Insert(data);
@@ -84,7 +86,7 @@ namespace KVM.LiteDB.DAL.Task
         /// <returns></returns>
         public new ReturnPost UpData(string id, entity.Task data)
         {
-            var searchData = _col.Find(p => p.ComponentId == data.ComponentId && p.BridgeName == data.BridgeName);
+            var searchData = _col.Find(p => p.ComponentId == data.ComponentId && p.BridgeName == data.BridgeName && p.ProjectId == data.ProjectId);
             if (searchData.Count() == 0 || (searchData.Count() == 1 && searchData.Select(s => s.Id == id).Count() == 1))
             {
                 var old = _col.FindById(id);
@@ -104,9 +106,22 @@ namespace KVM.LiteDB.DAL.Task
         public new entity.Task GetOne(string id)
         {
             var Task = _col.FindById(new BsonValue(id));
+            Task.ComponentName = _component.FindById(Task.ComponentId).sName;
             Task.HoleGroupsRadio = _holeGroup.Find(o => o.ParentId == id).Select(h => new HoleGroupsRadio
             { Hole = h.Name, Id = h.Id, State = GetRecordState(h.Id) }
             );
+            Task.Device = _Device.FindById(Task.DeviceId);
+            return Task;
+        }
+        /// <summary>
+        /// 获取一条数据
+        /// </summary>
+        /// <param name="id">Id</param>
+        /// <returns></returns>
+        public entity.Task GetOneData(string id)
+        {
+            var Task = _col.FindById(new BsonValue(id));
+            Task.HoleGroups = _holeGroup.Find(o => o.ParentId == id);
             Task.Device = _Device.FindById(Task.DeviceId);
             return Task;
         }
@@ -122,15 +137,8 @@ namespace KVM.LiteDB.DAL.Task
         public IEnumerable<TaskMenu> MenuData(string projectId)
         {
             return _col.Find(t => t.ProjectId == projectId)
-              .GroupBy(p => (p.ComponentName, p.ComponentId),
-                (key, holeGroup) => new TaskMenu { Name = key.ComponentName, Id = key.ComponentId, Count = holeGroup.Count() });
-            //.GroupBy(p => p.ComponentName, (key, holeGroup) => new TaskMenu { Name = key, Id = key, Count = holeGroup.Count()});
-            //.GroupBy(p => p.ComponentName, (key, holeGroup) => new TaskMenu { Name = key, Id = key, Bridge = holeGroup.Select(h => new entity.MenuData { Id = h.Id, Name = h.BridgeName })});
-            //List<MenuData> menuData = new List<MenuData>();
-            //foreach (var item in obj)
-            //{
-            //  menuData.Add(new MenuData { Id = item.Id, Name = item.BridgeName });
-            //}
+              .GroupBy(p => (p.ComponentId),
+                (key, holeGroup) => new TaskMenu { Name = _component.FindById(key).sName, Id = key, Count = holeGroup.Count() });
         }
 
         /// <summary>

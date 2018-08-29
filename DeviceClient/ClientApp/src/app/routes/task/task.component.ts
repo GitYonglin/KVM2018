@@ -264,9 +264,9 @@ export class TaskComponent implements OnInit, AfterViewInit {
     this.copyState = false;
     this._appService.editState = false;
     this._router.navigate(['/task', {
-      id: JSON.parse(localStorage.getItem('project')).id,
-      componentId: this.LeftMenu.titleId,
+      id: JSON.parse(localStorage.getItem('project')).id
     }]);
+    this.LeftMenu.getMenuData();
   }
 
   onSelectComponent() {
@@ -529,6 +529,8 @@ export class TaskComponent implements OnInit, AfterViewInit {
     this.searchData = this.LeftMenu.bridges.filter(b => b.name.indexOf(value) !== -1);
   }
   onExportRecord(state = false) {
+    const rData = this.groupTaskElem;
+    console.log(rData.recordData, rData.nowTaskData);
     if (!state) {
       this.exportRecord.state = true;
     } else if (this.exportRecord.templatePath && this.exportRecord.savePath) {

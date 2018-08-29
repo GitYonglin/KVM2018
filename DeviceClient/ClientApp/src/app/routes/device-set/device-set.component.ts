@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { DeviceParameter } from '../../model/DeviceParameter';
 import { MSService } from '../../services/MS.service';
 import { Value2PLC, Value2PLC100ms } from '../../utils/PLC8Show';
@@ -8,7 +8,7 @@ import { Value2PLC, Value2PLC100ms } from '../../utils/PLC8Show';
   templateUrl: './device-set.component.html',
   styleUrls: ['./device-set.component.less']
 })
-export class DeviceSetComponent implements OnInit {
+export class DeviceSetComponent implements OnInit, OnDestroy {
   data: DeviceParameter = null;
 
   constructor(
@@ -16,18 +16,13 @@ export class DeviceSetComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    // this.data = JSON.parse(localStorage.getItem('DeviceParameter'));
     this._ms.connection.invoke('GetDeviceParameter');
     console.log('12313', this.data);
-    // this._ms.connection.on('DeviceParameter', rData => {
-    //   if (rData.name === '主站') {
-    //     console.log('1主站', rData.data);
-    //     this._ms.setDeviceParameterValue(rData.data);
-    //     this.data = JSON.parse(localStorage.getItem('DeviceParameter'));
-    //   } else {
-    //   }
-    // });
   }
+  ngOnDestroy(): void {
+    this._ms.connection.invoke('GetDeviceParameter');
+  }
+
   onSet(address: number, event, make?) {
     console.log(address, );
     let value = event.target.valueAsNumber;

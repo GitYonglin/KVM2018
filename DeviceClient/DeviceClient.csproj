@@ -32,7 +32,6 @@
 
   <ItemGroup>
     <Folder Include="Models\" />
-    <Folder Include="wwwroot\data\" />
   </ItemGroup>
 
   <ItemGroup>

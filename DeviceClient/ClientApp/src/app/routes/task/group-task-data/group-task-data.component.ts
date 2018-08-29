@@ -101,11 +101,11 @@ export class GroupTaskDataComponent implements OnInit {
         this.setFormValue(r.task);
         this.nowSumData = r.task;
         this.recordData = r.record;
-        console.log('切换空', r, this.recordSum, this.recordRetraction);
         if (r.record) {
           this.recordSum = funcSumData(r.record.mm, r.task);
           this.recordRetraction = funcRetraction(r.record, r.task);
         }
+        console.log('切换空', r, this.recordSum, this.recordRetraction);
         this.holeGroupId = id;
       });
     }

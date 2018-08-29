@@ -31,7 +31,7 @@
                 <nz-option *ngFor="let user of userGroup" [nzLabel]="user.name" [nzValue]="user.name"></nz-option>
               </nz-select> -->
               <nz-input-group nzSize="large">
-                <input (focus)="$event.target.select()" placeholder="input here" formControlName="Name" nz-input [nzAutocomplete]="auto"/>
+                <input (focus)="$event.target.select()" placeholder="输入用户名" formControlName="Name" nz-input [nzAutocomplete]="auto"/>
               </nz-input-group>
               <nz-autocomplete #auto>
                 <nz-auto-option *ngFor="let user of userGroup" [nzLabel]="user.name" [nzValue]="user.name">
