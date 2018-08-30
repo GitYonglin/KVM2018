@@ -57,7 +57,7 @@ export class LeftMenuComponent implements OnInit {
     }
     this._service.get(url).subscribe(p => {
       console.log('000000000', p);
-      if (p) {
+      if (p.length > 0) {
         this.menus = p.length === 0 ? null : p;
         // this.menuDataState = p ? true : false;
         this.menuDataState = p && p.length > 0 && 'count' in p[0];

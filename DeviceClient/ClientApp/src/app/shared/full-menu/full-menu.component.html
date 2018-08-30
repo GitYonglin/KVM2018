@@ -7,7 +7,7 @@
     <button nz-button nzType="danger" nzShape="circle"><i class="anticon anticon-poweroff"></i> 关机</button>
   </div>
   <div class="menu">
-    <nz-card *ngFor="let menu of menus" class="item" [ngClass]="{'active': url === menu.url}" (click)="go(menu.url)">
+    <nz-card *ngFor="let menu of _authority.fullMenu" class="item" [ngClass]="{'active': url === menu.url}" (click)="go(menu.url)">
       <!-- <a [href]="menu.url"> -->
         <h3>
           <i [ngClass]="['anticon', menu.icon]"></i>

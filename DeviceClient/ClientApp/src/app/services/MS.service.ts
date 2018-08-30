@@ -3,10 +3,11 @@ import { HubConnectionBuilder, HubConnection } from '@aspnet/signalr';
 import { DeviceParameter, ConversionName, DeviceItemName } from '../model/DeviceParameter';
 import { PLC2Value, PLC100ms2s, Value2PLC, PLCM } from '../utils/PLC8Show';
 import { APIService } from './api.service';
-import { ShowValues, autoState, RecordData, SumData, funcSumData, runTensionData } from '../model/live.model';
+import { ShowValues, autoState, SumData, funcSumData, runTensionData } from '../model/live.model';
 import { Observable } from 'rxjs';
 import { newFormData } from '../utils/form/constructor-FormData';
 import { N2F } from '../utils/toFixed';
+import { Record } from '../model/record.model';
 
 interface InPLC {
   Id: number;
@@ -33,7 +34,7 @@ export class MSService {
   };
   public runTensionData = JSON.parse(JSON.stringify(runTensionData));
   public tensionData: any;
-  public recordData: RecordData;
+  public recordData: Record;
   // 实时数据
   public showValues: ShowValues = {
     a1: {
@@ -126,13 +127,16 @@ export class MSService {
   public setDevice(callback: Function = null) {
     const deviceId = localStorage.getItem('nowDevice');
     console.log('获取设备', deviceId);
-    this._service.get(`/device/${deviceId}`).subscribe(r => {
-      this.nowDevice = r;
-      console.log('获取设备', r, this.nowDevice);
-      if (callback) {
-        callback(true);
-      }
-    });
+    try {
+      this._service.get(`/device/${deviceId}`).subscribe(r => {
+        this.nowDevice = r;
+        console.log('获取设备', r, this.nowDevice);
+        if (callback) {
+          callback(true);
+        }
+      });
+    } catch (error) {
+    }
   }
   // 链接后台socket
   public creation() {

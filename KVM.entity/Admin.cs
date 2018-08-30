@@ -9,16 +9,23 @@ namespace KVM.entity
         public string Id { get; set; }
         public string Name { get; set; }
         public string Password { get; set; }
-        public IEnumerable<Obj> Objs { get; set; }
-    }
-    public class Obj
-    {
-        public string Id { get; set; }
-        public string ProjecName{ get; set; }
     }
     public class LoginData
     {
         public string Name { get; set; }
         public string Password { get; set; }
+    }
+    public class ReturnLoging
+    {
+        public string Id { get; set; }
+        public bool Super { get; set; }
+        /// <summary>
+        /// 菜单权限
+        /// </summary>
+        public IEnumerable<string> MenuAuthority { get; set; }
+        /// <summary>
+        /// 操作权限
+        /// </summary>
+        public IEnumerable<string> OperatorAuthority { get; set; }
     }
 }

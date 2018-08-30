@@ -98,9 +98,16 @@ namespace KVM.LiteDB.DAL.Project
             return "";
         }
 
-        public bool UserLogin(LoginData data, string id)
+        public ReturnLoging UserLogin(LoginData data, string id)
         {
-            return _operatorCol.FindOne(o => o.ParentId == id && o.sName == data.Name && o.sPassword == data.Password) != null ? true : false;
+            var user = _operatorCol.FindOne(o => o.ParentId == id && o.sName == data.Name && o.sPassword == data.Password);
+            if (user == null)
+            {
+                return null;
+            } else
+            {
+                return new ReturnLoging { Id = user.Id, Super=false, MenuAuthority=user.MenuAuthority, OperatorAuthority=user.OperatorAuthority };
+            }
         }
     }
 }

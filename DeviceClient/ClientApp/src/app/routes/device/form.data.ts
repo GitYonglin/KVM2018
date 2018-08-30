@@ -95,7 +95,7 @@ function calibratedFormData() {
   const infoForm = [
     new Text({
       key: 'sJackNumber',
-      value: '',
+      value: '1',
       prefix: '千斤顶编号',
       verification: [
         Validators.required,
@@ -106,7 +106,7 @@ function calibratedFormData() {
     }),
     new Text({
       key: 'sPumpNumber',
-      value: '',
+      value: '1',
       prefix: '油泵编号',
       verification: [
         Validators.required,
@@ -118,7 +118,7 @@ function calibratedFormData() {
     new Text({
       key: 'a',
       type: 'number',
-      value: '',
+      value: 1,
       prefix: '系数a',
       verification: [
         Validators.required,
@@ -130,7 +130,7 @@ function calibratedFormData() {
     new Text({
       key: 'b',
       type: 'number',
-      value: '',
+      value: 0,
       prefix: '系数b',
       verification: [
         Validators.required,

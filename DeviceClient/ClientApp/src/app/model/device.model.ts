@@ -1,3 +1,5 @@
+import { Base } from './base';
+
 export const deviceMenuData = [
   {
     id: '1',
@@ -244,3 +246,55 @@ export const deviceData = {
   }
 };
 export const deviceModes = [['a1'], ['a1', 'a2'], ['b1'], ['b1', 'b2'], ['a1', 'a2', 'b1', 'b2']];
+
+
+export interface Device extends Base {
+  //    sName
+  //  设备名称
+  // 必须输入。
+  //  sJackModel
+  // 千斤顶型号
+  // sPumpModel
+  // 油泵型号
+  // dCalibrationDate
+  // 标定日期
+  // aWorkMode
+  // 设备工作模式
+  // bEquation
+  // 标定方程式
+  sName: string;
+  sJackModel: string;
+  sPumpModel: string;
+  dCalibrationDate: Date;
+  aWorkMode: Array<number>;
+  bEquation: boolean;
+  A1: CalibrateCorrection;
+  A2: CalibrateCorrection;
+  B1: CalibrateCorrection;
+  B2: CalibrateCorrection;
+}
+
+export interface CalibrateCorrection {
+  Calibrate: Calibrate;
+  Correction: Calibrate;
+}
+
+export interface Calibrate {
+  //    sJackNumber
+  // 千斤顶编号
+  // sPumpNumber
+  // 油泵编号
+  // a
+  // 系数a
+  // b
+  // 系数b
+  sJackNumber: string;
+  sPumpNumber: string;
+  a: number;
+  b: number;
+}
+
+export interface Correction {
+  Mm: Array<number>;
+  Mpa: Array<number>;
+}

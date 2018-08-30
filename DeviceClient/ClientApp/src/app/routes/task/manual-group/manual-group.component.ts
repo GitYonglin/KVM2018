@@ -8,20 +8,18 @@ import { NzMessageService } from 'ng-zorro-antd';
   // changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ManualGroupComponent implements OnInit {
-  mode: any;
   aHole = null;
   bHole = null;
   group = [];
   groupMode = [];
   selectHole = [];
+  holes = [];
+  public isVisible = false;
+
   @Input()
-  isVisible = false;
+    device: any;
   @Input()
-  device: any;
-  @Input()
-  holes: any;
-  @Input()
-  show = false;
+    mode: any;
 
   @Output()
   outClose = new EventEmitter<any>();
@@ -29,11 +27,9 @@ export class ManualGroupComponent implements OnInit {
   constructor(private message: NzMessageService) { }
 
   ngOnInit() {
-    this.selectHole = this.holes;
-    this.mode = this.device.selectDeviceMode;
   }
   handleCancel(): void {
-    this.outClose.emit();
+    this.outClose.emit(this.group);
   }
 
   handleOk() {
@@ -55,6 +51,7 @@ export class ManualGroupComponent implements OnInit {
   }
 
   onHoleChange(e = null) {
+    console.log(this.selectHole, this.holes);
     const b = [...this.group, this.aHole, this.bHole];
     this.selectHole = this.holes.concat(b).filter(v => !this.holes.includes(v) || !b.includes(v)).filter(f => f !== null);
     console.log(this.selectHole, this.groupMode);

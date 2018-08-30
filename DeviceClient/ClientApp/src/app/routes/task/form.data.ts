@@ -39,7 +39,6 @@ export function constructFormData() {
     }),
     new Text({
       key: 'bridgeName',
-      value: '123123',
       prefix: '梁号',
       verification: [
         Validators.required,
@@ -59,10 +58,56 @@ export function constructFormData() {
         required: '必须输入。',
       }
     }),
-
+    new Text({
+      key: 'skNumber',
+      prefix: '试块编号',
+    }),
+    new Text({
+      key: 'skIntensity',
+      prefix: '试块强度',
+    }),
+    new Text({
+      key: 'designIntensity',
+      prefix: '设计强度',
+    }),
+    new Text({
+      key: 'tensionIntensity',
+      prefix: '张拉强度',
+    }),
+    new Text({
+      key: 'concretingDate',
+      prefix: '浇筑日期',
+    }),
+    new Text({
+      key: 'friction',
+      prefix: '摩擦系数',
+    }),
   ];
   return constructFormGroupObject(base);
 }
+
+export const otherFormGroup = [
+  {
+    key: 'skNumber',
+    prefix: '试块编号',
+  },
+  {
+    key: 'skIntensity',
+    prefix: '试块强度',
+  },
+  {
+    key: 'designIntensity',
+    prefix: '设计强度',
+  },
+  {
+    key: 'tensionIntensity',
+    prefix: '张拉强度',
+  },
+  {
+    key: 'friction',
+    prefix: '摩擦系数',
+  },
+];
 const taskForm = [
   new Text({
     key: 'name',

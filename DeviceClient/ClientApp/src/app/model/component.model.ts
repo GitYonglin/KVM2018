@@ -1,3 +1,5 @@
+import { Subset, Base } from './base';
+
 export const componentMenusData = [
   {
     id: '1',
@@ -34,3 +36,13 @@ export const componentData = [
     ]
   },
 ];
+
+export interface Component extends Base {
+  sName: string;
+  Holes: Array<Hole>;
+}
+
+export interface Hole extends Subset {
+  holes: string[];
+  imgUrl: string;
+}

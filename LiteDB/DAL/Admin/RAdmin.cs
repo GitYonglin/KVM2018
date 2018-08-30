@@ -25,10 +25,16 @@ namespace KVM.LiteDB.DAL.Admin
             return new ReturnPost() { Message = false };
         }
 
-        public Boolean Login(entity.Admin admin)
+        public ReturnLoging Login(entity.Admin admin)
         {
-            var get = _col.FindOne(a => a.Name == admin.Name && a.Password == admin.Password);
-            return get == null ? false : true;
+            var user = _col.FindOne(a => a.Name == admin.Name && a.Password == admin.Password);
+            if (user == null)
+            {
+                return null;
+            } else
+            {
+                return new ReturnLoging { Super = true, Id = user.Id };
+            }
         }
     }
 }

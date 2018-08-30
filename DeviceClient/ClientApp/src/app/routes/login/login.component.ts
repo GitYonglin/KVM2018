@@ -4,6 +4,7 @@ import { loginFormData } from './form.data';
 import { FormGroup } from '@angular/forms';
 import { APIService } from '../../services/api.service';
 import { FullMenuComponent } from '../../shared/full-menu/full-menu.component';
+import { AuthorityService } from '../../services/authority.service';
 
 @Component({
   selector: 'app-login',
@@ -29,20 +30,21 @@ export class LoginComponent implements OnInit {
     private _http: Http,
     @Inject('BASE_CONFIG') private config,
     private _service: APIService,
+    private _authority: AuthorityService,
   ) {
   }
 
   ngOnInit() {
     this._http.get(`${this.config.uri}/admin`).subscribe(
       (data) => {
-        console.log(data.json()); // success path
+        console.log('登陆', data.json()); // success path
         if (data.json() < 1) {
           this.adminIsVisible = true;
         } else {
           this.getProject();
         }
       },
-      (error) => console.log('链接错误', error) // error path
+      (error) => console.log('登陆链接错误', error) // error path
     );
     const form = loginFormData();
     this.formGroup = form.formGroup;
@@ -50,19 +52,21 @@ export class LoginComponent implements OnInit {
   }
   getProject() {
     this._service.get('/project').subscribe(p => {
-      console.log('000000000', p);
-      if (p) {
-        this.projectList = p.length === 0 ? null : p;
-        const project = JSON.parse(localStorage.getItem('project'));
+      console.log('获取项目', p, localStorage.getItem('project'));
+      if (p.length > 0) {
+        this.projectList = p;
+        let project: any = localStorage.getItem('project');
         if (project) {
-          this.selectProject = project;
-          this.onSelectProject();
+          project = JSON.parse(project);
         }
-        // this.menuDataState = p ? true : false;
+        const selectProject = p.filter(item => item.id === project.id);
+        if (selectProject.length === 0) {
+          localStorage.setItem('project', null);
+        } else {
+          this.onSelectProject(selectProject[0]);
+        }
       } else {
         this.projectList = null;
-      }
-      if (!this.projectList) {
         localStorage.setItem('project', null);
       }
     });
@@ -71,7 +75,7 @@ export class LoginComponent implements OnInit {
     this.selectProject = data;
     this._service.get(`/Operator/${data.id}`).subscribe(p => {
       this.userGroup = p;
-      console.log(p);
+      console.log('获取用户', p);
     });
     localStorage.setItem('project', JSON.stringify(this.selectProject));
   }
@@ -114,8 +118,9 @@ export class LoginComponent implements OnInit {
             if (data.data) {
               // window['KVM'] = {project: this.selectProject, user: data.data};
               // sessionStorage.setItem('project', JSON.stringify(this.selectProject));
-              sessionStorage.setItem('user', JSON.stringify(value));
+              sessionStorage.setItem('user', JSON.stringify(data.data));
               this._service.showMessage('success', '登录成功');
+              this._authority.menus();
               this.fullMenu.showModal();
             } else {
               this._service.showMessage('error', '登录失败');

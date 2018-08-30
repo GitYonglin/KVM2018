@@ -59,7 +59,8 @@ export class APIService {
         r => {
         observer.next(r.json());
         }, (error) => {
-          observer.next(null);
+          observer.next(error);
+          console.log('API请求错误', error);
         }
     );
     });

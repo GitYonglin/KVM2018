@@ -46,7 +46,7 @@
             <nz-form-label [nzSpan]="4">密 码</nz-form-label>
 
             <nz-form-control [nzSpan]="20">
-              <input (focus)="$event.target.select()" nz-input [formControlName]="'Password'">
+              <input type="password" (focus)="$event.target.select()" nz-input [formControlName]="'Password'">
 
               <nz-form-explain *ngIf="formGroup.controls['Password'].errors">
                 <ng-container>

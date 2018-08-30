@@ -1,5 +1,5 @@
 import { Validators } from '@angular/forms';
-import { Text, Radio } from '../../utils/form';
+import { Text, Radio, Checkbox } from '../../utils/form';
 import { constructFormGroupArr } from '../../utils/form/construct-form';
 
 const text = new Text({
@@ -14,14 +14,14 @@ const text = new Text({
   }
 });
 const key_prefix = [
-  { key: 'sProjectName', prefix: '项目名称'},
-  { key: 'sDivisionProject', prefix: '分布工程'},
-  { key: 'sConstructionUnit', prefix: '施工单位'},
-  { key: 'sSubProject', prefix: '分项工程'},
-  { key: 'sUnitProject', prefix: '单位工程'},
-  { key: 'sEngineeringSite', prefix: '工程部位'},
-  { key: 'sContractSection', prefix: '合同段'},
-  { key: 'sStationRange', prefix: '桩号范围'},
+  { key: 'sProjectName', prefix: '项目名称' },
+  { key: 'sDivisionProject', prefix: '分布工程' },
+  { key: 'sConstructionUnit', prefix: '施工单位' },
+  { key: 'sSubProject', prefix: '分项工程' },
+  { key: 'sUnitProject', prefix: '单位工程' },
+  { key: 'sEngineeringSite', prefix: '工程部位' },
+  { key: 'sContractSection', prefix: '合同段' },
+  { key: 'sStationRange', prefix: '桩号范围' },
 ];
 
 export function constructFormData() {
@@ -37,14 +37,52 @@ export function constructFormData() {
 
 export function operatorFormData(values = null) {
   const data = [
-    new Radio({
-      key: 'nAuthority',
-      value: true,
-      prefix: '角色',
-      radio: [
-        { name: '管理员', value: true },
-        { name: '操作员', value: false },
+    // new Radio({
+    //   key: 'nAuthority',
+    //   value: true,
+    //   prefix: '角色',
+    //   radio: [
+    //     { name: '管理员', value: true },
+    //     { name: '操作员', value: false },
+    //   ],
+    // }),
+    //     menuAuthority
+    // operatorAuthority
+    new Checkbox({
+      key: 'menuAuthority',
+      prefix: '菜单权限',
+      value: ['/manual', '/task', '/help'],
+      checkbox: [
+        { name: '手动', value: '/manual' },
+        { name: '任务', value: '/task' },
+        { name: '帮助', value: '/help' },
+        { name: '构件', value: '/component' },
+        { name: '项目', value: '/project' },
+        { name: '设备', value: '/device' },
+        { name: '设置', value: '/deviceSet' },
       ],
+      verification: [
+        Validators.required,
+      ],
+      errors: {
+        required: '至少选择一项工作模式'
+      }
+    }),
+    new Checkbox({
+      key: 'operatorAuthority',
+      prefix: '操作权限',
+      value: [],
+      checkbox: [
+        { name: '添加', value: 'add' },
+        { name: '修改', value: 'modify' },
+        { name: '删除', value: 'delete' },
+      ],
+      verification: [
+        Validators.required,
+      ],
+      errors: {
+        required: '至少选择一项工作模式'
+      }
     }),
     new Text({
       key: 'sName',

@@ -6,6 +6,7 @@ import { newFormData, NewFD } from '../../../utils/form/constructor-FormData';
 import { AppService } from '../../app.service';
 import { RecordData, SumData, funcSumData, funcRetraction } from '../../../model/live.model';
 import { deviceModes } from '../../../model/device.model';
+import { HoleGroup } from '../../../model/task.model';
 
 @Component({
   selector: 'app-group-task-data',
@@ -77,16 +78,33 @@ export class GroupTaskDataComponent implements OnInit {
       retractionMm: null,
       theoryMm: null,
     };
+    const holeGroup: HoleGroup = {
+      name: null,
+      mode: null,
+      tensionKn: 0,
+      tensionLength: 0,
+      steelStrandNumber: 0,
+      tensionStage: '4',
+      tensionStageValue: [10, 20, 50, 100],
+      time: [30, 30, 30, 300],
+      super: false,
+      twice: false,
+    };
     const mode = [['a1'], ['a1', 'a2'], ['b1'], ['b1', 'b2'], ['a1', 'a2', 'b1', 'b2']];
     holeGroups.forEach((item, index) => {
-      const groupItem = Object.assign({}, taskBase);
+      const groupItem = Object.assign({}, holeGroup);
       groupItem.name = item.hole;
       groupItem.mode = item.mode;
       // groupItem.tensionKn = 0;
-      mode[item.mode].forEach(m => {
-        groupItem[`${m}.workMm`] = 0;
-        groupItem[`${m}.retractionMm`] = 0;
-        groupItem[`${m}.theoryMm`] = 0;
+      mode[item.mode].forEach(name => {
+        groupItem[name] = {
+          workMm: 0,
+          retractionMm: 0,
+          theoryMm: 0,
+        };
+        // groupItem[`${m}.workMm`] = 0;
+        // groupItem[`${m}.retractionMm`] = 0;
+        // groupItem[`${m}.theoryMm`] = 0;
       });
       this.nowTaskDataArr.push(groupItem);
     });
@@ -96,6 +114,7 @@ export class GroupTaskDataComponent implements OnInit {
   onSelectHoleRadio(id, state = false) {
     this.recordData = null;
     this.showCvs = false;
+    console.log('dsfosdi');
     if (id !== this.holeGroupId || state) {
       this._service.get(`/holeGroup/${id}`).subscribe(r => {
         this.setFormValue(r.task);

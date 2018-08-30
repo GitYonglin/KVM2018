@@ -15,6 +15,8 @@ namespace KVM.LiteDB.DAL.Task
         private LiteCollection<entity.Device> _Device;
         private LiteCollection<entity.Record> _record;
         private LiteCollection<entity.Component> _component;
+        private LiteCollection<entity.Hole> _hole;
+        private LiteCollection<entity.SteelStrand> _steelStrand;
         public RTask(IOptions<DbString> dbString) : base(dbString)
         {
             _col = DbCollection<entity.Task>();
@@ -22,6 +24,8 @@ namespace KVM.LiteDB.DAL.Task
             _Device = DbCollection<entity.Device>();
             _record = DbCollection<entity.Record>();
             _component = DbCollection<entity.Component>();
+            _hole = DbCollection<entity.Hole>();
+            _steelStrand = DbCollection<SteelStrand>();
         }
         /// <summary>
         /// 添加一条数据
@@ -53,7 +57,7 @@ namespace KVM.LiteDB.DAL.Task
         {
             try
             {
-                if (_col.FindOne(p => p.ComponentId == data.ComponentId && p.BridgeName == data.BridgeName) == null)
+                if (_col.FindOne(p => p.ProjectId == data.ProjectId && p.ComponentId == data.ComponentId && p.BridgeName == data.BridgeName) == null)
                 {
                     var copyData = _col.FindOne(p => p.Id == data.Id);
                     if (copyData != null)
@@ -81,19 +85,18 @@ namespace KVM.LiteDB.DAL.Task
         /// <summary>
         /// 修改一条数据
         /// </summary>
-        /// <param name="id">Id</param>
         /// <param name="data">数据</param>
         /// <returns></returns>
-        public new ReturnPost UpData(string id, entity.Task data)
+        public ReturnPost UpData(entity.Task data)
         {
             var searchData = _col.Find(p => p.ComponentId == data.ComponentId && p.BridgeName == data.BridgeName && p.ProjectId == data.ProjectId);
-            if (searchData.Count() == 0 || (searchData.Count() == 1 && searchData.Select(s => s.Id == id).Count() == 1))
+            if (searchData.Count() == 0 || (searchData.Count() == 1 && searchData.Select(s => s.Id == data.Id).Count() == 1))
             {
-                var old = _col.FindById(id);
-                var updata = Class2Class.C2C(old, data);
-                if (_col.Update(updata))
+                var old = _col.FindById(data.Id);
+                //var updata = Class2Class.C2C(old, data);
+                if (_col.Update(data))
                 {
-                    return new ReturnPost() { Data = updata, Message = true };
+                    return new ReturnPost() { Data = data, Message = true };
                 }
             }
             return new ReturnPost() { Message = false };
@@ -106,7 +109,9 @@ namespace KVM.LiteDB.DAL.Task
         public new entity.Task GetOne(string id)
         {
             var Task = _col.FindById(new BsonValue(id));
-            Task.ComponentName = _component.FindById(Task.ComponentId).sName;
+            Task.Component = _component.FindById(new BsonValue(Task.ComponentId));
+            Task.Hole = _hole.FindById(Task.HoleId);
+            Task.SteelStrand = _steelStrand.FindById(new BsonValue(Task.SteelStrandId));
             Task.HoleGroupsRadio = _holeGroup.Find(o => o.ParentId == id).Select(h => new HoleGroupsRadio
             { Hole = h.Name, Id = h.Id, State = GetRecordState(h.Id) }
             );
@@ -156,29 +161,30 @@ namespace KVM.LiteDB.DAL.Task
         public IEnumerable<MenuData> MenuData(string projectId, string componentId)
         {
             return _col.Find(t => t.ProjectId == projectId && t.ComponentId == componentId).Select(x =>
-                new MenuData { Name = x.BridgeName, Id = x.Id, State = GetBriderState(x.Id) }
+                new MenuData { Name = x.BridgeName, Id = x.Id, State = GetBriderState(x.ProjectId) }
             );
         }
         private int GetBriderState(string id)
         {
-            var v = _holeGroup.Find(o => o.ParentId == id).Select(h => new { Record = _record.FindOne(re => re.Id == h.Id) });
-            if (v != null)
+            //var v = _holeGroup.Find(o => o.ParentId == id).Select(h => new { Record = _record.FindOne(re => re.Id == h.Id) });
+            var records = _record.Find(r => r.ParentId == id);
+            if (records != null)
             {
                 int state = 0;
                 int state1 = 0;
-                foreach (var item in v)
+                foreach (var item in records)
                 {
-                    if (item.Record != null)
+                    if (item != null)
                     {
-                        if (item.Record.State == 3)
+                        if (item.State == 3)
                         {
                             return 3;
                         }
-                        if (item.Record.State == 2)
+                        if (item.State == 2)
                         {
                             return 2;
                         }
-                        if (item.Record.State == 1)
+                        if (item.State == 1)
                         {
                             state = 1;
                         }

@@ -13,9 +13,12 @@
           <label nz-radio-button *ngFor="let radio of field.radio" [nzValue]="radio.value">{{radio.name}}</label>
         </nz-radio-group>
 
-        <nz-checkbox-group [ngModel]="field.checkbox" [formControlName]="field.key" *ngSwitchCase="'checkbox'">
+        <!-- <nz-checkbox-group [ngModel]="field.checkbox" [formControlName]="field.key" *ngSwitchCase="'checkbox'">
             <input [formControlName]="field.key" hidden>
-        </nz-checkbox-group>
+        </nz-checkbox-group> -->
+        <nz-checkbox-wrapper style="width: 100%;" (nzOnChange)="onCheckbox($event); formGroup.controls[field.key].value = $event;" *ngSwitchCase="'checkbox'">
+          <label nz-checkbox [nzValue]="item.value" [nzChecked]="checkboxModel(field.key, item.value)" *ngFor="let item of field.checkbox" [nzDisabled]="!formGroup.enabled">{{ item.name }}</label>
+        </nz-checkbox-wrapper>
 
         <app-form-up-img *ngSwitchCase="'file'" (upFile)="upFile($event, field.key)" [imgUrl]="formGroup.controls[field.key].value"></app-form-up-img>
 

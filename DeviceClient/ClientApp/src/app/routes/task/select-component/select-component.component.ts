@@ -19,7 +19,7 @@ export class SelectComponentComponent implements OnInit {
   selectHoleItem: any;
 
   @Output()
-  outClose = new EventEmitter<any>();
+    outClose = new EventEmitter<any>();
   @Input()
     nowComponentId = null;
 

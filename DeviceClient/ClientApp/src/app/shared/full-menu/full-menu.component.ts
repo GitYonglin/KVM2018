@@ -2,6 +2,7 @@ import { Component, OnInit, Input, Output, EventEmitter, AfterViewInit, ChangeDe
 import { Router } from '@angular/router';
 import { NzModalService } from 'ng-zorro-antd';
 import { AppService } from '../../routes/app.service';
+import { AuthorityService } from '../../services/authority.service';
 
 const menuArr = [
   // {
@@ -32,13 +33,8 @@ const menuArr = [
   {
     name: '帮助',
     icon: 'anticon-question',
-    url: '/manual'
+    url: '/help'
   },
-  // {
-  //   name: '监控',
-  //   icon: 'anticon-ie',
-  //   url: '/tension'
-  // },
   {
     name: '手动',
     icon: 'anticon-dashboard',
@@ -60,12 +56,12 @@ export class FullMenuComponent implements OnInit {
   @Output()
     cancel = new EventEmitter<any>();
 
-
   constructor(
     private _router: Router,
     private modal: NzModalService,
     private _appServe: AppService,
-    private _cdr: ChangeDetectorRef
+    private _cdr: ChangeDetectorRef,
+    public _authority: AuthorityService,
   ) { }
 
   ngOnInit() {

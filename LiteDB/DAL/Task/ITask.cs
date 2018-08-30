@@ -9,5 +9,6 @@ namespace KVM.LiteDB.DAL.Task
     IEnumerable<entity.TaskMenu> MenuData(string projectId);
     IEnumerable<entity.MenuData> MenuData(string projectId, string componentName);
     ReturnPost CopyInsert(entity.CopyTask copyTask);
+    ReturnPost UpData(entity.Task data);
   }
 }

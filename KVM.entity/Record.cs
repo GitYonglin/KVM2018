@@ -11,6 +11,7 @@ namespace KVM.entity
         public int State { get; set; }
         public IEnumerable<int> Time { get; set; }
         public int Mode { get; set; }
+        public string ParentId { get; set; }
         public RecordMode Mpa { get; set; }
         public RecordMode Mm { get; set; }
         public CvsData CvsData { get; set; }

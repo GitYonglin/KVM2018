@@ -9,17 +9,17 @@
           <input type="text" nz-input placeholder="请输入梁号">
         </nz-input-group> -->
         <nz-input-group nzSearch nzSize="large" [nzSuffix]="suffixIconButton">
-            <input placeholder="请输入梁号" nz-input [(ngModel)]="inputValue" (ngModelChange)="onSearch($event)" [nzAutocomplete]="auto"/>
-          </nz-input-group>
-          <ng-template #suffixIconButton>
-            <button nz-button nzSize="large" nzSearch><i class="anticon anticon-search"></i></button>
-          </ng-template>
-          <nz-autocomplete #auto>
-            <nz-auto-option class="bridge-list" *ngFor="let bridge of searchData" [nzValue]="bridge.name" (click)="menu.onBridge(bridge.id)" >
-                <span class="state" [ngClass]="'state' + bridge.state"></span>
-                <span mat-line>{{bridge.name}}</span>
-            </nz-auto-option>
-          </nz-autocomplete>
+          <input placeholder="请输入梁号" nz-input [(ngModel)]="inputValue" (ngModelChange)="onSearch($event)" [nzAutocomplete]="auto" />
+        </nz-input-group>
+        <ng-template #suffixIconButton>
+          <button nz-button nzSize="large" nzSearch><i class="anticon anticon-search"></i></button>
+        </ng-template>
+        <nz-autocomplete #auto>
+          <nz-auto-option class="bridge-list" *ngFor="let bridge of searchData" [nzValue]="bridge.name" (click)="menu.onBridge(bridge.id)">
+            <span class="state" [ngClass]="'state' + bridge.state"></span>
+            <span mat-line>{{bridge.name}}</span>
+          </nz-auto-option>
+        </nz-autocomplete>
       </div>
       <div class="header-right">
         <button (click)="onCopy()" style="height: 100%;" nz-button *ngIf="!menu.operationState && menu.bridgeId !== null">复制</button>
@@ -51,7 +51,7 @@
                         <input type="text" readonly="readonly" nz-input formControlName="deviceName" (click)="onSelectDevice()">
                       </nz-input-group>
                       <ng-template #suffixButton>
-                        <button nz-button nzType="primary" nzSearch [disabled]="!holeGroups" (click)="onManual()" *ngIf="!nowData">分组</button>
+                        <button nz-button nzType="primary" nzSearch [disabled]="!dbData?.holeGroupsRadio" (click)="onManual()" *ngIf="!dbData?.id">分组</button>
                       </ng-template>
                       <nz-form-explain *ngIf="formGroup.controls['deviceName'].errors">
                         {{formGroup.controls['deviceName'].errors | formError: formTypes.deviceName.errors }}
@@ -79,6 +79,29 @@
                   <img class="img" *ngIf="!nowComponent" src="" alt="构件示意图">
                   <img class="img" *ngIf="nowComponent" [src]="nowComponent.hole.imgUrl | imgUrl" alt="构件示意图">
                 </div>
+                <div class="other-form">
+                  <nz-form-item *ngFor="let item of otherFormGroup">
+                    <nz-form-label [nzSpan]="6">{{item.prefix}}</nz-form-label>
+                    <nz-form-control [nzSpan]="16">
+                      <nz-input-group nzSearch>
+                        <input type="text" nz-input [formControlName]="item.key">
+                      </nz-input-group>
+                    </nz-form-control>
+                  </nz-form-item>
+                  <nz-form-item>
+                      <nz-form-label [nzSpan]="6">浇筑日期</nz-form-label>
+                      <nz-form-control [nzSpan]="16" >
+                        <nz-date-picker formControlName="concretingDate"></nz-date-picker>
+                      </nz-form-control>
+                  </nz-form-item>
+                  <nz-form-item>
+                      <nz-form-label [nzSpan]="6">张拉日期</nz-form-label>
+                      <nz-form-control [nzSpan]="16" >
+                        <!-- <nz-date-picker formControlName="tensionDate" [nzDisabled]="true" ></nz-date-picker> -->
+                        <nz-date-picker  nzDisabled></nz-date-picker>
+                      </nz-form-control>
+                  </nz-form-item>
+                </div>
               </form>
             </nz-tab>
           </nz-tabset>
@@ -86,8 +109,8 @@
         <nz-affix [nzTarget]="target">
           <div class="hole-group">
             <nz-radio-group [nzSize]="'large'" [(ngModel)]="selectHoleGroup" (ngModelChange)="onSelectHoleRadio()">
-              <div class="label"  *ngFor="let item of holeGroups | Sort; index as i">
-                <label nz-radio-button [nzValue]="item?.id" [nzDisabled]="!nowData || (holeGroup.holeGroupEdit && item.id !== holeGroup.holeGroupId)">
+              <div class="label" *ngFor="let item of dbData?.holeGroupsRadio | Sort; index as i">
+                <label nz-radio-button [nzValue]="item?.id" [nzDisabled]="_appService.editState && (holeGroup.holeGroupEdit && item.id !== holeGroup.holeGroupId)">
                   {{item?.hole}}
                 </label>
                 <div class="state" [ngClass]="'state' + item.state"></div>
@@ -100,11 +123,9 @@
             <ng-template #tension>
               <div class="operation" *ngIf="holeGroup.recordData?.state !== 1">
                 <button nz-button nzType="primary" nzSize="large" *ngIf="!menu.operationState && selectHoleGroup !== null" (click)="onTension()">
-                  {{holeGroup.recordData === null ? '张拉' : ''}}
-                  {{holeGroup.recordData?.state === 0 ? '张拉' : ''}}
-                  {{holeGroup.recordData?.state === 2 ? '二次张拉' : ''}}
-                  {{holeGroup.recordData?.state === 3 ? '继续张拉' : ''}}
-                  {{holeGroup.recordData?.state === 4 ? '继续张拉' : ''}}
+                  {{holeGroup.recordData === null ? '张拉' : ''}} {{holeGroup.recordData?.state === 0 ? '张拉' : ''}} {{holeGroup.recordData?.state
+                  === 2 ? '二次张拉' : ''}} {{holeGroup.recordData?.state === 3 ? '继续张拉' : ''}} {{holeGroup.recordData?.state
+                  === 4 ? '继续张拉' : ''}}
                 </button>
                 <!-- <button nz-button nzType="primary" nzSize="large" *ngIf="!menu.operationState && selectHoleGroup !== null" (click)="getCorder()">获取数据</button>
                 <button nz-button nzType="primary" nzSize="large" *ngIf="!menu.operationState && selectHoleGroup !== null" (click)="saveCorder()">保存</button> -->
@@ -112,7 +133,7 @@
             </ng-template>
           </div>
         </nz-affix>
-        <app-group-task-data [nowDevice]="nowDevice?.device" #holeGroup></app-group-task-data>
+        <app-group-task-data [nowDevice]="dbData?.device" #holeGroup></app-group-task-data>
       </div>
     </main>
   </div>
@@ -120,8 +141,8 @@
 
 <app-select-component (outClose)="outSelectComponent($event)"></app-select-component>
 <app-select-device (outClose)="outSelectDevice($event)"></app-select-device>
-<app-manual-group [device]="nowDevice" [holes]="nowComponent?.hole?.holes" *ngIf="holeGroups && nowData === null" (outClose)="outManual($event)"></app-manual-group>
 <app-select-steel-strand (outClose)="outSteelStrand($event)"></app-select-steel-strand>
+<app-manual-group (outClose)="outManual($event)" [device]="dbData?.device" [mode]="selectDeviceMode"></app-manual-group>
 
 <!-- 张拉弹出框 -->
 <nz-modal [nzVisible]="runTension.state" nzTitle="设备状态" nzWidth="auto" (nzOnCancel)="runTension.state = false" [nzMaskClosable]="false"
@@ -142,8 +163,7 @@
   </div>
 </nz-modal>
 
-<nz-modal [nzVisible]="exportRecord.state" nzTitle="导出数据" (nzOnCancel)="exportRecord.state = false"
-  (nzOnOk)="onExportRecord(true)">
+<nz-modal [nzVisible]="exportRecord.state" nzTitle="导出数据" (nzOnCancel)="exportRecord.state = false" (nzOnOk)="onExportRecord(true)">
   <h3>导出数据</h3>
   <p>模板路径：{{exportRecord.templatePath}}</p>
   <p>模板路径：{{exportRecord.savePath}}</p>

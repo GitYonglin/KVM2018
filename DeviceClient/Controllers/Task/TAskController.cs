@@ -47,21 +47,21 @@ namespace DeviceClient.Controllers.Task
 
 
     [HttpPost("copy")]
-    public IActionResult CopyTask(CopyTask data)
+    public IActionResult CopyTask([FromBody]CopyTask data)
     {
       return Json(_col.CopyInsert(data));
     }
 
     [HttpPost]
-    public IActionResult Post(KVM.entity.Task data)
+    public IActionResult Post([FromBody]KVM.entity.Task data)
     {
       return Json(_col.Insert(data));
     }
 
-    [HttpPut("{id}")]
-    public IActionResult Put(string id, KVM.entity.Task data)
+    [HttpPut]
+    public IActionResult Put([FromBody]KVM.entity.Task data)
     {
-      return Json(_col.UpData(id, data));
+      return Json(_col.UpData(data));
     }
 
     [HttpDelete("{id}")]

@@ -2,7 +2,7 @@ import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
 import { APIService } from '../../services/api.service';
 import { LeftMenuComponent } from '../../shared/left-menu/left-menu.component';
 import { FormGroup } from '@angular/forms';
-import { constructFormData, constructHoleFromGroup, setHoleFormValue } from './form.data';
+import { constructFormData, constructHoleFromGroup, setHoleFormValue, otherFormGroup } from './form.data';
 import { setFromValue } from '../../utils/form/construct-form';
 import { SelectComponentComponent } from './select-component/select-component.component';
 import { SelectDeviceComponent } from './select-device/select-device.component';
@@ -14,9 +14,11 @@ import { ActivatedRoute, NavigationStart } from '@angular/router';
 import { Router } from '@angular/router';
 import { MSService } from '../../services/MS.service';
 import { deviceModes } from '../../model/device.model';
-import { RecordData } from '../../model/live.model';
 import { Http, Headers } from '@angular/http';
 import { ElectronService } from 'ngx-electron';
+import { Task, CopyTask } from '../../model/task.model';
+import { Record } from '../../model/record.model';
+import { publicDecrypt } from 'crypto';
 
 const baseUri = '/task';
 
@@ -41,9 +43,11 @@ export class TaskComponent implements OnInit, AfterViewInit {
 
   formGroup: FormGroup;
   formTypes: any;
-  nowData: any;
+  otherFormGroup = otherFormGroup;
+  dbData: Task;
   nowComponent: any;
-  nowDevice: any;
+  nowHole: any;
+  // nowDevice: any;
   nowSteelStrand: any;
   holeGroups: any;
   tabIndex = 0;
@@ -64,10 +68,12 @@ export class TaskComponent implements OnInit, AfterViewInit {
     templatePath: '',
     savePath: ''
   };
+  holeId: any;
+  selectDeviceMode: any;
 
   constructor(
     private _servers: APIService,
-    private _appService: AppService,
+    public _appService: AppService,
     private _activatedRoute: ActivatedRoute,
     private _router: Router,
     public _ms: MSService,
@@ -93,11 +99,11 @@ export class TaskComponent implements OnInit, AfterViewInit {
             this.selectHoleGroup = null;
             this.menuSwitch();
           } else if (params.bridgeId === 'null') {
-            this.add();
+            this.onAdd();
           }
           if ('holeGroupId' in params) {
             this.selectHoleGroup = params.holeGroupId;
-            if (this.nowDevice) {
+            if (this.dbData.device) {
               this.groupTaskElem.onSelectHoleRadio(params.holeGroupId);
             }
           }
@@ -121,11 +127,18 @@ export class TaskComponent implements OnInit, AfterViewInit {
   menuSwitch() {
     console.log(`${baseUri}/${this.LeftMenu.bridgeId}`);
     this._servers.get(`${baseUri}/${this.LeftMenu.bridgeId}`).subscribe(r => {
-      console.log('切换梁数据', r);
-      setFromValue(r, this.formGroup);
-      this.nowData = r;
-      this.nowDevice = { device: r.device };
-      this.holeGroups = r.holeGroupsRadio;
+      this.dbData = r;
+      console.log('切换梁数据', r, this.dbData.component);
+      const fData = {
+        componentName: this.dbData.component.sName,
+        holeName: this.dbData.hole.sName,
+        deviceName: this.dbData.device.sName,
+        steelStrandName: this.dbData.steelStrand.sName,
+      };
+      ['bridgeName', 'skNumber', 'skIntensity', 'designIntensity', 'tensionIntensity', 'concretingDate', 'friction'].map( key => {
+        fData[key] = this.dbData[key];
+      });
+      setFromValue(fData, this.formGroup);
       this.groupTaskElem.holeGroupId = null;
       this.formGroup.disable();
       this.LeftMenu.operationState = false;
@@ -139,34 +152,22 @@ export class TaskComponent implements OnInit, AfterViewInit {
     this[name]();
   }
   onAdd() {
-    this._router.navigate(['/task', {
-      id: JSON.parse(localStorage.getItem('project')).id,
-      componentId: this.LeftMenu.titleId,
-      bridgeId: null,
-    }]);
-  }
-  add() {
     this.formGroup.enable();
     this._appService.editState = true;
     this.LeftMenu.bridgeId = null;
     this.groupTaskElem.holeGroupId = null;
     this.LeftMenu.operationState = true;
     this.selectHoleGroup = null;
-    if (this.copyState) {
-      this.formGroup.controls['bridgeName'].setValue('');
-      console.log('复制', this.nowData, this.holeGroups);
-    } else {
-      console.log('添加');
-      this.newForm();
-      this.nowData = null;
-      this.nowComponent = null;
-      this.nowDevice = null;
-      this.holeGroups = null;
-    }
+    console.log('添加');
+    this.newForm();
+    this.dbData = {};
   }
   onModify() {
-    // this.formGroup.enable();
-    this.formGroup.controls['bridgeName'].enable();
+    this.formGroup.enable();
+    this.formGroup.controls['componentName'].disable();
+    this.formGroup.controls['holeName'].disable();
+    this.formGroup.controls['deviceName'].disable();
+    this.formGroup.controls['steelStrandName'].disable();
     this.LeftMenu.operationState = true;
     console.log('修改');
     this._appService.editState = true;
@@ -189,73 +190,71 @@ export class TaskComponent implements OnInit, AfterViewInit {
     console.log('云');
   }
   onSave() {
-    console.log('保存');
+    console.log('保存', this.formGroup.valid);
     // tslint:disable-next-line:forin
     for (const key in this.formGroup.controls) {
       this.formGroup.controls[key].markAsDirty();
       this.formGroup.controls[key].updateValueAndValidity();
     }
-    if (this.formGroup.valid) {
-      let http = 'post';
-      let message = { success: '任务添加', error: '任务名称' };
-      let url = baseUri;
-      console.log(this.formGroup.value, this.groupTaskElem.nowTaskDataArr);
-      const fd = new FormData;
-      // 复制梁
-      if (this.copyState) {
-        url = '/task/copy';
-        fd.append('id', this.nowData.id);
-        fd.append('bridgeName', this.formGroup.controls['bridgeName'].value);
-        fd.append('componentId', this.nowData.componentId);
-        message = { success: '复制任务', error: '任务名称' };
-      } else {
-        // 修改梁
-        if (this.nowData && 'id' in this.nowData) {
-          http = 'put';
-          message = { success: '任务修改', error: '任务名称' };
-          url = `${baseUri}/${this.nowData.id}`;
-          // 新建梁
-        } else {
-          this.groupTaskElem.nowTaskDataArr.forEach((item, index) => {
-            // tslint:disable-next-line:forin
-            for (const key in item) {
-              fd.append(`holeGroups[${index}].${key}`, item[key]);
-            }
-          });
-          fd.append('projectId', JSON.parse(localStorage.getItem('project')).id);
-          fd.append('deviceId', this.nowDevice.device.id);
-          fd.append('componentId', this.nowComponent.componentId);
-        }
-        // tslint:disable-next-line:forin
-        for (const key in this.formGroup.value) {
-          fd.append(key, this.formGroup.value[key]);
-        }
-      }
-      this._servers.http(http, fd, url, message).subscribe(r => {
-        if (r.state) {
-          console.log(r);
-          this._appService.editState = false;
-          if (r.data.message) {
-            this.formGroup.disable();
-            this.LeftMenu.operationState = false;
-            this.copyState = false;
-            // this.LeftMenu.bridgeId = r.data.data.id;
-            // this.LeftMenu.getBridges(r.data.data.componentId);
-            this.LeftMenu.titleId = r.data.data.componentId;
-            this.LeftMenu.getMenuData();
-            this.LeftMenu.onBridge(r.data.data.id);
-            setFromValue(r.data.data, this.formGroup);
-          } else {
-          }
-        } else {
-        }
-      });
+    if (!this.formGroup.valid) {
+      return;
     }
+    let http = 'post';
+    let message = { success: '任务添加', error: '任务名称' };
+    let url = baseUri;
+    const postData: Task = this.dbData;
+    postData.projectId = JSON.parse(localStorage.getItem('project')).id;
+    ['bridgeName', 'skNumber', 'skIntensity', 'designIntensity', 'tensionIntensity', 'concretingDate', 'friction'].map( key => {
+      let value = this.formGroup.controls[key].value;
+      if (key === 'concretingDate') {
+        value = value.toString().replace('GMT+0800 (中国标准时间)', '');
+      }
+      postData[key] = value;
+    });
+    console.log('post数据', this.dbData, postData);
+    let pd = {};
+    // 复制梁
+    if (this.copyState) {
+      url = '/task/copy';
+      ['bridgeName', 'projectId', 'id', 'componentId'].map(key => {
+        pd[key] = postData[key];
+      });
+      message = { success: '复制任务', error: '任务名称' };
+    } else {
+      // 修改梁
+      if (this.dbData && this.dbData.id !== null) {
+        http = 'put';
+        message = { success: '任务修改', error: '任务名称' };
+        // 新建梁
+      } else {
+        postData.holeGroups = this.groupTaskElem.nowTaskDataArr;
+        console.log('post数据', postData, this.groupTaskElem.nowTaskDataArr);
+      }
+      pd = postData;
+    }
+    console.log('post', pd);
+    this._servers.http(http, pd, url, message).subscribe(r => {
+      if (r.state) {
+        console.log(r);
+        this._appService.editState = false;
+        if (r.data.message) {
+          this.formGroup.disable();
+          this.LeftMenu.operationState = false;
+          this.copyState = false;
+          this.LeftMenu.titleId = r.data.data.componentId;
+          this.LeftMenu.getMenuData();
+          this.LeftMenu.onBridge(r.data.data.id);
+          setFromValue(r.data.data, this.formGroup);
+        } else {
+        }
+      } else {
+      }
+    });
   }
   onCancel() {
     console.log('取消');
-    if (this.nowData && 'id' in this.nowData) {
-      setFromValue(this.nowData, this.formGroup);
+    if (this.dbData && 'id' in this.dbData) {
+      setFromValue(this.dbData, this.formGroup);
     } else {
       this.newForm();
     }
@@ -279,31 +278,38 @@ export class TaskComponent implements OnInit, AfterViewInit {
     }
   }
   outSelectComponent(data) {
-    console.log(data);
-    this.nowComponent = data;
     if (data) {
-      this.formGroup.controls['componentName'].setValue(data.componentName);
-      this.formGroup.controls['holeName'].setValue(data.hole.sName);
+      this.dbData.componentId = data.componentId;
+      this.dbData.holeId = data.hole.id;
+      this.dbData.component = data;
+      this.dbData.hole = data.hole;
+      console.log('构建选择完成', data, this.dbData);
+      if (data) {
+        this.formGroup.controls['componentName'].setValue(data.componentName);
+        this.formGroup.controls['holeName'].setValue(data.hole.sName);
+      }
+      this.grouping();
     }
     this.selectComponentElem.isVisible = false;
-    this.grouping();
   }
   onSelectDevice() {
     this.selectDeviceElem.isVisible = true;
   }
   outSelectDevice(data) {
     if (data) {
-      console.log(data);
-      this.nowDevice = data;
+      this.dbData.deviceId = data.device.id;
+      this.dbData.device = data.device;
+      this.selectDeviceMode = data.selectDeviceMode;
+      console.log('设备选择完成', data, this.dbData);
       this.formGroup.controls['deviceName'].setValue(data.device.sName);
       this.grouping();
     }
     this.selectDeviceElem.isVisible = false;
   }
   grouping() {
-    if (this.nowComponent && this.nowDevice) {
-      const holes = this.nowComponent.hole.holes;
-      const deviceMode = this.nowDevice.selectDeviceMode;
+    if (this.dbData.component && this.dbData.device) {
+      const holes = this.dbData.hole.holes;
+      const deviceMode = this.selectDeviceMode;
       const step = deviceMode === 4 ? 2 : 1;
       const holeGroups = [];
       console.log(holes.length, step);
@@ -317,17 +323,22 @@ export class TaskComponent implements OnInit, AfterViewInit {
         }
         console.log(holes[index]);
       }
-      console.log(holeGroups);
+      console.log('分组完成', holeGroups);
       this.holeGroups = holeGroups;
+      this.dbData.holeGroupsRadio = holeGroups;
       this.groupTaskElem.constructHoleFormGroup(holeGroups);
     }
   }
   onManual() {
+    console.log(this.dbData.hole.holes);
+    this.manualElem.holes = this.dbData.hole.holes;
+    this.manualElem.selectHole = this.dbData.hole.holes;
     this.manualElem.isVisible = true;
+    this.manualElem.onHoleChange();
   }
   outManual(data) {
     this.manualElem.isVisible = false;
-    console.log(data);
+    console.log('手动分组完成', data);
     if (data) {
       this.holeGroups = data;
       // constructHoleFromGroup(data);
@@ -341,7 +352,8 @@ export class TaskComponent implements OnInit, AfterViewInit {
   outSteelStrand(data) {
     if (data) {
       this.nowSteelStrand = data;
-      console.log(data);
+      this.dbData.steelStrandId = data.id;
+      console.log('钢绞线选择完成', data, this.dbData);
       this.formGroup.controls['steelStrandName'].setValue(data.sName);
       this.steelStrandElem.isVisible = false;
     } else {
@@ -351,7 +363,7 @@ export class TaskComponent implements OnInit, AfterViewInit {
   // 选择张拉孔组孔
   onSelectHoleRadio() {
     console.log('8888', this.selectHoleGroup);
-    if (this.nowData) {
+    if (this.dbData) {
       this._router.navigate(['/task', {
         id: JSON.parse(localStorage.getItem('project')).id,
         componentId: this.LeftMenu.titleId,
@@ -364,7 +376,9 @@ export class TaskComponent implements OnInit, AfterViewInit {
   // 复制梁
   onCopy() {
     this.copyState = true;
-    this.onAdd();
+    console.log('复制', this.dbData);
+    this.formGroup.controls['bridgeName'].setValue('');
+    this.onModify();
   }
   // 张拉
   onTension() {
@@ -378,8 +392,8 @@ export class TaskComponent implements OnInit, AfterViewInit {
     this.runTension.title = '数据处理中...';
     this._ms.setDevice((state) => {
       if (state) {
-        const tensionData = this.groupTaskElem.nowData;
-        localStorage.setItem('nowDevice', this.nowDevice.device.id);
+        const tensionData = this.groupTaskElem.dbData;
+        localStorage.setItem('nowDevice', this.dbData.deviceId);
         this.runTension.mode = deviceModes[tensionData.mode];
         for (const name of this.runTension.mode) {
           console.log(name);
@@ -394,7 +408,7 @@ export class TaskComponent implements OnInit, AfterViewInit {
         const nowTensionData = {
           id: tensionData.id,
           holeName: tensionData.holeName,
-          bridgeName: this.nowData.bridgeName,
+          bridgeName: this.dbData.bridgeName,
           mode: tensionData.mode,
           modes: this.runTension.mode,
           twice: this.groupTaskElem.nowTaskData.twice, // 二次张拉
@@ -415,8 +429,9 @@ export class TaskComponent implements OnInit, AfterViewInit {
           stage: twiceData.stage,
           taskSum: {}
         };
-        const recordData: RecordData = {
-          id: this.groupTaskElem.holeGroupId,
+        const recordData: Record = {
+          id: this.dbData.id,
+          parentId: this.dbData.projectId,
           state: 0,
           stage: 0,
           time: [],
@@ -536,13 +551,13 @@ export class TaskComponent implements OnInit, AfterViewInit {
     } else if (this.exportRecord.templatePath && this.exportRecord.savePath) {
       if (this._electronService.isElectronApp) {
         const data = [
-          {name: 'N1', kh: 'A1'},
-          {name: 'N1', kh: 'A2'},
-          {name: 'N2', kh: 'B1'},
-          {name: 'N2', kh: 'B2'},
+          { name: 'N1', kh: 'A1' },
+          { name: 'N1', kh: 'A2' },
+          { name: 'N2', kh: 'B1' },
+          { name: 'N2', kh: 'B2' },
         ];
         this._electronService.ipcRenderer.send('exportRecord',
-          {templatePath: this.exportRecord.templatePath, savePath: this.exportRecord.savePath, data: data});
+          { templatePath: this.exportRecord.templatePath, savePath: this.exportRecord.savePath, data: data });
         this._electronService.ipcRenderer.on('exportRecordOK', (event, msg) => {
           this.exportRecord.msg = msg;
         });
@@ -552,18 +567,18 @@ export class TaskComponent implements OnInit, AfterViewInit {
     }
   }
   exportFilePath(t) {
-      // console.log(file);
-      if (this._electronService.isElectronApp) {
-        this._electronService.ipcRenderer.send('exportFilePath', t);
-        this._electronService.ipcRenderer.on('exportFilePathOK', (event, data) => {
-          if (data.t) {
-            this.exportRecord.savePath = data.path;
-          } else {
-            this.exportRecord.templatePath = data.path;
-          }
-        });
-      } else {
-        console.log('只能在Electron中使用');
-      }
+    // console.log(file);
+    if (this._electronService.isElectronApp) {
+      this._electronService.ipcRenderer.send('exportFilePath', t);
+      this._electronService.ipcRenderer.on('exportFilePathOK', (event, data) => {
+        if (data.t) {
+          this.exportRecord.savePath = data.path;
+        } else {
+          this.exportRecord.templatePath = data.path;
+        }
+      });
+    } else {
+      console.log('只能在Electron中使用');
+    }
   }
 }

@@ -50,5 +50,12 @@ export class ModalFormDataComponent implements OnInit {
     this.formGroup.controls[ key ].markAsDirty();
     this.formGroup.controls[ key ].updateValueAndValidity();
   }
+  onCheckbox(value) {
+    console.log(value, this.formGroup);
+  }
+  checkboxModel(key, value) {
+    console.log();
+    return this.formGroup.controls[key].value.indexOf(value) > -1 ? true : false;
+  }
 
 }

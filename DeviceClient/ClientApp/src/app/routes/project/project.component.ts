@@ -172,17 +172,28 @@ export class ProjectComponent implements OnInit {
   onAddTab(value = null) {
     console.log(this.tabIndex);
     this.nowEditData = JSON.parse(JSON.stringify(value));
+    let formData = null;
+    switch (this.tabIndex) {
+      case 0:
+        formData = { form: operatorFormData(value), title: '操作员' };
+        break;
+      case 1:
+        formData = { form: supervisionFormData(value), title: '监理' };
+        break;
+      case 2:
+        formData = { form: steelStrandFormData(value), title: '钢绞线' };
+        break;
+      default:
+        break;
+    }
+    console.log(formData);
+    this.editOther.title = formData.title;
+    this.editOther.formGroup = formData.form.formGroup;
+    this.editOther.formTypes = formData.form.formTypes;
     this.editOther.isVisible = true;
-    const editFormData = [
-      { form: operatorFormData(value), title: '操作员' },
-      { form: supervisionFormData(value), title: '监理' },
-      { form: steelStrandFormData(value), title: '钢绞线' },
-    ];
-    this.editOther.title = editFormData[this.tabIndex].title;
-    this.editOther.formGroup = editFormData[this.tabIndex].form.formGroup;
-    this.editOther.formTypes = editFormData[this.tabIndex].form.formTypes;
   }
   editCancel(data) {
+    console.log(data);
     if (!data) {
       this.editOther.isVisible = false;
       return;
