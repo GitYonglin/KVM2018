@@ -77,6 +77,12 @@ export function constructFormData() {
     new Text({
       key: 'concretingDate',
       prefix: '浇筑日期',
+      verification: [
+        Validators.required,
+      ],
+      errors: {
+        required: '必须输入。',
+      }
     }),
     new Text({
       key: 'friction',

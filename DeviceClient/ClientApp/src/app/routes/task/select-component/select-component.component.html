@@ -2,7 +2,7 @@
   nzTitle="构件选择">
   <nz-divider nzOrientation="left" nzText="构件"></nz-divider>
   <nz-radio-group [nzSize]="'large'" [(ngModel)]="selectItem" (ngModelChange)="onSelect()">
-    <label nz-radio-button *ngFor="let item of components" [nzValue]="item"  [nzDisabled]="!(item.id === nowComponentId) && !(nowComponentId === 'null')">{{item.name}}</label>
+    <label nz-radio-button *ngFor="let item of components" [nzValue]="item"  [nzDisabled]="!((item.id === nowComponentId) || !nowComponentId)">{{item.name}}</label>
   </nz-radio-group>
   <nz-divider nzOrientation="left" nzText="孔号"></nz-divider>
   <nz-radio-group [nzSize]="'large'" [(ngModel)]="selectHoleItem" (ngModelChange)="onHoles()">

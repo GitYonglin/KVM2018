@@ -192,7 +192,7 @@ export class TaskComponent implements OnInit, AfterViewInit {
     console.log('云');
   }
   onSave() {
-    console.log('保存', this.formGroup.valid);
+    console.log('保存', this.formGroup.valid, this.dbData, this.dbData.id);
     // tslint:disable-next-line:forin
     for (const key in this.formGroup.controls) {
       this.formGroup.controls[key].markAsDirty();
@@ -224,7 +224,7 @@ export class TaskComponent implements OnInit, AfterViewInit {
       message = { success: '复制任务', error: '任务名称' };
     } else {
       // 修改梁
-      if (this.dbData && this.dbData.id !== null) {
+      if (this.dbData && this.dbData.id) {
         http = 'put';
         message = { success: '任务修改', error: '任务名称' };
         // 新建梁
@@ -379,7 +379,7 @@ export class TaskComponent implements OnInit, AfterViewInit {
   onCopy() {
     this.copyState = true;
     console.log('复制', this.dbData);
-    this.formGroup.controls['bridgeName'].setValue('');
+    // this.formGroup.controls['bridgeName'].setValue('');
     this.onModify();
   }
   // 张拉
