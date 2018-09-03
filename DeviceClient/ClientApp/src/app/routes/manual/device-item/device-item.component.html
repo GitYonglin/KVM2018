@@ -1,11 +1,12 @@
 <nz-card *ngIf="data.state" [ngClass]="name">
+  <!-- <p>{{_ms.Dev[name].liveData | json}}</p> -->
   <div class="item">
     <h3 [ngClass]="name">{{title}}</h3>
     <nz-input-group nzAddOnBefore="设备压力" nzAddOnAfter="Mpa">
       <div class="input-progress">
-        <nz-progress nz-tooltip [nzPercent]="_ms.showValues[name]?.mpa / _ms.deviceParameter.mpaUpperLimit * 100" [nzShowInfo]="false"
+        <nz-progress nz-tooltip [nzPercent]="_ms.Dev[name]?.liveData.mpa / _ms.deviceParameter.mpaUpperLimit * 100" [nzShowInfo]="false"
           [nzStrokeWidth]="32"></nz-progress>
-        <input (focus)="$event.target.select()" type="number" [value]="_ms.showValues[name]?.mpa" nz-input nzSize="large" readonly="readonly">
+        <input (focus)="$event.target.select()" type="number" [value]="_ms.Dev[name]?.liveData.mpa" nz-input nzSize="large" readonly="readonly">
       </div>
     </nz-input-group>
     <nz-input-group nzAddOnBefore="设置压力" nzAddOnAfter="Mpa">
@@ -16,15 +17,15 @@
     </nz-input-group>
     <nz-input-group nzAddOnBefore="相对位移" nzAddOnAfter="mm">
         <div style="display: flex;">
-            <input (focus)="$event.target.select()" type="number" [value]="(_ms.showValues[name]?.mm - relativeMm) | N2F" nz-input nzSize="large" readonly="readonly" style="flex: 300%; margin-right: 7px;">
+            <input (focus)="$event.target.select()" type="number" [value]="(_ms.Dev[name]?.liveData.mm - relativeMm) | N2F" nz-input nzSize="large" readonly="readonly" style="flex: 300%; margin-right: 7px;">
             <button nz-button nzType="primary" (click)="reset()" style="width: 100%;">清 零</button>
           </div>
     </nz-input-group>
     <nz-input-group nzAddOnBefore="绝对位移" nzAddOnAfter="mm">
       <div class="input-progress">
-        <nz-progress nz-tooltip [nzPercent]="_ms.showValues[name]?.mm / _ms.deviceParameter.mmWorkUpperLimit * 100" [nzShowInfo]="false"
+        <nz-progress nz-tooltip [nzPercent]="_ms.Dev[name]?.liveData.mm / _ms.deviceParameter.mmWorkUpperLimit * 100" [nzShowInfo]="false"
           [nzStrokeWidth]="32"></nz-progress>
-        <input (focus)="$event.target.select()" type="number" [value]="_ms.showValues[name]?.mm" nz-input nzSize="large" readonly="readonly">
+        <input (focus)="$event.target.select()" type="number" [value]="_ms.Dev[name]?.liveData.mm" nz-input nzSize="large" readonly="readonly">
       </div>
     </nz-input-group>
 

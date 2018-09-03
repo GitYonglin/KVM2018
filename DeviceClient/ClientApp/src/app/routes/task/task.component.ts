@@ -19,6 +19,7 @@ import { ElectronService } from 'ngx-electron';
 import { Task, CopyTask } from '../../model/task.model';
 import { Record } from '../../model/record.model';
 import { publicDecrypt } from 'crypto';
+import { AuthorityService } from '../../services/authority.service';
 
 const baseUri = '/task';
 
@@ -78,7 +79,8 @@ export class TaskComponent implements OnInit, AfterViewInit {
     private _router: Router,
     public _ms: MSService,
     private _http: Http,
-    private _electronService: ElectronService
+    private _electronService: ElectronService,
+    private _authority: AuthorityService,
   ) { }
 
   ngOnInit() {
@@ -432,6 +434,7 @@ export class TaskComponent implements OnInit, AfterViewInit {
         const recordData: Record = {
           id: this.dbData.id,
           parentId: this.dbData.projectId,
+          operatorId: this._authority.user.id,
           state: 0,
           stage: 0,
           time: [],

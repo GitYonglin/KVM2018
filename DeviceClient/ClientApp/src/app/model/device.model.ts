@@ -268,15 +268,15 @@ export interface Device extends Base {
   dCalibrationDate: Date;
   aWorkMode: Array<number>;
   bEquation: boolean;
-  A1: CalibrateCorrection;
-  A2: CalibrateCorrection;
-  B1: CalibrateCorrection;
-  B2: CalibrateCorrection;
+  a1: CalibrateCorrection;
+  a2: CalibrateCorrection;
+  b1: CalibrateCorrection;
+  b2: CalibrateCorrection;
 }
 
 export interface CalibrateCorrection {
-  Calibrate: Calibrate;
-  Correction: Calibrate;
+  calibrate: Calibrate;
+  correction: Correction;
 }
 
 export interface Calibrate {
@@ -295,6 +295,6 @@ export interface Calibrate {
 }
 
 export interface Correction {
-  Mm: Array<number>;
-  Mpa: Array<number>;
+  mm: Array<number>;
+  mpa: Array<number>;
 }

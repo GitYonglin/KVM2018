@@ -72,13 +72,13 @@ export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
   }
   upPLC() {
     this._ms.runTensionData = JSON.parse(JSON.stringify(runTensionData)); // 初始化自动张拉数据
-    this.autoControl.maximumDeviationRate = this._ms.deviceParameter.maximumDeviationRate;
-    this.autoControl.LowerDeviationRate = this._ms.deviceParameter.LowerDeviationRate;
-    this.autoControl.mpaDeviation = this._ms.deviceParameter.mpaDeviation;
-    this.autoControl.mmReturnLowerLimit = this._ms.deviceParameter.mmReturnLowerLimit;
-    this._ms.runTensionData.mmBalanceControl = this._ms.deviceParameter.mmBalanceControl;
-    this._ms.runTensionData.LodOffTime = this._ms.deviceParameter.unloadingDelay;
-    this._ms.mmReturnLowerLimit = this._ms.deviceParameter.mmReturnLowerLimit;
+    // this.autoControl.maximumDeviationRate = this._ms.deviceParameter.maximumDeviationRate;
+    // this.autoControl.LowerDeviationRate = this._ms.deviceParameter.LowerDeviationRate;
+    // this.autoControl.mpaDeviation = this._ms.deviceParameter.mpaDeviation;
+    // this.autoControl.mmReturnLowerLimit = this._ms.deviceParameter.mmReturnLowerLimit;
+    // this._ms.runTensionData.mmBalanceControl = this._ms.deviceParameter.mmBalanceControl;
+    // this._ms.runTensionData.LodOffTime = this._ms.deviceParameter.unloadingDelay;
+    // this._ms.mmReturnLowerLimit = this._ms.deviceParameter.mmReturnLowerLimit;
     // this._ms.showValues = JSON.parse(JSON.stringify(showValues));
     this._ms.passSate = false;
     this._ms.upPLC();

@@ -131,7 +131,7 @@ export class ManualComponent implements OnInit, OnDestroy, AfterViewInit {
   onAutoState() {
     this.autoState = !this.autoState;
   }
-  // 标定进入
+  // 进入校正
   public onCorrection(state, deviceName, name) {
     this.correctionState = state;
     this.deviceName = deviceName;
@@ -145,7 +145,7 @@ export class ManualComponent implements OnInit, OnDestroy, AfterViewInit {
     this.deviceItem = this.deviceItems.filter( d => d.name === name)[0];
     this.deviceItem.data.state = true;
   }
-  // 标定项选择
+  // 校正项选择
   public onSetCorrection(name: string, key: string, i) {
     this.nowSetItem = name;
     this.nowKey = key;

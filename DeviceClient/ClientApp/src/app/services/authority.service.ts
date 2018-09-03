@@ -36,6 +36,7 @@ const menuArr = [
 @Injectable({ providedIn: 'root' })
 export class AuthorityService {
   public fullMenu: any[];
+  public user: any;
 
   menus() {
     if (JSON.parse(localStorage.getItem('project') || null)) {
@@ -52,6 +53,7 @@ export class AuthorityService {
     if (!user.super) {
       this.fullMenu = this.fullMenu.filter(m => user.menuAuthority.indexOf(m.url) > -1);
     }
+    this.user = user;
     console.log('过滤菜单', this.fullMenu);
   }
 }

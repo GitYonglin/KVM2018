@@ -3,7 +3,8 @@
     <app-left-menu #menu (operation)="operation($event)" (menuSwitch)="menuSwitch()"></app-left-menu>
   </nz-sider>
   <div class="flex-content">
-    <header class="block-17"></header>
+    <header class="block-17">
+    </header>
     <main>
       <app-children-form formClass="project-form" [formGroup]="formGroup" [formTypes]="baseTypes"></app-children-form>
       <div class="flex-content">

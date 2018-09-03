@@ -11,6 +11,7 @@ export class FieldBase<T> {
   radio?: any;
   checkbox?: any;
   filter?: Function;
+  after?: string;
 
 
   constructor(options: {
@@ -29,6 +30,7 @@ export class FieldBase<T> {
     radio?: any;
     checkbox?: any;
     filter?: Function;
+    after?: string;
   } = {}) {
     this.type = options.type || 'text';
     this.value = options.value;
@@ -36,6 +38,7 @@ export class FieldBase<T> {
     this.controlType = options.controlType || '';
     this.placeholder = options.placeholder || '';
     this.prefix = options.prefix || null;
+    this.after = options.after || null;
     this.verification = options.verification || null;
     this.errors = options.errors || null;
     this.errorText = options.errorText || null;

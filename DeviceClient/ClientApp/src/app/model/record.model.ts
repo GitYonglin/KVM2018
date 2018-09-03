@@ -9,6 +9,8 @@ export interface Record {
   id: string;
   /** 梁Id */
   parentId: string;
+  /** 操作员Id */
+  operatorId: string;
   /** 以张拉阶段 */
   stage: number;
   /** 张拉状态 0：未张拉 1：张拉完成 2：二次张拉 3：张拉中断 4：二次张拉第一次中断 */

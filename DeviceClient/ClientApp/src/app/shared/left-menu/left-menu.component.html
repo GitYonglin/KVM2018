@@ -24,16 +24,14 @@
         <ul *ngIf="!menuDataState || (titleId === item.id || titleId === null)">
           <div class="title" [ngClass]="{'active': titleId === item.id}" (click)="onMenu1(i, item)">
             <div class="text-img">
-              <!-- <mat-icon class="img" [svgIcon]="item.icon"></mat-icon> -->
-              <!-- <i class="anticon anticon-question"></i> -->
               <h3>{{item.name}}</h3>
             </div>
             <div class="right" *ngIf="menuDataState">
               <nz-tag [nzColor]="'#87d068'">{{item.count}}</nz-tag>
               <i class="icon anticon anticon-down" [ngClass]="{'transform': titleId === item.id}"></i>
-              <!-- <mat-icon class="icon" [ngClass]="{'transform': indexActive === i}">keyboard_arrow_up</mat-icon> -->
             </div>
           </div>
+          <!-- 梁菜单 -->
           <div [@list]="bridges.length" class="bridge-list" *ngIf="bridges && titleId === item.id">
 
             <!-- <li></li> -->

@@ -21,34 +21,93 @@ namespace DeviceClient.Hubs
         private static bool ZAutoStopState = false;
         private static bool CAutoStopState = false;
         private static bool AutoStopRunState = false;
-        private static bool ZAutoStopRunState = false;
-        private static bool CAutoStopRunState = false;
+        //private static bool ZAutoStopRunState = false;
+        //private static bool CAutoStopRunState = false;
+        private static bool ConnentState = false;
 
         private Affirm AutoLoadAffirm = new Affirm();
         private Affirm Stop2RunAffirm = new Affirm();
         private Affirm AutoStopAffirm = new Affirm();
+        private Affirm SetDeviceParameterAffirm = new Affirm();
         public PLCHub()
         {
             TaskFactory tf = new TaskFactory();
             tf.StartNew(() => Console.WriteLine("重新请求连接" + Thread.CurrentThread.ManagedThreadId));
 
+            //if (Z == null)
+            //{
+            //    Z = new ModbusSocket("192.168.181.101", 502, "主站", true);
+            //    Z.ModbusLinkSuccess += ModbusLinkSuccess;
+            //    Z.ModbusLinkError += ModbusLinkError;
+            //}
+            //if (C == null)
+            //{
+            //    C = new ModbusSocket("192.168.181.102", 502, "从站", false);
+            //    C.ModbusLinkSuccess += ModbusLinkSuccess;
+            //    C.ModbusLinkError += ModbusLinkError;
+            //}
+        }
+        public void Init()
+        {
+            _clients = Clients;
+        }
+        public void Creates(bool connectState)
+        {
+            ConnentState = connectState;
             if (Z == null)
             {
                 Z = new ModbusSocket("192.168.181.101", 502, "主站", true);
                 Z.ModbusLinkSuccess += ModbusLinkSuccess;
                 Z.ModbusLinkError += ModbusLinkError;
             }
-            if (C == null)
+            if (C == null && ConnentState)
             {
                 C = new ModbusSocket("192.168.181.102", 502, "从站", false);
                 C.ModbusLinkSuccess += ModbusLinkSuccess;
                 C.ModbusLinkError += ModbusLinkError;
             }
+            if (!ConnentState)
+            {
+                C.Client = null;
+                C = null;
+            }
         }
-        public void Init()
+        /// <summary>
+        /// 连接成功，启动心跳包连接
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="message"></param>
+        public void ModbusLinkSuccess(string id, string message)
         {
-            _clients = Clients;
+            var device = Z;
+            if (id == "从站")
+            {
+                device = C;
+            }
+            else
+            {
+                GetDeviceParameter(); // 获取设备参数
+            }
+            // 心跳包保证链接
+            Task.Run(() =>
+            {
+                while (device != null && device.Client != null && device.Client.Connected && device.IsSuccess)
+                {
+                    device.F05(PLCSite.M(0), true, null);
+                    device.F03(PLCSite.D(0), 10, (data) =>
+                    {
+                        var rdata = ReceiveData.F03(data, 10);
+                        if (TensionMode > 0 && !AutoStopRunState && !AutoStopState)
+                        {
+                            AutoStop(rdata[6], device.Name);
+                        }
+                        _clients.All.SendAsync("LiveData", new { name = device.Name, data = rdata });
+                    });
+                    Thread.Sleep(10);
+                }
+            });
         }
+        
         public void F03(InPLC data)
         {
 
@@ -224,45 +283,7 @@ namespace DeviceClient.Hubs
                 }
             }
         }
-        /// <summary>
-        /// 连接成功，启动心跳包连接
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="message"></param>
-        public void ModbusLinkSuccess(string id, string message)
-        {
-            var device = Z;
-            if (id == "从站")
-            {
-                device = C;
-            }
-            else
-            {
-                GetDeviceParameter(); // 获取设备参数
-            }
-            // 心跳包保证链接
-            Task.Run(() =>
-            {
-                while (device.Client != null && device.Client.Connected && device.IsSuccess)
-                {
-                    device.F05(PLCSite.M(0), true, null);
-                    device.F03(PLCSite.D(0), 10, (data) =>
-                    {
-                        var rdata = ReceiveData.F03(data, 10);
-                        if (TensionMode > 0 && !AutoStopRunState && !AutoStopState)
-                        {
-                            AutoStop(rdata[6], device.Name);
-                        }
-                        _clients.All.SendAsync("LiveData", new { name = device.Name, data = rdata });
-                    });
-                    Thread.Sleep(10);
-                }
-            });
-            //if (_clients != null)
-            //{
-            //  _clients.All.SendAsync("Send", new { Id = id, Message = message });
-            //}
-        }
+
         private void AutoStop(int data, string id)
         {
             Console.WriteLine(id == "主站");
@@ -322,8 +343,8 @@ namespace DeviceClient.Hubs
                     CAutoStopState = false;
                     AutoStopState = false;
                     AutoStopRunState = false;
-                    ZAutoStopRunState = false;
-                    CAutoStopRunState = false;
+                    //ZAutoStopRunState = false;
+                    //CAutoStopRunState = false;
                 }
             }
         }
@@ -358,8 +379,8 @@ namespace DeviceClient.Hubs
             CAutoStopState = false;
             AutoStopState = false;
             AutoStopRunState = false;
-            ZAutoStopRunState = false;
-            CAutoStopRunState = false;
+            //ZAutoStopRunState = false;
+            //CAutoStopRunState = false;
         }
         /// <summary>
         /// 阶段压力数据下载
@@ -412,10 +433,16 @@ namespace DeviceClient.Hubs
         /// </summary>
         public void GetDeviceParameter()
         {
-            ModbusSocket device = Z;
-            device.F03(PLCSite.D(500), 17, (data) =>
+            if (ConnentState)
             {
-                _clients.All.SendAsync("DeviceParameter", new { name = device.Name, data = ReceiveData.F03(data, 17) });
+                C.F03(PLCSite.D(500), 17, (data) =>
+                {
+                    _clients.All.SendAsync("DeviceParameter", new { name = C.Name, data = ReceiveData.F03(data, 17) });
+                });
+            }
+            Z.F03(PLCSite.D(500), 17, (data) =>
+            {
+                _clients.All.SendAsync("DeviceParameter", new { name = Z.Name, data = ReceiveData.F03(data, 17) });
             });
         }
 
@@ -423,8 +450,15 @@ namespace DeviceClient.Hubs
         {
             try
             {
-                Z.F06(PLCSite.D(data.Address), data.Value, null);
-                C.F06(PLCSite.D(data.Address), data.Value, null);
+                if (ConnentState)
+                {
+                    C.F16(PLCSite.D(data.Address), data.Values, (r) => {
+                        this.GetDeviceParameter();
+                    });
+                }
+                Z.F16(PLCSite.D(data.Address), data.Values, (r) => {
+                    this.GetDeviceParameter();
+                });
                 return true;
             }
             catch (Exception)
@@ -514,7 +548,8 @@ namespace DeviceClient.Hubs
     public class SetDeviceParameterData
     {
         public int Address { get; set; }
-        public int Value { get; set; }
+        public int Mode { get; set; }
+        public int[] Values { get; set; }
     }
     public class TensionModle
     {

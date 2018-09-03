@@ -20,12 +20,23 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
-    this._ms.creation();
+    this.newPLCLive();
     this._ms.setDevice();
     this._router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
         console.log('全局路由', event);
       }
     });
+  }
+  private newPLCLive() {
+    const connect = localStorage.getItem('connect');
+    const mode = localStorage.getItem('deviceMode');
+    if (!connect && !mode) {
+      localStorage.setItem('connect', '1');
+      localStorage.setItem('deviceMode', '1');
+      console.log('000初始化plc', connect, mode);
+    } else {
+      this._ms.creation();
+    }
   }
 }

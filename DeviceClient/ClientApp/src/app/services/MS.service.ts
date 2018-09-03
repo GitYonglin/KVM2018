@@ -1,13 +1,14 @@
 import { Injectable, Inject } from '@angular/core';
 import { HubConnectionBuilder, HubConnection } from '@aspnet/signalr';
 import { DeviceParameter, ConversionName, DeviceItemName } from '../model/DeviceParameter';
-import { PLC2Value, PLC100ms2s, Value2PLC, PLCM } from '../utils/PLC8Show';
+import { PLC2Value, PLC100ms2s, Value2PLC, PLCM, PLCLive, setDeviceParameterValue } from '../utils/PLC8Show';
 import { APIService } from './api.service';
 import { ShowValues, autoState, SumData, funcSumData, runTensionData } from '../model/live.model';
 import { Observable } from 'rxjs';
 import { newFormData } from '../utils/form/constructor-FormData';
 import { N2F } from '../utils/toFixed';
 import { Record } from '../model/record.model';
+import { Device } from '../model/device.model';
 
 interface InPLC {
   Id: number;
@@ -16,12 +17,19 @@ interface InPLC {
   F01: number;
   F06: number;
 }
+interface Dev {
+  a1?: PLCLive;
+  a2?: PLCLive;
+  b1?: PLCLive;
+  b2?: PLCLive;
+}
 const alarmArr = ['压力未连接', '位移未连接', '位移下限', '位移上限', '超设置压力', '压力上限'];
 @Injectable({ providedIn: 'root' })
 export class MSService {
   public deviceItemNames = ['a1', 'a2', 'b1', 'b2'];
-  public nowDevice: any = null;
+  public nowDevice: Device;
   public deviceParameter: DeviceParameter = null;
+  public deviceParameterC: DeviceParameter = null;
   public connection: HubConnection;
   public deviceLinkZ = '主站未连接';
   public deviceLinkC = '从站未连接';
@@ -82,7 +90,9 @@ export class MSService {
       affirmMm0: 0,
     },
   };
+  // 实时计算位移偏差率
   public liveSum: SumData;
+  // 当前张拉状态
   public liveState: any;
   public ExitTime = 5;
   public passSate = false;
@@ -90,19 +100,93 @@ export class MSService {
   private autoVerifyMpaState = false;
   public mmReturnLowerLimit = 0;
   public autoVerifyLoadOff = false;
+  public Dev: Dev;
+  public modeNo: string;
+  public connectNo: string;
+  public GetDeviceParameterEvent: Function = function () { document.dispatchEvent(new Event('GetDeviceParameter')); };
+
 
   constructor(
     @Inject('BASE_CONFIG') private config,
     private _service: APIService,
-  ) { }
+  ) {
+    this.Dev = {
+      a1: null,
+      a2: null,
+      b1: null,
+      b2: null,
+    };
+    this.newPLCLive();
+  }
+  // 设备模式切换
+  public newPLCLive() {
+    const connect = localStorage.getItem('connect');
+    const mode = this.deviceParameter ? this.deviceParameter.modeRadio : '2';
+    this.connectNo = connect;
+    this.modeNo = mode;
 
-  public PLC2Value(PLCValue, name: string, key: string) {
+    if (connect === '1') {
+      this.deviceParameterC = null;
+      this.deviceItemNames = ['a1'];
+      if (mode === '2') {
+        this.deviceItemNames = ['a1', 'b1'];
+      }
+    } else if (connect === '2') {
+      this.deviceItemNames = ['a1', 'a2'];
+      if (mode === '2') {
+        this.deviceItemNames = ['a1', 'a2', 'b1', 'b2'];
+      }
+    }
+    this.deviceItemNames.map(name => {
+      this.Dev[name] = new PLCLive();
+    });
+    this.deviceItemNames.map(name => {
+      if (this.nowDevice) {
+        this.Dev[name].deviceInit(this.nowDevice[name].correction);
+      }
+      if (this.deviceParameter && this.deviceParameter.mpaCoefficient && this.deviceParameter.mmCoefficient) {
+        this.Dev[name].sensorInit(this.deviceParameter.mpaCoefficient, this.deviceParameter.mmCoefficient);
+      }
+    });
+    console.log(this.deviceItemNames);
+  }
+  /**
+   * PLC转显示值
+   *
+   * @param {number} PLCValue PLC值
+   * @param {string} name 转换类型 'mpa'|'mm'
+   * @param {string} key 设备名称 a1|a2|b1|b22
+   * @returns 返回PLC值
+   * @memberof MSService
+   */
+  public PLC2Value(PLCValue: number, name: string, key: string) {
     return this.conversionValue(PLCValue, name, key, true);
   }
-  public Value2PLC(value, name: string, key: string) {
+  /**
+   * 显示值转PLC值
+   *
+   * @param {number} value 显示值
+   * @param {string} name 转换类型 'mpa'|'mm'
+   * @param {string} key 设备名称 a1|a2|b1|b22
+   * @returns 返回显示值
+   * @memberof MSService
+   */
+  public Value2PLC(value: number, name: string, key: string) {
     return this.conversionValue(value, name, key, false);
   }
-  private conversionValue(value, name, key, state) {
+
+  /**
+   * PLC值与显示值互转
+   *
+   * @private
+   * @param {number} value 转换值
+   * @param {string} name 转换类型 'mpa'|'mm'
+   * @param {string} key 设备名称 a1|a2|b1|b22
+   * @param {boolean} state PLC转显示值 = true，显示值转PLC值 = false
+   * @returns 返回转换值
+   * @memberof MSService
+   */
+  private conversionValue(value: number, name: string, key: string, state: boolean) {
     try {
       let correction = null;
       let MpaMm = 40;
@@ -123,16 +207,28 @@ export class MSService {
       console.log(error);
     }
   }
-  // 获取设备
+
+  /**
+   * 获取当前设备
+   *
+   * @param {Function} [callback=null] 成功返回设备回调
+   * @memberof MSService
+   */
   public setDevice(callback: Function = null) {
     const deviceId = localStorage.getItem('nowDevice');
     console.log('获取设备', deviceId);
     try {
       this._service.get(`/device/${deviceId}`).subscribe(r => {
         this.nowDevice = r;
+        if (this.nowDevice) {
+          this.deviceItemNames.map(name => {
+            this.Dev[name].deviceInit(this.nowDevice[name].correction);
+          });
+        }
         console.log('获取设备', r, this.nowDevice);
+        const state = r || false;
         if (callback) {
-          callback(true);
+          callback(state);
         }
       });
     } catch (error) {
@@ -144,7 +240,9 @@ export class MSService {
       const connection = new HubConnectionBuilder().withUrl('/PLC').build();
       connection.start().then(r => {
         // this.setDevice();
-        connection.invoke('Init');
+        connection.invoke('Init').then(() => {
+          connection.invoke('Creates', localStorage.getItem('connect') === '2');
+        });
         console.log('MS请求');
         // 获取设备参数
         connection.invoke('GetDeviceParameter');
@@ -152,38 +250,56 @@ export class MSService {
         // 监听连接状态
         connection.on('Send', data => {
           // console.log(data);
-          if (data.id === '主站') {
-            this.deviceLinkZ = data.message;
-            this.state.a1 = false;
-            this.state.b1 = false;
-          } else {
-            this.deviceLinkC = data.message;
-            this.state.a2 = false;
-            this.state.b2 = false;
-          }
+          const modes = data.id === '主站' ? ['a1', 'b1'] : ['a2', 'b2'];
+          modes.map(name => {
+            if (this.Dev[name]) {
+              this.Dev[name].connectError(data.message);
+            }
+          });
+          // if (data.id === '主站') {
+          //   this.deviceLinkZ = data.message;
+          //   this.state.a1 = false;
+          //   this.state.b1 = false;
+          //   modes = ['a1', 'a2'];
+          // } else {
+          //   this.deviceLinkC = data.message;
+          //   this.state.a2 = false;
+          //   this.state.b2 = false;
+          // }
           this.commError();
         });
         // 监听获取实时数据
         connection.on('LiveData', rData => {
-          if (rData.name === '主站') {
-            // console.log('主站LIVE', rData.data);
-            this.deviceLinkZ = '设备链接正常';
-            this.state.a1 = true;
-            this.state.b1 = true;
-            if (this.nowDevice !== null && this.deviceParameter !== null) {
-              this.setShowValue(rData.data, 1);
+          const modes = rData.name === '主站' ? ['a1', 'b1'] : ['a2', 'b2'];
+          const data = rData.data;
+          modes.map(name => {
+            if (this.Dev[name]) {
+              if (name.indexOf('a') > -1) {
+                this.Dev[name].liveDataFunc([data[0], data[1], data[4], data[6], data[8]]);
+              } else {
+                this.Dev[name].liveDataFunc([data[2], data[3], data[5], data[7], data[9]]);
+              }
             }
+          });
+          // if (rData.name === '主站') {
+          //   // console.log('主站LIVE', rData.data);
+          //   this.deviceLinkZ = '设备链接正常';
+          //   this.state.a1 = true;
+          //   this.state.b1 = true;
+          //   if (this.nowDevice !== null && this.deviceParameter !== null) {
+          //     this.setShowValue(rData.data, 1);
+          //   }
 
-            // console.log(this.showValues);
-          } else {
-            this.deviceLinkC = '设备链接正常';
-            this.state.a2 = true;
-            this.state.b2 = true;
-            if (this.nowDevice !== null && this.deviceParameter !== null) {
-              this.setShowValue(rData.data, 2);
-            }
-            // console.log('从站LIVE', rData.data);
-          }
+          //   // console.log(this.showValues);
+          // } else {
+          //   this.deviceLinkC = '设备链接正常';
+          //   this.state.a2 = true;
+          //   this.state.b2 = true;
+          //   if (this.nowDevice !== null && this.deviceParameter !== null) {
+          //     this.setShowValue(rData.data, 2);
+          //   }
+          //   // console.log('从站LIVE', rData.data);
+          // }
         });
         // 监听保压延时
         connection.on('Delay', data => {
@@ -211,7 +327,7 @@ export class MSService {
           this.runTensionData.nowLodOffTime = data;
           console.log('卸荷延时', data);
         });
-        // 监听保压完成
+        // 监听卸荷完成
         connection.on('LoadOffDelayOk', data => {
           console.log('卸荷延时完成');
           // tslint:disable-next-line:forin
@@ -225,17 +341,20 @@ export class MSService {
         connection.on('DeviceParameter', rData => {
           if (rData.name === '主站') {
             console.log('监听获取plc设置', rData.data);
-            this.setDeviceParameterValue(rData.data);
+            this.deviceParameter = setDeviceParameterValue(rData.data);
+            if (this.deviceParameter.mpaCoefficient && this.deviceParameter.mmCoefficient) {
+              this.deviceItemNames.map(name => {
+                this.Dev[name].sensorInit(this.deviceParameter.mpaCoefficient, this.deviceParameter.mmCoefficient);
+              });
+            }
+            this.newPLCLive();
+            this.GetDeviceParameterEvent();
           } else {
             console.log('从站', rData.data);
+            this.deviceParameterC = setDeviceParameterValue(rData.data);
+            this.GetDeviceParameterEvent();
           }
         });
-        // 暂停继续
-        // connection.on('Stop2Run', d => {
-        //   console.log('暂停继续');
-        //   this.runTensionData.stopState = false;
-        //   this.stopRunState = true;
-        // });
         this.connection = connection;
         console.log('链接成功', this.connection);
       }).catch((error) => {
@@ -288,35 +407,6 @@ export class MSService {
       console.log('设备未连接不能操作');
     }
   }
-  // 设备参数获取
-  public setDeviceParameterValue(data) {
-    const sensorMpa = data[14] / data[15] || 0;
-    const sensorMm = data[14] / data[16] || 0;
-    this.deviceParameter = {
-      dataArr: data,
-      mpaUpperLimit: PLC2Value(data[0], sensorMpa),
-      returnMpa: PLC2Value(data[1], sensorMpa),
-      settingMpa: PLC2Value(data[2], sensorMpa),
-      oilPumpDelay: PLC100ms2s(data[3]),
-      mmUpperLimit: PLC2Value(data[4], sensorMm),
-      mmLowerLimit: PLC2Value(data[5], sensorMm),
-      mmWorkUpperLimit: PLC2Value(data[6], sensorMm),
-      mmWorkLowerLimit: PLC2Value(data[7], sensorMm),
-      maximumDeviationRate: data[8],
-      LowerDeviationRate: data[9],
-      mpaDeviation: PLC2Value(data[10], sensorMpa),
-      mmBalanceControl: PLC2Value(data[11], sensorMm),
-      mmReturnLowerLimit: PLC2Value(data[12], sensorMm),
-      unloadingDelay: PLC100ms2s(data[13]),
-      simulationValue: data[14],
-      mpaSensorUpperLimit: data[15],
-      mmSensorUpperLimit: data[16],
-      mpaCoefficient: sensorMpa,
-      mmCoefficient: sensorMm
-    };
-    // localStorage.setItem('DeviceParameter', JSON.stringify(deviceParameter));
-    console.log('设备参数', this.deviceParameter);
-  }
   private commError() {
     console.log('通信中断', this.runTensionData.stage, this.state);
     if (this.runTensionData.stage) {
@@ -331,18 +421,19 @@ export class MSService {
   private setShowValue(data, i) {
     // console.log('实时数据');
     this.showValues[`a${i}`].plcMpa = data[0];
-    this.showValues[`b${i}`].plcMpa = data[2];
     this.showValues[`a${i}`].mpa = this.PLC2Value(data[0], 'mpa', `a${i}`);
     this.showValues[`a${i}`].mm = this.PLC2Value(data[1], 'mm', `a${i}`);
+    this.showValues[`a${i}`].alarmNumber = data[4];
+    this.showValues[`a${i}`].alarm = this.setAlarm(data[4].toString(2).padStart(6, '0'));
+    this.showValues[`a${i}`].state = autoState[data[6]];
+    this.showValues[`a${i}`].setPLCMpa = data[8];
+
+    this.showValues[`b${i}`].plcMpa = data[2];
     this.showValues[`b${i}`].mpa = this.PLC2Value(data[2], 'mpa', `b${i}`);
     this.showValues[`b${i}`].mm = this.PLC2Value(data[3], 'mm', `b${i}`);
-    this.showValues[`a${i}`].alarmNumber = data[4];
     this.showValues[`b${i}`].alarmNumber = data[5];
-    this.showValues[`a${i}`].alarm = this.setAlarm(data[4].toString(2).padStart(6, '0'));
     this.showValues[`b${i}`].alarm = this.setAlarm(data[5].toString(2).padStart(6, '0'));
-    this.showValues[`a${i}`].state = autoState[data[6]];
     this.showValues[`b${i}`].state = autoState[data[7]];
-    this.showValues[`a${i}`].setPLCMpa = data[8];
     this.showValues[`b${i}`].setPLCMpa = data[9];
     if (!this.runTensionData.selfState) {
       // 自动张拉监控
@@ -531,7 +622,7 @@ export class MSService {
       }
       if (this.showValues[name].state === '压力确认完成') {
         this.showValues[name].affirmMm = this.showValues[name].mm;
-        console.log(name,  this.showValues[name].affirmMm, '压力确认完成');
+        console.log(name, this.showValues[name].affirmMm, '压力确认完成');
         let id = 1;
         let address = 414;
         const f06 = 0;
@@ -543,7 +634,7 @@ export class MSService {
           id = 2;
           address = 415;
         }
-        this.connection.invoke('F06', {id: id, address: address, F06: f06});
+        this.connection.invoke('F06', { id: id, address: address, F06: f06 });
       }
       if (this.showValues[name].state === '超工作位移上限') {
         this.returnMmOk = false;

@@ -1,3 +1,9 @@
+/**
+ * Id
+ *
+ * @param {string} id 数据Id
+ * @interface Base
+ */
 export interface Base {
   id?: string;
 }
