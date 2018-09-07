@@ -1,12 +1,11 @@
-import { Component, OnInit, Inject, ViewChild, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';
-import { HubConnectionBuilder, HubConnection } from '@aspnet/signalr';
+import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';
 import { MSService } from '../../services/MS.service';
-import { setCvs } from '../../utils/cvsData';
-import { Value2PLC } from '../../utils/PLC8Show';
-import { Router } from '@angular/router';
-import { runTensionData, showValues } from '../../model/live.model';
+import { Router, ActivatedRoute, Params } from '@angular/router';
 import { CanvasCvsComponent } from '../../shared/canvas-cvs/canvas-cvs.component';
 import { NzModalService } from 'ng-zorro-antd';
+import { AutoControlData, AutoControl } from '../../utils/autoTension';
+import { Observable } from 'rxjs';
+import { funcSumData } from '../../model/live.model';
 
 @Component({
   selector: 'app-tension',
@@ -15,170 +14,302 @@ import { NzModalService } from 'ng-zorro-antd';
 })
 export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('cvs')
-    private  elementCvs: ElementRef;
+  private elementCvs: ElementRef;
   @ViewChild(CanvasCvsComponent)
-    private cvs: CanvasCvsComponent;
-
+  private cvs: CanvasCvsComponent;
+  /** 曲线宽高 */
   heightCvs: any;
   widthCvs: any;
-  msg = 500;
-  messages = '';
-  connection: HubConnection;
+  /** 弹出框 */
+  modalState = {
+    ready: false,
+    stop: false,
+    goBack: false,
+    done: false,
+    doneTime: 5,
+  };
+  /** 数据下载状态 */
+  upPlcState = false;
+  /** 自检循环监控 */
+  selfT: any;
+  /** 定时器 */
+  /** 张拉监控 */
+  runT: any;
+  /** 保压 */
+  pmT: any;
+  /** 卸荷 */
+  loadOffT: any;
+  /** 完成跳转延时 */
+  doneT: any;
+  /** 实时数据保存 */
+  liveT: any;
 
-  runTension = {
-    runState: true,
-  };
-  autoControl = {
-    maximumDeviationRate: 0,
-    LowerDeviationRate: 0,
-    mpaDeviation: 0,
-    mmBalanceControl: 0,
-    mmReturnLowerLimit: 0,
-    unloadingDelay: 0,
-  };
-  stop = false;
+  bridgeName = '梁号';
+  autoData: AutoControlData;
 
   ngOnDestroy(): void {
     console.log('自动结束');
-    this._ms.passSate = false;
-    if (this.stop) {
-      this._ms.DF05(520, false);
-      this._ms.DF05(10, false);
-      this._ms.ExitTension();
-    }
+    clearInterval(this.selfT);
+    clearInterval(this.runT);
+    clearInterval(this.pmT);
+    clearInterval(this.loadOffT);
+    clearInterval(this.doneT);
+    clearInterval(this.liveT);
   }
   constructor(
     public _ms: MSService,
     private _router: Router,
     private modal: NzModalService,
-  ) { }
+    private activatedRoute: ActivatedRoute,
+  ) {
+    this.activatedRoute.queryParams.subscribe((params: Params) => {
+      this.bridgeName = params['bridgeName'];
+      const autoData = JSON.parse(localStorage.getItem('autoData'));
+      this.autoData = new AutoControl(autoData).data;
+      console.log('路由数据', autoData, this.autoData);
+    });
+
+  }
 
   ngOnInit() {
-    // this.tensionData = JSON.parse(localStorage.getItem('nowTensionData'));
-    // this._ms.tensionData = this.tensionData;
-    // console.log(this.tensionData);
-    this.upPLC();
-    document.addEventListener('testEvent', () => {
-      console.log('自检全部完成！！！');
-      if (!this._ms.runTensionData.state) {
-        this.onRunTension(true);
+
+  }
+  ngAfterViewInit() {
+    this.widthCvs = this.elementCvs.nativeElement.offsetWidth;
+    this.heightCvs = this.elementCvs.nativeElement.offsetHeight - 2;
+    console.log(this.heightCvs, this.widthCvs);
+  }
+  /** 取消张拉 */
+  readyCancel() {
+    history.go(-1);
+  }
+  /** 启动张拉 */
+  tensionRun() {
+    this.UPPLCMpa().subscribe(() => {
+      console.log('下载完成');
+      this.self();
+    }, () => {
+      console.error('数据下载错误！！！');
+      this.tensionRun();
+    });
+  }
+
+  /** 压力上载到PLC */
+  UPPLCMpa(): Observable<void> {
+    this.upPlcState = true;
+    const data = {
+      address: 410,
+      mode: this.autoData.task.mode,
+      a1: 0,
+      a2: 0,
+      b1: 0,
+      b2: 0
+    };
+    for (const name of this.autoData.data.modeStr) {
+      data[name] = this.autoData.data.PLCMpa[name][this.autoData.state.stage];
+    }
+    console.log(data, '下载数据');
+    return new Observable((ob) => {
+      this._ms.connection.invoke('UpMpaAsync', data).then((r) => {
+        console.log('返回', r);
+        this.upPlcState = false;
+        for (const name of this.autoData.data.modeStr) {
+          if (this._ms.Dev[name].liveData.setPLCMpa !== data[name]) {
+            console.error(name, this._ms.Dev[name].liveData.setPLCMpa, data[name]);
+            ob.error();
+          }
+        }
+        ob.next();
+      });
+    });
+  }
+
+  /** 设备自检 */
+  self() {
+    this.liveSave();
+    const live = this._ms.Dev;
+    const state = this.autoData.state;
+    state.self = true;
+    state.selfError = false;
+    this.autoData.state.self = true;
+    this._ms.connection.invoke('DF05Async', { address: 527, F05: true }).then((r) => {
+      this.selfT = setInterval(() => {
+        let rState = true;
+        console.log('自检中');
+        for (const name of this.autoData.data.modeStr) {
+          if (live[name].liveData.state === '自检错误') {
+            state.selfError = true;
+            clearInterval(this.selfT);
+          }
+          if (live[name].liveData.state !== '自检完成') {
+            rState = false;
+          }
+        }
+        if (rState) {
+          clearInterval(this.selfT);
+          // alert('自检完成');
+          this.start();
+        }
+      }, 200);
+    });
+  }
+  /** 开始张拉 */
+  start() {
+    this.autoData.state.run = true;
+    this._ms.connection.invoke('AutoStartAsync').then(() => {
+    });
+    this.pmMonitoring();
+  }
+  /** 张拉监控 */
+  pmMonitoring() {
+    const state = this.autoData.state;
+    const dev = this._ms.Dev;
+    this.runT = setInterval(() => {
+      for (const name of this.autoData.data.modeStr) {
+        console.log(name, state.pm, dev[name].liveData.state, (dev[name].liveData.state === '保压' || dev[name].liveData.state === '补压'));
+        if (dev[name].liveData.state !== '保压' && dev[name].liveData.state !== '补压') {
+          return;
+        }
+      }
+      // alert('保压');
+      this.runPm();
+      clearInterval(this.runT);
+    }, 500);
+  }
+  /** 保压 */
+  runPm() {
+    const data = this.autoData;
+    data.state.pm = true;
+
+    this.pmT = setInterval(() => {
+      data.record.time[data.state.stage] ++;
+      if (data.data.time[data.state.stage] === data.record.time[data.state.stage]) {
+        this.donePm();
+        clearInterval(this.pmT);
+      }
+    }, 1000);
+  }
+  /** 保压完成 */
+  donePm() {
+    const data = this.autoData;
+    console.log(data.state.stage, data.record.time.length - 1);
+    // alert('保压完成');
+    if (data.state.stage === data.record.time.length - 1) {
+      data.state.tensionDone = true;
+      this.runLoadOff();
+    } else {
+      data.state.stage ++;
+      this.autoData.record.stage ++;
+      this.UPPLCMpa().subscribe(() => {
+        this.pmMonitoring();
+      }, () => {
+        console.error('数据下载错误！！！');
+        this.tensionRun();
+      });
+    }
+  }
+  /** 启动卸荷 */
+  runLoadOff() {
+    const data = this.autoData.data;
+    const state = this.autoData.state;
+    const dev = this._ms.Dev;
+    const mpa = {
+      aeeress: 412,
+      mode: this.autoData.task.mode,
+      a1: 0,
+      a2: 0,
+      b1: 0,
+      b2: 0
+    };
+    for (const name of data.modeStr) {
+      mpa[name] = data.PLCMpa[0];
+    }
+    state.loadOffState = true;
+    this._ms.connection.invoke('LoadOffAsync', mpa).then((r) => {
+      console.log('卸荷请求返回', r);
+
+      for (const name of this.autoData.data.modeStr) {
+        if (!state.loadOffDone && dev[name].liveData.state !== '卸荷中' && dev[name].liveData.state !== '卸荷完成') {
+          console.log(name, dev[name].liveData.state);
+          this.runLoadOff();
+          return;
+        } else {
+          if (state.loadOffDone) {
+            return;
+          }
+          // alert('卸荷延时');
+          state.loadOffDone = true;
+          this.delayLoadOff();
+        }
       }
     });
   }
-  ngAfterViewInit() {
-    this.heightCvs = this.elementCvs.nativeElement.offsetHeight - 5;
-    this.widthCvs = this.elementCvs.nativeElement.offsetWidth - 5;
-    console.log(this.heightCvs, this.widthCvs);
+  /** 卸荷延时 */
+  delayLoadOff() {
+    this.loadOffT = setInterval(() => {
+      this.autoData.state.loadOffTime ++;
+      if (this.autoData.state.loadOffTime === this.autoData.data.loadOffTime) {
+        clearInterval(this.loadOffT);
+        clearInterval(this.liveT);
+        // alert('卸荷完成');
+        this.returnStartMpa();
+        this.returnBack();
+      }
+    }, 1000);
   }
-  upPLC() {
-    this._ms.runTensionData = JSON.parse(JSON.stringify(runTensionData)); // 初始化自动张拉数据
-    // this.autoControl.maximumDeviationRate = this._ms.deviceParameter.maximumDeviationRate;
-    // this.autoControl.LowerDeviationRate = this._ms.deviceParameter.LowerDeviationRate;
-    // this.autoControl.mpaDeviation = this._ms.deviceParameter.mpaDeviation;
-    // this.autoControl.mmReturnLowerLimit = this._ms.deviceParameter.mmReturnLowerLimit;
-    // this._ms.runTensionData.mmBalanceControl = this._ms.deviceParameter.mmBalanceControl;
-    // this._ms.runTensionData.LodOffTime = this._ms.deviceParameter.unloadingDelay;
-    // this._ms.mmReturnLowerLimit = this._ms.deviceParameter.mmReturnLowerLimit;
-    // this._ms.showValues = JSON.parse(JSON.stringify(showValues));
-    this._ms.passSate = false;
-    this._ms.upPLC();
-    if (this._ms.recordData.stage > 0) {
-      this._ms.affirmMpaUpPLC();
-    }
-    console.log('预备', this._ms.tensionData, this._ms.runTensionData, this._ms.recordData, this._ms.deviceParameter, this._ms.showValues);
-  }
-  onCancelTension() {
-    console.log('取消张拉');
-    this._ms.runTensionData.returnState = false;
-    this.stop = true;
-    history.go(-1);
-  }
-  // 启动张拉
-  onRunTension(s = false) {
-    // this.cvs.delayCvs();
-    console.log('启动张拉', this._ms.tensionData.mode);
-    if (s) {
-      // this._ms.saveCvs();
-      this._ms.connection.invoke('AutoF05', { mode: this._ms.tensionData.mode, address: 520, F05: true });
-      console.log('MS请求');
-      this.runTension.runState = false;
-      this._ms.runTensionData.state = true;
-      this.modal.closeAll();
-      // document.dispatchEvent(new Event('cvsStartEvent'));
-    } else {
-      this._ms.runTensionData.selfState = true;
-      this._ms.connection.invoke('AutoF05', { mode: this._ms.tensionData.mode, address: 527, F05: true });
-    }
-  }
-  onSet(address: number, event, make?) {
-    console.log(address);
-    let value = event.target.valueAsNumber;
-    if (make === 'mpa') {
-      value = Value2PLC(value, this._ms.deviceParameter.mpaCoefficient, 5);
-    } else if (make === 'mm') {
-      value = Value2PLC(value, this._ms.deviceParameter.mmCoefficient, 40);
-    }
-    this._ms.SetDeviceParameter(address, value, (r) => {
-      console.log(r);
+  /** 回程 */
+  returnBack() {
+    this._ms.connection.invoke('AutoDoneAsync').then((r) => {
+      const dev = this._ms.Dev;
+      console.log('回程', r);
+      for (const name of this.autoData.data.modeStr) {
+        if ((dev[name].liveData.state === '回程中')) {
+        }
+      }
+      console.log(this.autoData);
+      this.modalState.done = true;
+      // alert('跳转');
+      this.doneT = setInterval(() => {
+        this.modalState.doneTime --;
+        if (this.modalState.doneTime >= 0) {
+          clearInterval(this.doneT);
+          history.go(-1);
+        }
+      }, 1000);
     });
   }
-  onStop() {
-    this.stop = true;
-    history.go(-1);
+  /** 实时数据保存 */
+  liveSave() {
+    this.liveT = setInterval(() => {
+      const record = this.autoData.record;
+      const data = this.autoData.data;
+      const state = this.autoData.state;
+      const dev = this._ms.Dev;
+      const time = new Date().getTime();
+      record.cvsData.time.push(time);
+      data.modeStr.forEach(name => {
+        record.cvsData.mpa[name].push(dev[name].liveData.mpa);
+        record.cvsData.mm[name].push(dev[name].liveData.mm);
+        if (!state.tensionDone) {
+          record.mpa[name][state.stage] = dev[name].liveData.mpa;
+          record.mm[name][state.stage] = dev[name].liveData.mm;
+        }
+      });
+      if (state.stage > 0 && !state.tensionDone) {
+        this.autoData.sumData = funcSumData(record.mm, this.autoData.task, state.stage);
+      }
+      this.cvs.updataCvs(record.cvsData);
+    }, 1000);
   }
-  onAutoReturn() {
-    this._ms.runTensionData.returnState = false;
-    // 返回上一页
-    history.go(-1);
-  }
-  // 暂停启动
-  onStop2run() {
-    this._ms.connection.invoke('Stop2Run');
-    if (this._ms.runTensionData.loadOffDelayState) {
-      this.connection.invoke('LoadOffDelay', this._ms.runTensionData.LodOffTime);
-    }
-    console.log('MS请求');
-  }
-  onSaveExit() {
-    console.log('保存退出');
-    this._ms.saveRecordDb(true);
-    this._router.navigate(['/manual']);
-  }
-  // 不保存数据退出
-  onExit() {
-    this.stop = true;
-    this._router.navigate(['/manual']);
-  }
-  // 回顶
-  onReturn() {
-    this._ms.connection.invoke('ReturnSetMm', { F06: this._ms.Value2PLC(this._ms.mmReturnLowerLimit, 'mm', 'a1') });
-    this._ms.saveRecordDb(true, true);
-  }
-  // 继续张拉
-  onContinue() {
-    // this._ms.recordData = JSON.parse(localStorage.getItem('TData'));
-    // this._ms.tensionData = JSON.parse(localStorage.getItem('TResedData'));
-    console.log(JSON.parse(localStorage.getItem('TData')), JSON.parse(localStorage.getItem('TResedData')));
-    this.upPLC();
-    this.onRunTension();
-  }
-
-
-  F05(id, address, data) {
-    this._ms.connection.invoke('F05', { Id: id, Address: address, F05: data });
-    console.log('MS请求');
-  }
-  F01(id, address, data) {
-    this._ms.connection.invoke('F01', { Id: id, Address: address, F01: data });
-    console.log('MS请求');
-    // for (let index = 0; index < 100; index++) {
-    // }
-    console.log(id, data);
-  }
-  Test() {
-    this._ms.connection.invoke('Test');
-    console.log('MS请求');
-    // for (let index = 0; index < 100; index++) {
-    // }
+  /** 回油值初张拉数据保存 */
+  returnStartMpa() {
+    const record = this.autoData.record;
+    const data = this.autoData.data;
+    const dev = this._ms.Dev;
+    data.modeStr.forEach(name => {
+      record.returnStart[name].mpa = dev[name].liveData.mpa;
+      record.returnStart[name].mm = dev[name].liveData.mm;
+    });
   }
 }
+

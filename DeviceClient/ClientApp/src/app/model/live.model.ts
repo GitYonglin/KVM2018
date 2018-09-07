@@ -1,5 +1,7 @@
 import { N2F } from '../utils/toFixed';
 import { deviceModes } from './device.model';
+import { PLCLive } from '../utils/PLC8Show';
+import { HoleGroup } from './task.model';
 
 export const manualState = ['待机', '张拉中', '卸荷中', '回程中', '保压'];
 export const autoState = ['待机', '张拉中', '卸荷中', '回程中', '保压', '卸荷完成', '补压', '压力确认', '回顶', '回顶完成', '平衡暂停',
@@ -7,6 +9,13 @@ export const autoState = ['待机', '张拉中', '卸荷中', '回程中', '保�
                           '张拉暂停', '超工作位移上限', '回顶完成'
 ];
 export const liveState = ['初张拉', '阶段一', '阶段二', '阶段三', '终张拉', '超张拉', '卸荷', '回程'];
+
+export interface Dev {
+  a1?: PLCLive;
+  a2?: PLCLive;
+  b1?: PLCLive;
+  b2?: PLCLive;
+}
 export interface ShowValues {
   a1: ShowValuesItem;
   a2: ShowValuesItem;
@@ -75,14 +84,27 @@ export interface SumData {
   b2?: SumItem;
 }
 interface SumItem {
-  mm: number;
+  /** 单顶位移 */
+  mm?: number;
+  /** 总伸长量 */
   sum?: number;
+  /** 总偏差率 */
   deviation?: number;
+  /** 单顶偏差值 */
   sub?: number;
 }
 // 伸长量 = 100% - 10% + %20 - 10% - 内缩值 - 工作端伸长量
 // 偏差率 = (总伸长量 - 理论伸长量) / 理论伸长量 * 100
-export function funcSumData(mm, task, stage = 0): SumData {
+/**
+ * 伸长量/偏差率
+ *
+ * @export
+ * @param {RecordMode} mm 记录位移数据
+ * @param {HoleGroup} task 任务孔组
+ * @param {number} [stage=1] 当前张拉阶段
+ * @returns {SumData}
+ */
+export function funcSumData(mm: RecordMode, task: HoleGroup, stage: number = 1): SumData {
   const r: SumData = {};
   const mode = [];
   // tslint:disable-next-line:forin

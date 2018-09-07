@@ -11,7 +11,7 @@ import { LiveData } from '../model/live';
  * @returns {number} 返回PLC值
  */
 export function Value2PLC(value: number, sensor: number, MpaMm: number = 5, correction: number[] = null): number {
-  // return Math.round(value * sensor) || 0;
+  console.log(value, sensor, MpaMm, correction);
   const item = value * sensor;
   // console.log('88888888', correction, correction[Math.round(value / 40)]);
   if (correction === null) {
@@ -96,7 +96,7 @@ export class PLCLive {
   public sensorInit(sensorMpa: number, sensorMm: number) {
     this.sensorMm = sensorMm;
     this.sensorMpa = sensorMpa;
-    console.log(this.sensorMm, this.sensorMpa);
+    console.log('获取传感器系数', this.sensorMm, this.sensorMpa);
   }
   /**
    * PLC值转mm
@@ -118,15 +118,6 @@ export class PLCLive {
   public PLC2Mpa(value: number): number {
     return PLC2Value(value, this.sensorMpa, this.mpaPace, this.correction.mpa);
   }
-  private PLC2Value(value: number, sensor: number, MpaMm, correction: number[]): number {
-    const item = value / sensor;
-    // console.log(value, sensor, MpaMm, correction, item, Math.round(item / MpaMm));
-    if (correction === null) {
-      return Number(item.toFixed(2)) || 0;
-    } else {
-      return Number((item * correction[Math.round(item / MpaMm)]).toFixed(2)) || 0;
-    }
-  }
 
   /**
    * mm转PLC值
@@ -146,15 +137,6 @@ export class PLCLive {
   public Mpa2PLC(value: number): number {
     return Value2PLC(value, this.sensorMpa, this.mpaPace, this.correction.mpa);
   }
-  Value2PLC(value: number, sensor: number, MpaMm, correction: number[]): number {
-    const item = value * sensor;
-    if (correction === null) {
-      return Math.round(item) || 0;
-    } else {
-      return Math.round((item / correction[Math.round(value / MpaMm)])) || 0;
-    }
-  }
-
   public liveDataFunc(data: Array<number>) {
     // console.log(this.correction, this.sensorMm, this.sensorMpa, this.liveData);
     // console.log(data);

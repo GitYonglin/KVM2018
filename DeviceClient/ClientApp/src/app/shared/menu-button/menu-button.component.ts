@@ -72,9 +72,31 @@ export class MenuButtonComponent implements OnInit {
   }
   onConnect(e) {
     console.log(e);
-    localStorage.setItem('connect', e);
-    this._ms.connection.invoke('Creates', e === '2');
-    this._ms.newPLCLive();
+    if (this._app.editState) {
+      this.modalService.create({
+        nzTitle: '编辑中',
+        nzContent: '正在编辑中...，先完成编辑操作！',
+        nzClosable: true,
+        nzOnOk: () => {
+          this.connectRadio = this.connectRadio === '1' ? '2' : '1';
+        }
+      });
+    } else {
+      this.modalService.create({
+        nzTitle: '联机模式修改',
+        nzContent: '切换联机模式需要重新登陆，确定切换并重新登陆吗？',
+        // nzClosable: false,
+        nzOnOk: () => {
+          this._app.editState = false;
+          localStorage.setItem('connect', e);
+          // this._ms.connection.invoke('Creates', e === '2');
+          window.location.href = '/';
+        },
+        nzOnCancel: () => {
+          this.connectRadio = this.connectRadio === '1' ? '2' : '1';
+        }
+      });
+    }
   }
   goLogin() {
     if (this._app.editState) {

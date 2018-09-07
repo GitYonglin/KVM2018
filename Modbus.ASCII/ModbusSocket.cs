@@ -62,6 +62,9 @@ namespace Modbus.ASCII
         /// 设备链接失败回调事件
         /// </summary>
         public event EventDL ModbusLinkError;
+        /// <summary>
+        /// 请求数据队列
+        /// </summary>
         public List<ListSendData> listSands = new List<ListSendData>();
         public string socketId { get; set; }
         private Boolean ReviceState { get; set; } = true;
@@ -169,23 +172,6 @@ namespace Modbus.ASCII
                     Client.Send(bs);
                     Client.Receive(ReviceByte);
                     returnReceive?.Invoke(ReviceByte);
-                    //returnReceive?.Invoke(new CallbackData { Bytes = ReviceByte });
-                    //if (returnReceive != null && ReviceState)
-                    //{
-                    //    Client.Receive(ReviceByte);
-                    //}
-                    //Client.Send(bs);
-                    //if (returnReceive != null)
-                    //{
-                    //    Client.Receive(ReviceByte);
-                    //    //string receiveStr = Encoding.ASCII.GetString(ReviceByte, 0, bytesRec);
-                    //    returnReceive?.Invoke(new CallbackData { Bytes = ReviceByte });
-                    //    ReviceState = false;
-                    //}
-                    //else
-                    //{
-                    //    ReviceState = true;
-                    //}
                 }
                 catch (SocketException ex)
                 {
@@ -230,16 +216,6 @@ namespace Modbus.ASCII
                 listSands.Clear();
                 socketId = DateTime.Now.ToString();
                 ModbusLinkSuccess?.Invoke(this.Name, $"{Name}链接成功");
-                //Finit();
-                // 心跳包保证链接
-                //Task.Run(() =>
-                //{
-                //    while (Client != null && Client.Connected && IsSuccess)
-                //    {
-                //        Finit();
-                //        Thread.Sleep(2000);
-                //    }
-                //});
             }
             else
             {

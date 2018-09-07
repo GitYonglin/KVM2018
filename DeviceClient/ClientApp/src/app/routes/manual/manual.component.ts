@@ -5,6 +5,7 @@ import { MSService } from '../../services/MS.service';
 import { Router, NavigationEnd, ActivatedRoute } from '@angular/router';
 import { DeviceItemComponent } from './device-item/device-item.component';
 import { N2F } from '../../utils/toFixed';
+import { NzMessageService } from 'ng-zorro-antd';
 
 @Component({
   selector: 'app-manual',
@@ -13,7 +14,7 @@ import { N2F } from '../../utils/toFixed';
 })
 export class ManualComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChildren(DeviceItemComponent)
-    private deviceItems: QueryList<DeviceItemComponent>;
+  private deviceItems: QueryList<DeviceItemComponent>;
   deviceItem: DeviceItemComponent;
   devices = [];
   a1 = {
@@ -44,6 +45,12 @@ export class ManualComponent implements OnInit, OnDestroy, AfterViewInit {
     nowMpa: 5,
     nowMm: 10,
   };
+  btn = {
+    a1: true,
+    a2: true,
+    b1: true,
+    b2: true,
+  };
   nowValue = 0;
   realityValue = 0;
   correctionValue = 0;
@@ -60,40 +67,75 @@ export class ManualComponent implements OnInit, OnDestroy, AfterViewInit {
   resetMm: 0;
 
   @Input()
-    deviceData: any;
+  deviceData: any;
   @Output()
-    saveCorrectionValue =  new EventEmitter<any>();
+  saveCorrectionValue = new EventEmitter<any>();
 
   constructor(
     private _service: APIService,
     public _ms: MSService,
-    private _router: ActivatedRoute
-  ) { }
+    private _router: ActivatedRoute,
+    private message: NzMessageService,
+  ) {
+    try {
+      this._ms.connection.invoke('DF03Async', { address: 10, F03: 4 }).then((r) => {
+        console.log('获取手动设置数据', r);
+        const dev = this._ms.Dev;
+        if (r.z) {
+          this.a1.setMpa = dev.a1.PLC2Mpa(r.z[0]);
+          this.a1.setMm = dev.a1.PLC2Mm(r.z[1]);
+          if (dev.b1) {
+            this.b1.setMpa = dev.b1.PLC2Mpa(r.z[2]);
+            this.b1.setMm = dev.b1.PLC2Mm(r.z[3]);
+          }
+        }
+        if (r.c) {
+          console.log('从站', r.c);
+          if (dev.a2) {
+            this.a2.setMpa = dev.a2.PLC2Mpa(r.c[0]);
+            this.a2.setMm = dev.a2.PLC2Mm(r.c[1]);
+          }
+          if (dev.b2) {
+            this.b2.setMpa = dev.b2.PLC2Mpa(r.c[2]);
+            this.b2.setMm = dev.b2.PLC2Mm(r.c[3]);
+          }
+        }
+      });
+    } catch (error) {
+      console.log('设备没有连接！', error);
+    }
+  }
 
   ngOnInit() {
     // this.deviceParameter = JSON.parse(localStorage.getItem('DeviceParameter'));
     console.log('123232333333', this._ms.deviceParameter);
     this._ms.DF05(11, false);
     this._ms.DF05(10, true);
-    this._ms.DF03(10, 4);
-    try {
-      this._ms.connection.on('F03Return', (r) => {
-        console.log('主站1234567890', r.data);
-        if (r.name === '主站') {
-          this.a1.setMpa = this._ms.PLC2Value(r.data[0], 'mpa', 'a1');
-          this.a1.setMm = this._ms.PLC2Value(r.data[1], 'mm', 'a1');
-          this.b1.setMpa = this._ms.PLC2Value(r.data[2], 'mpa', 'b1');
-          this.b1.setMm = this._ms.PLC2Value(r.data[3], 'mm', 'b1');
-        } else {
-          console.log('从站', r.data);
-          this.a2.setMpa = this._ms.PLC2Value(r.data[0], 'mpa', 'a2');
-          this.a2.setMm = this._ms.PLC2Value(r.data[1], 'mm', 'a2');
-          this.b2.setMpa = this._ms.PLC2Value(r.data[2], 'mpa', 'b2');
-          this.b2.setMm = this._ms.PLC2Value(r.data[3], 'mm', 'b2');
-        }
-      });
-    } catch (error) {
-    }
+    // this._ms.connection.invoke('F03', {id: 1, address: 10, F03: 4});
+    // this._ms.connection.invoke('F03', {id: 2, address: 10, F03: 4});
+    // this._ms.connection.on('F03Return', (r) => {
+    //   console.log('获取手动设置数据F03', r);
+    //   const dev = this._ms.Dev;
+    //   if (r.name === '主站') {
+    //     this.a1.setMpa = dev.a1.PLC2Mpa(r.data[0]);
+    //     this.a1.setMm = dev.a1.PLC2Mm(r.data[1]);
+    //     if (dev.b1) {
+    //       this.b1.setMpa = dev.b1.PLC2Mpa(r.data[2]);
+    //       this.b1.setMm = dev.b1.PLC2Mm(r.data[3]);
+    //     }
+    //   }
+    //   if (r.name === '从站') {
+    //     if (dev.a2) {
+    //       this.a2.setMpa = dev.a2.PLC2Mpa(r.data[0]);
+    //       this.a2.setMm = dev.a2.PLC2Mm(r.data[1]);
+    //     }
+    //     if (dev.b2) {
+    //       this.b2.setMpa = dev.b2.PLC2Mpa(r.data[2]);
+    //       this.b2.setMm = dev.b2.PLC2Mm(r.data[3]);
+    //     }
+    //   }
+    // });
+
     this._service.get('/device').subscribe(p => {
       console.log('000000000', p);
       if (p) {
@@ -112,17 +154,9 @@ export class ManualComponent implements OnInit, OnDestroy, AfterViewInit {
   }
   ngAfterViewInit() {
   }
-  onA1State() {
-    this.a1.state = !this.a1.state;
-  }
-  onA2State() {
-    this.a2.state = !this.a2.state;
-  }
-  onB1State() {
-    this.b1.state = !this.b1.state;
-  }
-  onB2State() {
-    this.b2.state = !this.b2.state;
+  onState(name) {
+    this[name].state = !this[name].state;
+    this.btn[name] = this[name].state;
   }
   onEnforcement() {
     this.enforcement = !this.enforcement;
@@ -142,15 +176,15 @@ export class ManualComponent implements OnInit, OnDestroy, AfterViewInit {
     this.a2.state = false;
     this.b1.state = false;
     this.b2.state = false;
-    this.deviceItem = this.deviceItems.filter( d => d.name === name)[0];
+    this.deviceItem = this.deviceItems.filter(d => d.name === name)[0];
     this.deviceItem.data.state = true;
   }
   // 校正项选择
   public onSetCorrection(name: string, key: string, i) {
     this.nowSetItem = name;
     this.nowKey = key;
-    const reg  = /\[(.+?)\]/;
-    this.correctionIndex  = key.match(reg)[1];
+    const reg = /\[(.+?)\]/;
+    this.correctionIndex = key.match(reg)[1];
     if (name.indexOf('Mpa') !== -1) {
       this.deviceItem.data.setMpa = Number(name.slice(0, name.length - 3));
       this.deviceItem.data.setMm = 0;
@@ -158,8 +192,8 @@ export class ManualComponent implements OnInit, OnDestroy, AfterViewInit {
       this.deviceItem.data.setMm = Number(name.slice(0, name.length - 2));
       this.deviceItem.data.setMpa = 3;
     }
-    this.deviceItem.onSet('mpa');
-    this.deviceItem.onSet('mm');
+    this.deviceItem.onSetMm();
+    this.deviceItem.onSetMpa();
   }
   // 保存校正值
   onSaveCorrectionValue() {
@@ -168,14 +202,14 @@ export class ManualComponent implements OnInit, OnDestroy, AfterViewInit {
     } else {
       this.deviceData[this.correctionName].correction.mm[this.correctionIndex] = this.correctionValue;
     }
-    this.saveCorrectionValue.emit({key: this.nowKey, value: this.correctionValue});
+    this.saveCorrectionValue.emit({ key: this.nowKey, value: this.correctionValue });
     this._ms.nowDevice = this.deviceData;
   }
   // 计算校准值
   calculate() {
-    this.correctionValue = Number(( this.realityValue / this.nowValue ).toFixed(4));
+    this.correctionValue = Number((this.realityValue / this.nowValue).toFixed(4));
   }
-  // 获取设备值
+  // 校正获取设备值
   getNowValue() {
     const name = this.nowSetItem;
     if (name.indexOf('Mpa') !== -1) {
@@ -188,11 +222,17 @@ export class ManualComponent implements OnInit, OnDestroy, AfterViewInit {
   }
   // 切换泵顶组
   onSwitchDevice() {
-    localStorage.setItem('nowDevice', this.selectDeviceId);
-    this._service.get(`/device/${this.selectDeviceId}`).subscribe(r => {
-      this.deviceData = r;
-      this._ms.nowDevice = this.deviceData;
+    this._ms.setDevice(this.selectDeviceId, (r) => {
+      if (r) {
+        this.message.create('success', `设备切换成功！`);
+      } else {
+        this.message.create('error', `设备切换错误！`);
+      }
     });
-    console.log(this.deviceData);
+    // this._service.get(`/device/${this.selectDeviceId}`).subscribe(r => {
+    //   this.deviceData = r;
+    //   this._ms.nowDevice = this.deviceData;
+    // });
+    // console.log(this.deviceData);
   }
 }

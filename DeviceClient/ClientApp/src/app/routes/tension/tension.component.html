@@ -11,7 +11,7 @@
   <div>
     <header>
       <app-menu-button></app-menu-button>
-      <h1>梁:{{_ms.tensionData.bridgeName}} 孔号:{{_ms.tensionData.holeName}}</h1>
+      <h1>梁:{{bridgeName}} 孔号:{{autoData.task.name}}</h1>
       <div></div>
     </header>
     <hr>
@@ -19,34 +19,31 @@
   <main>
     <div>
       <header class="live-stage">
-        <div *ngFor="let item of _ms.liveState; index as i" class="item">
+        <div *ngFor="let item of autoData.data.stageSrt; index as i" class="item">
           <div class="top">
-            <button nz-button [nzType]=" _ms.recordData.stage >= i ? 'primary': 'dashed'" nzShape="circle">{{item}}</button>
-            <nz-progress [nzPercent]="(_ms.recordData.time[i] / _ms.tensionData.checkData.time[i]) * 100"  [nzStatus]="'active'" [nzShowInfo]="false" ></nz-progress>
-            <span style="font-size: 22px;">{{_ms.recordData.time[i]}} / {{_ms.tensionData.checkData.time[i]}}</span>
+            <button nz-button [nzType]=" autoData.state.stage >= i ? 'primary': 'dashed'" nzShape="circle">{{item}}</button>
+            <nz-progress [nzPercent]="(autoData.record.time[i] / autoData.data.time[i]) * 100" [nzStatus]="'active'" [nzShowInfo]="false"></nz-progress>
+            <span style="font-size: 22px;">{{autoData.record.time[i]}} / {{autoData.data.time[i]}}</span>
           </div>
           <div class="bottom">
             <!-- <p>延时30/30</p> -->
           </div>
         </div>
         <div class="item">
-            <div class="top">
-              <button nz-button [nzType]=" _ms.runTensionData.loadOffDelayState || _ms.autoVerifyLoadOff ? 'primary': 'dashed'" nzShape="circle">卸荷</button>
-              <nz-progress [nzPercent]="(_ms.runTensionData.nowLodOffTime / _ms.runTensionData.LodOffTime) *100"  [nzStatus]="'active'" [nzShowInfo]="false" ></nz-progress>
-              <span >{{_ms.runTensionData.nowLodOffTime}} / {{_ms.runTensionData.LodOffTime}}</span>
-            </div>
-            <div class="bottom" >
-              <!-- <p>延时30/30</p> -->
-            </div>
+          <div class="top">
+            <button nz-button [nzType]=" autoData.state.loadOffState || autoData.state.loadOffDone ? 'primary': 'dashed'" nzShape="circle">卸荷</button>
+            <nz-progress [nzPercent]="(autoData.state.loadOffTime / autoData.data.loadOffTime) *100" [nzStatus]="'active'" [nzShowInfo]="false"></nz-progress>
+            <span>{{autoData.state.loadOffTime}} / {{autoData.data.loadOffTime}}</span>
           </div>
-          <div style="flex: 0;" class="item">
-            <div class="top">
-              <button nz-button  nzShape="circle">回程</button>
-            </div>
+          <div class="bottom">
+            <!-- <p>延时30/30</p> -->
           </div>
-        <!-- <nz-steps [nzCurrent]="_ms.recordData.stage">
-          <nz-step [nzTitle]="item" *ngFor="let item of _ms.liveState; index as i"></nz-step>
-        </nz-steps> -->
+        </div>
+        <div style="flex: 0;" class="item">
+          <div class="top">
+            <button nz-button nzShape="circle">回程</button>
+          </div>
+        </div>
       </header>
       <hr>
     </div>
@@ -55,7 +52,7 @@
         <thead>
           <tr>
             <th width="80">设备</th>
-            <th >状态</th>
+            <th>状态</th>
             <th width="130">压力MPa</th>
             <th width="130">目标压力</th>
             <th width="130">绝对位移mm</th>
@@ -65,131 +62,135 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let name of _ms.tensionData.modes" [ngClass]="name">
+          <tr *ngFor="let name of autoData.data.modeStr" [ngClass]="name">
             <td>{{name | L2U}}</td>
-            <td>{{_ms.showValues[name].state}}</td>
-            <td>{{_ms.showValues[name].mpa}}</td>
-            <td>{{_ms.tensionData.checkData.mpa[name][_ms.recordData.stage]}}</td>
-            <td>{{_ms.showValues[name].mm}}</td>
-            <td>{{_ms.liveSum?  _ms.liveSum[name].mm : null}}</td>
-            <td *ngIf="_ms.tensionData.modes.length === 1">{{_ms.liveSum? _ms.liveSum[name]?.sum : null}}</td>
-            <td *ngIf="_ms.tensionData.modes.length === 1">{{_ms.liveSum? _ms.liveSum[name]?.deviation : null}}%</td>
-            <td *ngIf="_ms.tensionData.modes.length !== 1 && (name === 'a1' || name === 'b1')" rowspan="2">{{_ms.liveSum? _ms.liveSum[name]?.sum : null}}</td>
-            <td *ngIf="_ms.tensionData.modes.length !== 1 && (name === 'a1' || name === 'b1')" rowspan="2">{{_ms.liveSum? _ms.liveSum[name]?.deviation : null}}%</td>
+            <td>{{_ms.Dev[name].liveData.state}}</td>
+            <td>{{_ms.Dev[name].liveData.mpa}}</td>
+            <td>{{autoData.data.mpa[name][autoData.state.stage]}}</td>
+            <td>{{_ms.Dev[name].liveData.mm}}</td>
+            <td>{{autoData.sumData[name].mm}}</td>
+            <td *ngIf="autoData.data.modeStr.length === 1">{{autoData.sumData[name].sum}}</td>
+            <td *ngIf="autoData.data.modeStr.length === 1">{{autoData.sumData[name].deviation}}%</td>
+            <td *ngIf="autoData.data.modeStr.length !== 1 && (name === 'a1' || name === 'b1')" rowspan="2">{{autoData.sumData[name].sum}}</td>
+            <td *ngIf="autoData.data.modeStr.length !== 1 && (name === 'a1' || name === 'b1')" rowspan="2">{{autoData.sumData[name].deviation}}%</td>
           </tr>
         </tbody>
       </table>
     </div>
     <div class="cvs">
-      <!-- <button (click)="onCvsShow()" nz-button>显示</button> -->
       <div #cvs>
-        <app-canvas-cvs #cvsE *ngIf="heightCvs" [width]="widthCvs" [height]="heightCvs"></app-canvas-cvs>
+        <app-canvas-cvs #cvsE *ngIf="heightCvs !== undefined" [width]="widthCvs" [height]="heightCvs"></app-canvas-cvs>
       </div>
-      <div>
-        <!-- <app-canvas-cvs name="Mm" *ngIf="heightCvs && _ms.runTensionData.state" [width]="widthCvs" [height]="heightCvs" title="位移曲线·mm"
-          [yMax]="220" [ticks]="[0, 40, 80, 120, 160, 200, 240]"></app-canvas-cvs> -->
+      <div hidden="hidden">
       </div>
     </div>
   </main>
 </div>
 
 <!-- 张拉弹出框 -->
-<nz-modal [nzVisible]="runTension.runState" nzTitle="准备张拉·数据核对" nzWidth="auto" [nzFooter]="runFooter" [nzMaskClosable]="false"
+<nz-modal [nzVisible]="!autoData.state.run" nzTitle="准备张拉·数据核对" nzWidth="auto" [nzFooter]="runFooter" [nzMaskClosable]="false"
   nzClosable="false">
-  <div *ngIf="!_ms.runTensionData.selfState">
-    <nz-card nzTitle="控制参数">
-      <div class="run-main">
-        <nz-form-item>
-          <nz-input-group nzAddOnBefore="允许偏差率上限" nzAddOnAfter="%">
-            <input type="number" nz-input nzSize="large" [value]="autoControl.maximumDeviationRate" (change)="onSet(508, $event)">
-          </nz-input-group>
-        </nz-form-item>
-        <nz-form-item>
-          <nz-input-group nzAddOnBefore="允许偏差率下限" nzAddOnAfter="%">
-            <input type="number" nz-input nzSize="large" [value]="autoControl.LowerDeviationRate" (change)="onSet(509, $event)">
-          </nz-input-group>
-        </nz-form-item>
-        <nz-form-item>
-          <nz-input-group nzAddOnBefore="允许压力偏差" nzAddOnAfter="Mpa">
-            <input type="number" nz-input nzSize="large" [value]="autoControl.mpaDeviation" (change)="onSet(510, $event, 'mpa')">
-          </nz-input-group>
-        </nz-form-item>
-        <nz-form-item>
-          <nz-input-group nzAddOnBefore="平衡控制" nzAddOnAfter="mm">
-            <input type="number" nz-input nzSize="large" [value]="_ms.runTensionData.mmBalanceControl" (input)="_ms.runTensionData.mmBalanceControl = $event.target.valueAsNumber">
-          </nz-input-group>
-        </nz-form-item>
-        <nz-form-item>
-          <nz-input-group nzAddOnBefore="倒顶位移下限" nzAddOnAfter="mm">
-            <input type="number" nz-input nzSize="large" [(ngModel)]="_ms.mmReturnLowerLimit">
-          </nz-input-group>
-        </nz-form-item>
-        <nz-form-item>
-          <nz-input-group nzAddOnBefore="卸荷完成延时" nzAddOnAfter="s">
-            <input type="number" nz-input nzSize="large" [value]="_ms.runTensionData.LodOffTime" (input)="_ms.runTensionData.LodOffTime = $event.target.valueAsNumber">
-          </nz-input-group>
-        </nz-form-item>
-      </div>
-    </nz-card>
-    <nz-card nzTitle="张拉参数">
-      <table border="1" cellspaning="0" class="check">
-        <tbody>
-          <tr >
-            <td>张拉阶段</td>
-            <td *ngFor="let item of _ms.tensionData.checkData.stage">{{item}}</td>
-          </tr>
-          <tr >
-            <td>张拉应力</td>
-            <td *ngFor="let item of _ms.tensionData.checkData.kn">{{item}}</td>
-          </tr>
-          <tr *ngFor="let name of _ms.tensionData.modes" [ngClass]="name">
-            <td>{{name}}</td>
-            <td *ngFor="let item of _ms.tensionData.checkData.mpa[name]">{{item}}</td>
-          </tr>
-          <tr >
-              <td>保压时间</td>
-              <td *ngFor="let item of _ms.tensionData.checkData.time">{{item}}</td>
+  <nz-spin [nzSpinning]="upPlcState" nzTip="数据下载中..." [nzSize]="'large'">
+    <div *ngIf="!autoData.state.self">
+      <nz-card nzTitle="控制参数">
+        <div class="run-main">
+            <nz-form-item>
+              <nz-input-group nzAddOnBefore="允许偏差率上限" nzAddOnAfter="%">
+                <input (focus)="$event.target.select()" type="number" nz-input nzSize="large" [value]="autoData.data.maximumDeviationRate"
+                  (input)="autoData.data.maximumDeviationRate = $event.target.valueAsNumber">
+              </nz-input-group>
+            </nz-form-item>
+            <nz-form-item>
+              <nz-input-group nzAddOnBefore="允许偏差率下限" nzAddOnAfter="%">
+                <input (focus)="$event.target.select()" type="number" nz-input nzSize="large" [value]="autoData.data.LowerDeviationRate"
+                  (input)="autoData.data.LowerDeviationRate = $event.target.valueAsNumber">
+              </nz-input-group>
+            </nz-form-item>
+            <nz-form-item>
+              <nz-input-group nzAddOnBefore="允许压力偏差" nzAddOnAfter="Mpa">
+                <input (focus)="$event.target.select()" type="number" nz-input nzSize="large" [value]="autoData.data.mpaDeviation"
+                  (input)="autoData.data.mpaDeviation = $event.target.valueAsNumber">
+              </nz-input-group>
+            </nz-form-item>
+            <nz-form-item>
+              <nz-input-group nzAddOnBefore="平衡控制" nzAddOnAfter="mm">
+                <input (focus)="$event.target.select()" type="number" nz-input nzSize="large" [value]="autoData.data.mmBalanceControl"
+                  (input)="autoData.data.mmBalanceControl = $event.target.valueAsNumber">
+              </nz-input-group>
+            </nz-form-item>
+            <nz-form-item>
+              <nz-input-group nzAddOnBefore="倒顶位移下限" nzAddOnAfter="mm">
+                <input (focus)="$event.target.select()" type="number" nz-input nzSize="large" [value]="autoData.data.mmGoBack"
+                  (input)="autoData.data.mmGoBack = $event.target.valueAsNumber">
+              </nz-input-group>
+            </nz-form-item>
+            <nz-form-item>
+              <nz-input-group nzAddOnBefore="卸荷完成延时" nzAddOnAfter="s">
+                <input (focus)="$event.target.select()" type="number" nz-input nzSize="large" [value]="autoData.data.loadOffTime"
+                  (input)="autoData.data.loadOffTime = $event.target.valueAsNumber">
+              </nz-input-group>
+            </nz-form-item>
+          </div>
+      </nz-card>
+      <nz-card nzTitle="张拉数据">
+        <table border="1" cellspaning="0" class="check">
+          <tbody>
+            <tr>
+              <td>张拉阶段</td>
+              <td *ngFor="let name of autoData.data.stageSrt">{{name}}</td>
             </tr>
-        </tbody>
-      </table>
-    </nz-card>
-  </div>
-  <div *ngIf="_ms.runTensionData.selfState">
-    <div>
-      <div *ngFor="let name of _ms.tensionData.modes">
-        <!-- <h3>{{_ms.showValues[name].state}}</h3> -->
-        <nz-alert nzType="error" *ngIf="_ms.showValues[name].state === '自检错误'; else elseBlock" [nzMessage]="(name | L2U) + _ms.showValues[name].state" nzShowIcon></nz-alert>
-        <ng-template #elseBlock>
-          <nz-alert [nzType]="_ms.showValues[name].state === '自检完成'? 'success' : 'info'" [nzMessage]="(name | L2U) +_ms.showValues[name].state" nzShowIcon></nz-alert>
-        </ng-template>
+            <tr>
+              <td>张拉应力</td>
+              <td *ngFor="let item of autoData.data.kn">{{item}}</td>
+            </tr>
+            <tr *ngFor="let name of autoData.data.modeStr" [ngClass]="name">
+              <td>{{name | L2U}}</td>
+              <td *ngFor="let mpa of autoData.data.mpa[name]">{{mpa}}</td>
+            </tr>
+            <tr>
+              <td>保压时间</td>
+              <td *ngFor="let time of autoData.data.time">{{time}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </nz-card>
+    </div>
+    <div *ngIf="autoData.state.self">
+      <div>
+        <div *ngFor="let name of autoData.data.modeStr">
+          <nz-alert nzType="error" *ngIf="_ms.Dev[name].liveData.state === '自检错误'; else elseBlock" [nzMessage]="(name | L2U) + _ms.Dev[name].liveData.state"
+            nzShowIcon></nz-alert>
+          <ng-template #elseBlock>
+            <nz-alert [nzType]="_ms.Dev[name].liveData.state === '自检完成'? 'success' : 'info'" [nzMessage]="(name | L2U) +_ms.Dev[name].liveData.state"
+              nzShowIcon></nz-alert>
+          </ng-template>
+        </div>
       </div>
     </div>
-  </div>
-  <div *ngIf="_ms.runTensionData.selfErrorState">
-    <h1>自检错误</h1>
-    <h3>1.检查设备位移是否对应连接！</h3>
-    <h3>2.检查张拉回程油管是否对应连接！</h3>
-  </div>
+    <div *ngIf="autoData.state.selfError">
+      <h1>自检错误</h1>
+      <h3>1.检查设备位移是否对应连接！</h3>
+      <h3>2.检查张拉回程油管是否对应连接！</h3>
+    </div>
+  </nz-spin>
   <ng-template #runFooter>
     <div>
-      <button nz-button nzType="default" (click)="onCancelTension()">取 消</button>
-      <button nz-button nzType="primary" (click)="onRunTension();"  *ngIf="!_ms.runTensionData.selfState || _ms.runTensionData.selfErrorState">启动张拉</button>
+      <button nz-button nzType="default" (click)="readyCancel()">取 消</button>
+      <button nz-button nzType="primary" (click)="tensionRun();" *ngIf="!autoData.state.self || autoData.state.selfError">启动张拉</button>
     </div>
   </ng-template>
 </nz-modal>
 
-<nz-modal [nzVisible]="_ms.runTensionData.returnState" nzTitle="张拉完成" [nzFooter]="returnFooter" [nzMaskClosable]="false"
+
+<nz-modal [nzVisible]="modalState.done" nzTitle="张拉完成" [nzMaskClosable]="false"
   nzClosable="false">
   <div>
     <h1>张拉完成！数据保存完成！</h1>
-    <h2>{{_ms.ExitTime}}s 自动退出！</h2>
+    <h2>{{modalState.doneTime}}s 自动退出！</h2>
   </div>
-  <ng-template #returnFooter>
-    <button nz-button nzType="default" (click)="onStop()">停止退出</button>
-  </ng-template>
 </nz-modal>
 
-<nz-modal [nzVisible]="_ms.runTensionData.stopState" nzTitle="张拉暂停" [nzFooter]="stopFooter" [nzMaskClosable]="false"
+<!-- <nz-modal [nzVisible]="_ms.runTensionData.stopState" nzTitle="张拉暂停" [nzFooter]="stopFooter" [nzMaskClosable]="false"
   nzClosable="false">
   <div>
     <h1>张拉暂停</h1>
@@ -216,9 +217,9 @@
     <button nz-button nzType="default" (click)="onSaveExit()">保存数据·退出张拉</button>
     <button nz-button nzType="danger" (click)="onExit()">不保存数据·退出</button>
   </ng-template>
-</nz-modal>
+</nz-modal> -->
 
-<nz-modal [nzVisible]="_ms.passSate" nzTitle="超位移暂停" [nzFooter]="returnFooter" [nzMaskClosable]="false"
+<!-- <nz-modal [nzVisible]="_ms.passSate" nzTitle="超位移暂停" [nzFooter]="returnFooter" [nzMaskClosable]="false"
   nzClosable="false">
   <div>
     <h1>超位移暂停！</h1>
@@ -233,4 +234,4 @@
     <button nz-button nzType="default" (click)="onReturn()">回顶</button>
     <button nz-button nzType="default" (click)="onContinue()" *ngIf="_ms.returnMmOk">继续张拉</button>
   </ng-template>
-</nz-modal>
+</nz-modal> -->

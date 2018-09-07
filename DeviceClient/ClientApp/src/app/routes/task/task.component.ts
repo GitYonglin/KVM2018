@@ -16,10 +16,12 @@ import { MSService } from '../../services/MS.service';
 import { deviceModes } from '../../model/device.model';
 import { Http, Headers } from '@angular/http';
 import { ElectronService } from 'ngx-electron';
-import { Task, CopyTask } from '../../model/task.model';
+import { Task, CopyTask, HoleGroup } from '../../model/task.model';
 import { Record } from '../../model/record.model';
 import { publicDecrypt } from 'crypto';
 import { AuthorityService } from '../../services/authority.service';
+import { NzModalService, NzMessageService } from 'ng-zorro-antd';
+import { GetAutoData } from '../../utils/autoTension';
 
 const baseUri = '/task';
 
@@ -60,6 +62,7 @@ export class TaskComponent implements OnInit, AfterViewInit {
     state: false,
     mode: null,
     title: '',
+    deviceState: false,
   };
   inputValue: string;
   searchData = [];
@@ -81,6 +84,8 @@ export class TaskComponent implements OnInit, AfterViewInit {
     private _http: Http,
     private _electronService: ElectronService,
     private _authority: AuthorityService,
+    private modalService: NzModalService,
+    private message: NzMessageService,
   ) { }
 
   ngOnInit() {
@@ -384,143 +389,172 @@ export class TaskComponent implements OnInit, AfterViewInit {
   }
   // 张拉
   onTension() {
-    console.log('aaaaaaaaaaaaaaaaaaaaaaaaaa', {
-      mpa: this.groupTaskElem.countKM.mpa,
-      kn: this.groupTaskElem.countKM.kn,
-      stage: this.groupTaskElem.dbData.tensionStageValue,
-      time: this.groupTaskElem.dbData.time
-    });
-    this.runTension.state = true;
-    this.runTension.title = '数据处理中...';
-    this._ms.setDevice((state) => {
-      if (state) {
-        const tensionData = this.groupTaskElem.dbData;
-        localStorage.setItem('nowDevice', this.dbData.deviceId);
-        this.runTension.mode = deviceModes[tensionData.mode];
-        for (const name of this.runTension.mode) {
-          console.log(name);
-          if (!this._ms.state[name] || this._ms.showValues[name].alarmNumber !== 0) {
-            this.runTension.title = '设备状态有误，请检查设备！';
-            this.runTension.alarmState = true;
-            return;
-          }
+    // console.log('aaaaaaaaaaaaaaaaaaaaaaaaaa', {
+    //   mpa: this.groupTaskElem.countKM.mpa,
+    //   kn: this.groupTaskElem.countKM.kn,
+    //   stage: this.groupTaskElem.dbData.tensionStageValue,
+    //   time: this.groupTaskElem.dbData.time
+    // });
+    this.runTension.deviceState = false;
+    this.runTension.state = false;
+    console.log('自动张拉数据', this.groupTaskElem.dbData, this.groupTaskElem.countKM);
+    const dbTask = this.groupTaskElem.dbData;
+    if (this._ms.nowDevice.id !== this.dbData.device.id) {
+      this.runTension.deviceState = true;
+    } else {
+      this.runTension.state = true;
+      this.runTension.title = '数据处理中...';
+      // 检查设备连接状态
+      this.runTension.mode = deviceModes[dbTask.task.mode];
+      for (const name of deviceModes[dbTask.task.mode]) {
+        if (!(this._ms.Dev[name] && this._ms.Dev[name].liveData.connectState && this._ms.Dev[name].liveData.alarmNumber === 0)) {
+          this.runTension.alarmState = true;
+          console.log(this.runTension.mode);
+          this.runTension.title = '设备状态有误，请检查设备！';
+          return;
         }
-        this.runTension.alarmState = false;
-        const twiceData = this.getTwice(); // 二次张拉数据
-        const nowTensionData = {
-          id: tensionData.id,
-          holeName: tensionData.holeName,
-          bridgeName: this.dbData.bridgeName,
-          mode: tensionData.mode,
-          modes: this.runTension.mode,
-          twice: this.groupTaskElem.nowTaskData.twice, // 二次张拉
-          repeatedly: twiceData.recordData !== null,
-          mpaPLC: {
-            // a1: [],
-            // b1: [],
-            // a2: [],
-            // b2: [],
-          },
-          // timePLC: [],
-          checkData: {
-            mpa: this.groupTaskElem.countKM.mpa,
-            kn: this.groupTaskElem.countKM.kn,
-            stage: this.groupTaskElem.dbData.tensionStageValue,
-            time: this.groupTaskElem.dbData.time
-          },
-          stage: twiceData.stage,
-          taskSum: {}
-        };
-        const recordData: Record = {
-          id: this.dbData.id,
-          parentId: this.dbData.projectId,
-          operatorId: this._authority.user.id,
-          state: 0,
-          stage: 0,
-          time: [],
-          mode: tensionData.mode,
-          mpa: {},
-          mm: {},
-          cvsData: {
-            time: [],
-            mpa: {},
-            mm: {},
-            mark: {
-              index: [],
-              doc: [],
-            }
-          },
-          returnStart: {},
-        };
-        console.log('张拉数据', recordData);
-        for (const name of this.runTension.mode) {
-          recordData.mm[name] = [];
-          recordData.mpa[name] = [];
-          recordData.cvsData.mpa[name] = [];
-          recordData.cvsData.mm[name] = [];
-          nowTensionData.mpaPLC[name] = [];
-          // recordData.liveCvs.push({time: new Date().getTime(), type: name, value: 0});
-          for (const mpa of tensionData.mpa[name]) {
-            nowTensionData.mpaPLC[name].push(this._ms.Value2PLC(mpa, 'mpa', name));
-            nowTensionData.taskSum[name] = this.groupTaskElem.nowSumData[name];
-            recordData.mm[name].push(0);
-            recordData.mpa[name].push(0);
-            recordData.returnStart[name] = { mpa: 0, mm: 0 };
-          }
-        }
-
-        let liveState = [];
-        switch (Number(this.groupTaskElem.nowTaskData.tensionStage)) {
-          case 3:
-            liveState = ['初张拉', '阶段一', '终张拉'];
-            recordData.time = [0, 0, 0];
-            break;
-          case 4:
-            if (twiceData.TwiceStage === 1) {
-              liveState = ['初张拉', '阶段一', '阶段二'];
-            } else {
-              liveState = ['初张拉', '阶段一', '阶段二', '终张拉'];
-            }
-            recordData.time = [0, 0, 0, 0];
-            break;
-          case 5:
-            liveState = ['初张拉', '阶段一', '阶段二', '阶段三', '终张拉'];
-            recordData.time = [0, 0, 0, 0, 0];
-            break;
-          default:
-            break;
-        }
-
-        console.log(Number(this.groupTaskElem.nowTaskData.tensionStage), liveState, '555555555555555555555555');
-        if (this.groupTaskElem.nowTaskData.super) {
-          recordData.time.push(0);
-          if (twiceData.TwiceStage !== 1 && twiceData.TwiceStage !== 4) {
-            liveState.push('超张拉');
-            nowTensionData.stage += 1;
-          }
-        }
-        if (twiceData.recordData) {
-          Object.assign(recordData, twiceData.recordData);
-        }
-        if (twiceData.TwiceStage === 2 && twiceData.recordData.state === 2) {
-          recordData.time[2] = 0;
-        }
-        // for (const time of tensionData.time) {
-        //   nowTensionData.timePLC.push(time * 10);
-        // }
-        localStorage.setItem('nowTensionData', JSON.stringify(nowTensionData));
-        console.log('张拉数据', tensionData, nowTensionData, recordData, liveState);
-        this._ms.recordData = recordData;
-        this._ms.tensionData = nowTensionData;
-        this._ms.liveState = liveState;
-        this.runTension.title = '数据处理完成！';
-        setTimeout(() => {
-          this._router.navigate(['/tension']);
-        }, 500);
-      } else {
-        console.log('设备链接异常');
       }
-    });
+      const auto = new GetAutoData(dbTask.task, dbTask.record, this.groupTaskElem.countKM, this._ms.Dev);
+      localStorage.setItem('autoData', JSON.stringify({
+        task: auto.task,
+        record: auto.record,
+        data: auto.data,
+        state: auto.state,
+        sumData: auto.sumData
+      }));
+      this._router.navigate(['/tension'], { queryParams: { bridgeName: this.dbData.bridgeName} });
+      // this._router.navigate(['/login'], { queryParams: user });
+      console.log('auto', auto);
+    }
+    // this._ms.setDevice((state) => {
+    //   if (state) {
+    //     const tensionData = this.groupTaskElem.dbData;
+    //     localStorage.setItem('nowDevice', this.dbData.deviceId);
+    //     this.runTension.mode = deviceModes[tensionData.mode];
+    //     for (const name of this.runTension.mode) {
+    //       console.log(name);
+    //       if (!this._ms.state[name] || this._ms.showValues[name].alarmNumber !== 0) {
+    //         this.runTension.title = '设备状态有误，请检查设备！';
+    //         this.runTension.alarmState = true;
+    //         return;
+    //       }
+    //     }
+    //     this.runTension.alarmState = false;
+    //     const twiceData = this.getTwice(); // 二次张拉数据
+    //     const nowTensionData = {
+    //       id: tensionData.id,
+    //       holeName: tensionData.holeName,
+    //       bridgeName: this.dbData.bridgeName,
+    //       mode: tensionData.mode,
+    //       modes: this.runTension.mode,
+    //       twice: this.groupTaskElem.nowTaskData.twice, // 二次张拉
+    //       repeatedly: twiceData.recordData !== null,
+    //       mpaPLC: {
+    //         // a1: [],
+    //         // b1: [],
+    //         // a2: [],
+    //         // b2: [],
+    //       },
+    //       // timePLC: [],
+    //       checkData: {
+    //         mpa: this.groupTaskElem.countKM.mpa,
+    //         kn: this.groupTaskElem.countKM.kn,
+    //         stage: this.groupTaskElem.dbData.tensionStageValue,
+    //         time: this.groupTaskElem.dbData.time
+    //       },
+    //       stage: twiceData.stage,
+    //       taskSum: {}
+    //     };
+    //     const recordData: Record = {
+    //       id: this.dbData.id,
+    //       parentId: this.dbData.projectId,
+    //       operatorId: this._authority.user.id,
+    //       state: 0,
+    //       stage: 0,
+    //       time: [],
+    //       mode: tensionData.mode,
+    //       mpa: {},
+    //       mm: {},
+    //       cvsData: {
+    //         time: [],
+    //         mpa: {},
+    //         mm: {},
+    //         mark: {
+    //           index: [],
+    //           doc: [],
+    //         }
+    //       },
+    //       returnStart: {},
+    //     };
+    //     console.log('张拉数据', recordData);
+    //     for (const name of this.runTension.mode) {
+    //       recordData.mm[name] = [];
+    //       recordData.mpa[name] = [];
+    //       recordData.cvsData.mpa[name] = [];
+    //       recordData.cvsData.mm[name] = [];
+    //       nowTensionData.mpaPLC[name] = [];
+    //       // recordData.liveCvs.push({time: new Date().getTime(), type: name, value: 0});
+    //       for (const mpa of tensionData.mpa[name]) {
+    //         nowTensionData.mpaPLC[name].push(this._ms.Value2PLC(mpa, 'mpa', name));
+    //         nowTensionData.taskSum[name] = this.groupTaskElem.nowSumData[name];
+    //         recordData.mm[name].push(0);
+    //         recordData.mpa[name].push(0);
+    //         recordData.returnStart[name] = { mpa: 0, mm: 0 };
+    //       }
+    //     }
+
+    //     let liveState = [];
+    //     switch (Number(this.groupTaskElem.nowTaskData.tensionStage)) {
+    //       case 3:
+    //         liveState = ['初张拉', '阶段一', '终张拉'];
+    //         recordData.time = [0, 0, 0];
+    //         break;
+    //       case 4:
+    //         if (twiceData.TwiceStage === 1) {
+    //           liveState = ['初张拉', '阶段一', '阶段二'];
+    //         } else {
+    //           liveState = ['初张拉', '阶段一', '阶段二', '终张拉'];
+    //         }
+    //         recordData.time = [0, 0, 0, 0];
+    //         break;
+    //       case 5:
+    //         liveState = ['初张拉', '阶段一', '阶段二', '阶段三', '终张拉'];
+    //         recordData.time = [0, 0, 0, 0, 0];
+    //         break;
+    //       default:
+    //         break;
+    //     }
+
+    //     console.log(Number(this.groupTaskElem.nowTaskData.tensionStage), liveState, '555555555555555555555555');
+    //     if (this.groupTaskElem.nowTaskData.super) {
+    //       recordData.time.push(0);
+    //       if (twiceData.TwiceStage !== 1 && twiceData.TwiceStage !== 4) {
+    //         liveState.push('超张拉');
+    //         nowTensionData.stage += 1;
+    //       }
+    //     }
+    //     if (twiceData.recordData) {
+    //       Object.assign(recordData, twiceData.recordData);
+    //     }
+    //     if (twiceData.TwiceStage === 2 && twiceData.recordData.state === 2) {
+    //       recordData.time[2] = 0;
+    //     }
+    //     // for (const time of tensionData.time) {
+    //     //   nowTensionData.timePLC.push(time * 10);
+    //     // }
+    //     localStorage.setItem('nowTensionData', JSON.stringify(nowTensionData));
+    //     console.log('张拉数据', tensionData, nowTensionData, recordData, liveState);
+    //     this._ms.recordData = recordData;
+    //     this._ms.tensionData = nowTensionData;
+    //     this._ms.liveState = liveState;
+    //     this.runTension.title = '数据处理完成！';
+    //     setTimeout(() => {
+    //       this._router.navigate(['/tension']);
+    //     }, 500);
+    //   } else {
+    //     console.log('设备链接异常');
+    //   }
+    // });
   }
   getTwice() {
     const gData = this.groupTaskElem.nowTaskData;
@@ -539,6 +573,17 @@ export class TaskComponent implements OnInit, AfterViewInit {
       stage = Number(gData.tensionStage) - 1;
     }
     return { stage: stage, recordData: rData, TwiceStage: TwiceStage };
+  }
+  // 设备不一致切换
+  taskSelectDevice() {
+    this._ms.setDevice(this.dbData.deviceId, (r) => {
+      if (r) {
+        this.message.create('success', `设备切换成功！`);
+        this.onTension();
+      } else {
+        this.message.create('error', `设备切换错误！`);
+      }
+    });
   }
   runTensionOk() {
     this.onTension();

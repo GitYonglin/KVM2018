@@ -189,15 +189,15 @@ export interface ModeGroup {
   /// <summary>
   /// 工作端伸长量
   /// </summary>
-  WorkMm: number;
+  workMm: number;
   /// <summary>
   /// 回缩量
   /// </summary>
-  RetractionMm: number;
+  retractionMm: number;
   /// <summary>
   /// 理论伸长量
   /// </summary>
-  TheoryMm: number;
+  theoryMm: number;
 }
 /// <summary>
 /// 张拉组名称组
@@ -210,15 +210,15 @@ export interface HoleGroupsRadio {
   /// <summary>
   /// 组名称
   /// </summary>
-  Hole: string;
+  hole: string;
   /// <summary>
   /// 张拉状态
   /// </summary>
-  State: number;
+  state: number;
 }
 export interface ConpomentHole {
-  ComponetnName?: string;
-  Hole?: Hole;
+  componetnName?: string;
+  hole?: Hole;
 }
 
 export interface CopyTask {

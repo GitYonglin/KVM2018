@@ -65,7 +65,6 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit, OnDestroy {
 
   legendItems = [];
   ms = 1000;
-  iTime = null;
 
   @Input()
   height = '100%';
@@ -80,14 +79,7 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit, OnDestroy {
     console.log(this.height, this.width);
   }
   ngAfterViewInit() {
-    if (this.data === null) {
-      this.iTime = setInterval(() => {
-        if (this._ms.runTensionData.state && !this._ms.runTensionData.returnState) {
-          this.saveCvs();
-        }
-      }, this.ms);
-      this.saveCvs();
-    } else {
+    if (this.data !== null) {
       const data = setCvs(this.data);
       this.mpaChart = this.corterChart(this.mpaCvs, data.mpa);
       this.mmChart = this.corterChart(this.mmCvs, data.mm);
@@ -95,7 +87,6 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    clearInterval(this.iTime);
     console.log('曲线结束');
   }
 
@@ -171,18 +162,14 @@ export class CanvasCvsComponent implements OnInit, AfterViewInit, OnDestroy {
     chart.render();
     return chart;
   }
-  public saveCvs() {
-    if (!this._ms.tensionData) {
-      return;
-    }
-    const showValue = this._ms.showValues;
-    const time = new Date().getTime();
-    this._ms.recordData.cvsData.time.push(time);
-    this._ms.tensionData.modes.forEach(name => {
-      this._ms.recordData.cvsData.mpa[name].push(showValue[name].mpa);
-      this._ms.recordData.cvsData.mm[name].push(showValue[name].mm);
-    });
-    const data = setCvs(this._ms.recordData.cvsData);
+  public updataCvs(cvsData) {
+    // const time = new Date().getTime();
+    // this._ms.recordData.cvsData.time.push(time);
+    // this._ms.tensionData.modes.forEach(name => {
+    //   this._ms.recordData.cvsData.mpa[name].push(showValue[name].mpa);
+    //   this._ms.recordData.cvsData.mm[name].push(showValue[name].mm);
+    // });
+    const data = setCvs(cvsData);
     if (this.mpaChart !== null && this.mmChart !== null) {
       this.mpaChart.changeData(data.mpa);
       this.mmChart.changeData(data.mm);

@@ -245,6 +245,7 @@ export const deviceData = {
     }
   }
 };
+/** 泵顶组合方式  0['a1'] 1['a1', 'a2'] 2['b1'] 3['b1', 'b2'] 4['a1', 'a2', 'b1', 'b2'] */
 export const deviceModes = [['a1'], ['a1', 'a2'], ['b1'], ['b1', 'b2'], ['a1', 'a2', 'b1', 'b2']];
 
 

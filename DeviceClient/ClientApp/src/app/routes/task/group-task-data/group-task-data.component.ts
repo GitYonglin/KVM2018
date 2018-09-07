@@ -120,6 +120,7 @@ export class GroupTaskDataComponent implements OnInit {
         this.setFormValue(r.task);
         this.nowSumData = r.task;
         this.recordData = r.record;
+        this.dbData = r;
         if (r.record) {
           this.recordSum = funcSumData(r.record.mm, r.task);
           this.recordRetraction = funcRetraction(r.record, r.task);
@@ -160,12 +161,11 @@ export class GroupTaskDataComponent implements OnInit {
       }
     }
     console.log('张拉数据', r, data);
-    this.dbData = r;
     this.nowTaskData = data;
-    this.nowData.holeName = r.name;
-    this.nowData.id = r.id;
-    this.nowData.mode = r.mode;
-    this.nowData.time = r.time;
+    // this.nowData.holeName = r.name;
+    // this.nowData.id = r.id;
+    // this.nowData.mode = r.mode;
+    // this.nowData.time = r.time;
     if (this.holeSubscribe) {
       this.holeSubscribe.unsubscribe();
     }
@@ -295,7 +295,7 @@ export class GroupTaskDataComponent implements OnInit {
     }
     console.log(kns, mpa);
     this.countKM = { kn: kns, mpa: mpa };
-    this.nowData.mpa = mpa;
+    // this.nowData.mpa = mpa;
   }
   // 编辑张拉阶段二次张拉处理
   funcV1() {

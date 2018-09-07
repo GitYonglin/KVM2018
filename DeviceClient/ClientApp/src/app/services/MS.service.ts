@@ -3,7 +3,7 @@ import { HubConnectionBuilder, HubConnection } from '@aspnet/signalr';
 import { DeviceParameter, ConversionName, DeviceItemName } from '../model/DeviceParameter';
 import { PLC2Value, PLC100ms2s, Value2PLC, PLCM, PLCLive, setDeviceParameterValue } from '../utils/PLC8Show';
 import { APIService } from './api.service';
-import { ShowValues, autoState, SumData, funcSumData, runTensionData } from '../model/live.model';
+import { ShowValues, autoState, SumData, funcSumData, runTensionData, Dev } from '../model/live.model';
 import { Observable } from 'rxjs';
 import { newFormData } from '../utils/form/constructor-FormData';
 import { N2F } from '../utils/toFixed';
@@ -17,12 +17,7 @@ interface InPLC {
   F01: number;
   F06: number;
 }
-interface Dev {
-  a1?: PLCLive;
-  a2?: PLCLive;
-  b1?: PLCLive;
-  b2?: PLCLive;
-}
+
 const alarmArr = ['压力未连接', '位移未连接', '位移下限', '位移上限', '超设置压力', '压力上限'];
 @Injectable({ providedIn: 'root' })
 export class MSService {
@@ -148,6 +143,9 @@ export class MSService {
         this.Dev[name].sensorInit(this.deviceParameter.mpaCoefficient, this.deviceParameter.mmCoefficient);
       }
     });
+    // if (this.connection) {
+    //   this.connection.invoke('GetDeviceParameter');
+    // }
     console.log(this.deviceItemNames);
   }
   /**
@@ -214,8 +212,8 @@ export class MSService {
    * @param {Function} [callback=null] 成功返回设备回调
    * @memberof MSService
    */
-  public setDevice(callback: Function = null) {
-    const deviceId = localStorage.getItem('nowDevice');
+  public setDevice(id: string = null, callback: Function = null) {
+    const deviceId = id ? id : localStorage.getItem('nowDevice');
     console.log('获取设备', deviceId);
     try {
       this._service.get(`/device/${deviceId}`).subscribe(r => {
@@ -224,6 +222,7 @@ export class MSService {
           this.deviceItemNames.map(name => {
             this.Dev[name].deviceInit(this.nowDevice[name].correction);
           });
+          localStorage.setItem('nowDevice', deviceId);
         }
         console.log('获取设备', r, this.nowDevice);
         const state = r || false;
@@ -241,11 +240,12 @@ export class MSService {
       connection.start().then(r => {
         // this.setDevice();
         connection.invoke('Init').then(() => {
+          this._service.showMessage('success', '设备连接成功');
           connection.invoke('Creates', localStorage.getItem('connect') === '2');
         });
         console.log('MS请求');
         // 获取设备参数
-        connection.invoke('GetDeviceParameter');
+        // connection.invoke('GetDeviceParameter');
         console.log('MS请求');
         // 监听连接状态
         connection.on('Send', data => {
@@ -256,16 +256,6 @@ export class MSService {
               this.Dev[name].connectError(data.message);
             }
           });
-          // if (data.id === '主站') {
-          //   this.deviceLinkZ = data.message;
-          //   this.state.a1 = false;
-          //   this.state.b1 = false;
-          //   modes = ['a1', 'a2'];
-          // } else {
-          //   this.deviceLinkC = data.message;
-          //   this.state.a2 = false;
-          //   this.state.b2 = false;
-          // }
           this.commError();
         });
         // 监听获取实时数据
@@ -281,25 +271,6 @@ export class MSService {
               }
             }
           });
-          // if (rData.name === '主站') {
-          //   // console.log('主站LIVE', rData.data);
-          //   this.deviceLinkZ = '设备链接正常';
-          //   this.state.a1 = true;
-          //   this.state.b1 = true;
-          //   if (this.nowDevice !== null && this.deviceParameter !== null) {
-          //     this.setShowValue(rData.data, 1);
-          //   }
-
-          //   // console.log(this.showValues);
-          // } else {
-          //   this.deviceLinkC = '设备链接正常';
-          //   this.state.a2 = true;
-          //   this.state.b2 = true;
-          //   if (this.nowDevice !== null && this.deviceParameter !== null) {
-          //     this.setShowValue(rData.data, 2);
-          //   }
-          //   // console.log('从站LIVE', rData.data);
-          // }
         });
         // 监听保压延时
         connection.on('Delay', data => {
@@ -339,9 +310,9 @@ export class MSService {
         });
         // 监听获取plc设置
         connection.on('DeviceParameter', rData => {
-          if (rData.name === '主站') {
-            console.log('监听获取plc设置', rData.data);
-            this.deviceParameter = setDeviceParameterValue(rData.data);
+          console.log('监听获取plc设置 ', rData);
+          if (rData.z) {
+            this.deviceParameter = setDeviceParameterValue(rData.z);
             if (this.deviceParameter.mpaCoefficient && this.deviceParameter.mmCoefficient) {
               this.deviceItemNames.map(name => {
                 this.Dev[name].sensorInit(this.deviceParameter.mpaCoefficient, this.deviceParameter.mmCoefficient);
@@ -349,12 +320,13 @@ export class MSService {
             }
             this.newPLCLive();
             this.GetDeviceParameterEvent();
-          } else {
-            console.log('从站', rData.data);
-            this.deviceParameterC = setDeviceParameterValue(rData.data);
+          }
+          if (rData.c) {
+            this.deviceParameterC = setDeviceParameterValue(rData.c);
             this.GetDeviceParameterEvent();
           }
         });
+
         this.connection = connection;
         console.log('链接成功', this.connection);
       }).catch((error) => {
@@ -378,13 +350,18 @@ export class MSService {
     console.log('MS请求');
   }
   // 设置单个寄存器
-  public F06(id: number, address: number, data: any) {
-    this.connection.invoke('F06', { id: id, address: address, F06: data });
-    console.log('MS请求');
+  public F06(id: number, address: number, data: any): Observable<boolean> {
+    return new Observable((observer) => {
+      this.connection.invoke('F06Async', { id: id, address: address, F06: data }).then((b) => {
+        console.log('F06请求返回', b);
+        observer.next(b);
+      });
+      console.log('MS请求');
+    });
   }
   // 设备参数设置
   public SetDeviceParameter(address: number, value: number, callback: Function = null) {
-    this.connection.invoke('SetDeviceParameter', { address: address, value: value }).then(r => {
+    this.connection.invoke('SetDeviceParameterAsync', { address: address, value: value }).then(r => {
       console.log('MS请求');
       callback(r);
     });
@@ -894,11 +871,13 @@ export class MSService {
     localStorage.setItem('TResedData', JSON.stringify(this.recordData));
     console.log('退出张拉');
   }
+  // 后台连接
   private anew() {
     setTimeout(() => {
       this.creation();
     }, 5000);
   }
+  // 张拉过程记录
   private recordMarkSave(doc: string) {
     this.recordData.cvsData.mark.doc.push(doc);
     this.recordData.cvsData.mark.index.push(this.recordData.cvsData.time.length);

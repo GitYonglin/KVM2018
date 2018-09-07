@@ -154,6 +154,7 @@ export class ComponentComponent implements OnInit {
     this.formGroup.disable();
     this.LeftMenu.operationState = false;
     this._appService.editState = false;
+    this._appService.setGoUrl('/component', {});
   }
   holeEdit(data = null) {
     this.nowEditData = JSON.parse(JSON.stringify(data));

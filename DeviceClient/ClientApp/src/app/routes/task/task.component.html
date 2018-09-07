@@ -150,9 +150,9 @@
   <h3>{{runTension.title}}</h3>
   <div class="alarm" *ngIf="runTension.alarmState">
     <div *ngFor="let name of runTension.mode">
-      <div *ngIf="_ms.showValues[name].alarmNumber">
+      <div *ngIf="_ms.Dev[name]?.liveData.alarmNumber">
         <nz-card [nzTitle]="name + '状态'">
-          <div *ngFor="let item of _ms.showValues[name].alarm">
+          <div *ngFor="let item of _ms.Dev[name]?.liveData.alarm">
             <nz-alert *ngIf="item" nzType="error" [nzMessage]="item" nzShowIcon>
             </nz-alert>
           </div>
@@ -162,6 +162,14 @@
     </div>
   </div>
 </nz-modal>
+<!-- 张拉设备不一致 -->
+<nz-modal [nzVisible]="runTension.deviceState" nzTitle="设备选择" nzWidth="auto" (nzOnCancel)="runTension.deviceState = false" [nzMaskClosable]="false"
+  (nzOnOk)="taskSelectDevice()">
+  <h2>当前选择设备与任务设备不一致！确定要切换设备吗？</h2>
+  <h3>当前设备：{{_ms?.nowDevice?.sName}}</h3>
+  <h3>任务设备：{{dbData?.device?.sName}}</h3>
+</nz-modal>
+
 
 <nz-modal [nzVisible]="exportRecord.state" nzTitle="导出数据" (nzOnCancel)="exportRecord.state = false" (nzOnOk)="onExportRecord(true)">
   <h3>导出数据</h3>

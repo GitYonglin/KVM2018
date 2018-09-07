@@ -11,8 +11,8 @@
     </nz-input-group>
     <nz-input-group nzAddOnBefore="设置压力" nzAddOnAfter="Mpa">
       <div class="input-col">
-        <nz-slider [nzDisabled]="!_ms.state[name]" [nzStep]="0.5" [nzMin]="0" [nzMax]="55" [(ngModel)]="data.setMpa" (ngModelChange)="onSet('mpa')"></nz-slider>
-        <input (focus)="$event.target.select()" type="number" [disabled]="!_ms.state[name]" [(ngModel)]="data.setMpa" max="55" min="0" nz-input nzSize="large" (change)="onSet('mpa')">
+        <nz-slider [nzDisabled]="!_ms.Dev[name].liveData.connectState" [nzStep]="0.5" [nzMin]="0" [nzMax]="55" [(ngModel)]="data.setMpa" (ngModelChange)="onSetMpa()"></nz-slider>
+        <input (focus)="$event.target.select()" type="number" [disabled]="!_ms.Dev[name].liveData.connectState" [(ngModel)]="data.setMpa" max="55" min="0" nz-input nzSize="large" (change)="onSetMpa()">
       </div>
     </nz-input-group>
     <nz-input-group nzAddOnBefore="相对位移" nzAddOnAfter="mm">
@@ -31,8 +31,8 @@
 
     <nz-input-group nzAddOnBefore="设置位移" nzAddOnAfter="mm">
       <div class="input-col">
-        <nz-slider [nzDisabled]="!_ms.state[name]" [nzMin]="0" [nzMax]="_ms.deviceParameter.mmWorkUpperLimit" [(ngModel)]="data.setMm" (ngModelChange)="onSet('mm')"></nz-slider>
-        <input (focus)="$event.target.select()" type="number" [disabled]="!_ms.state[name]" [(ngModel)]="data.setMm" [max]="_ms.deviceParameter.mmWorkUpperLimit" min="0" nz-input nzSize="large" (change)="onSet('mm')">
+        <nz-slider [nzDisabled]="!_ms.Dev[name].liveData.connectState" [nzMin]="0" [nzMax]="_ms.deviceParameter.mmWorkUpperLimit" [(ngModel)]="data.setMm" (ngModelChange)="onSetMm()"></nz-slider>
+        <input (focus)="$event.target.select()" type="number" [disabled]="!_ms.Dev[name].liveData.connectState" [(ngModel)]="data.setMm" [max]="_ms.deviceParameter.mmWorkUpperLimit" min="0" nz-input nzSize="large" (change)="onSetMm()">
       </div>
     </nz-input-group>
   </div>

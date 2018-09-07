@@ -27,6 +27,17 @@ export class AppComponent implements OnInit {
         console.log('全局路由', event);
       }
     });
+    console.log('AutoControl', localStorage.getItem('AutoControl'));
+    if (localStorage.getItem('AutoControl') === null) {
+      localStorage.setItem('AutoControl', JSON.stringify({
+        maximumDeviationRate: 6,
+        LowerDeviationRate: -6,
+        mpaDeviation: 2,
+        mmBalanceControl: 2,
+        mmGoBack: 70,
+        loadOffTime: 15,
+      }));
+    }
   }
   private newPLCLive() {
     const connect = localStorage.getItem('connect');

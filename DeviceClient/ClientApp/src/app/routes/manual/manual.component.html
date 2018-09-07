@@ -11,18 +11,15 @@
           </nz-select>
         </nz-input-group>
       </div>
-      <div>
+      <!-- <div>
         <nz-input-group nzAddOnBefore="泵顶选择">
-          <button nz-button nzSize="Large" [nzType]="a1.state ? 'primary' : 'dashed'" (click)="onA1State()">A1</button>
-          <button nz-button nzSize="Large" [nzType]="a2.state ? 'primary' : 'dashed'" (click)="onA2State()">A2</button>
-          <button nz-button nzSize="Large" [nzType]="b1.state ? 'primary' : 'dashed'" (click)="onB1State()">B1</button>
-          <button nz-button nzSize="Large" [nzType]="b2.state ? 'primary' : 'dashed'" (click)="onB2State()">B2</button>
+          <button nz-button nzSize="Large" *ngFor="let name of _ms.deviceItemNames" [nzType]="btn[name] ? 'primary' : 'dashed'" (click)="onState(name)">{{name | L2U}}</button>
         </nz-input-group>
-      </div>
+      </div> -->
       <div>
         <nz-input-group nzAddOnBefore="设备控制">
           <button nz-button nzSize="Large" [nzType]="enforcement ? 'primary' : 'dashed'" (click)="onEnforcement()">强制运行</button>
-          <button nz-button nzSize="Large" [nzType]="autoState ? 'primary' : 'dashed'" (click)="onAutoState()">{{autoState ? '自动补压' : '手动补压'}}</button>
+          <button nz-button nzSize="Large" [nzType]="autoState ? 'primary' : 'dashed'" (click)="onAutoState()" disabled="true">{{autoState ? '自动补压' : '手动补压'}}</button>
         </nz-input-group>
       </div>
     </div>
@@ -31,12 +28,12 @@
   <nz-spin nzTip='设备参数没有设置' [nzSpinning]="!_ms.deviceParameter">
   <main #main [ngClass]="{'correction': correctionState}" *ngIf="_ms.deviceParameter">
     <div class="device-group">
+      <app-device-item *ngIf="_ms.modeNo === '2'" name="b1" [title]="'B1 - ' + _ms.showValues.b1.state" [data]="b1" (resetZero)="resetMm = $event"></app-device-item>
       <app-device-item name="a1" [title]="'A1 - ' + _ms.showValues.a1.state" [data]="a1" (resetZero)="resetMm = $event"></app-device-item>
-      <app-device-item name="a2" [title]="'A2 - ' + _ms.showValues.a2.state" [data]="a2" (resetZero)="resetMm = $event"></app-device-item>
     </div>
-    <div class="device-group">
-      <app-device-item name="b1" [title]="'B1 - ' + _ms.showValues.b1.state" [data]="b1" (resetZero)="resetMm = $event"></app-device-item>
-      <app-device-item name="b2" [title]="'B2 - ' + _ms.showValues.b2.state" [data]="b2" (resetZero)="resetMm = $event"></app-device-item>
+    <div class="device-group" >
+      <app-device-item *ngIf="_ms.connectNo === '2' && _ms.modeNo === '2'" name="b2" [title]="'B2 - ' + _ms.showValues.b2.state" [data]="b2" (resetZero)="resetMm = $event"></app-device-item>
+      <app-device-item *ngIf="_ms.connectNo === '2'" name="a2" [title]="'A2 - ' + _ms.showValues.a2.state" [data]="a2" (resetZero)="resetMm = $event"></app-device-item>
     </div>
     <div class="device-group"  *ngIf="correctionState">
       <nz-card>

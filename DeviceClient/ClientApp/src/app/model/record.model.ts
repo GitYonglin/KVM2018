@@ -13,11 +13,11 @@ export interface Record {
   operatorId: string;
   /** 以张拉阶段 */
   stage: number;
-  /** 张拉状态 0：未张拉 1：张拉完成 2：二次张拉 3：张拉中断 4：二次张拉第一次中断 */
+  /** 张拉状态 0:未张拉  1:张拉完成  2:二次张拉  3:张拉中断  4:二次张拉第一次中断 */
   state: number;
   /** 保压事件 */
   time: Array<number>;
-  /**  */
+  /** ?? */
   mode: number;
   /** 压力 */
   mpa?: RecordMode;

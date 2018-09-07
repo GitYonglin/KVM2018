@@ -1,5 +1,9 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { MSService } from '../../../services/MS.service';
+import { Observable, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+
+
 
 @Component({
   selector: 'app-device-item',
@@ -8,6 +12,8 @@ import { MSService } from '../../../services/MS.service';
 })
 export class DeviceItemComponent implements OnInit {
   relativeMm = 0;
+  address = 10;
+  id = 1;
 
   @Input()
   name: string;
@@ -19,45 +25,41 @@ export class DeviceItemComponent implements OnInit {
   disabled = false;
 
   @Output()
-    resetZero = new EventEmitter<any>();
+  resetZero = new EventEmitter<any>();
 
+  public mmStream: Subject<{address: number, F06: number}> = new Subject<{address: number, F06: number}>();
+  public mpaStream: Subject<{address: number, F06: number}> = new Subject<{address: number, F06: number}>();
   constructor(public _ms: MSService) { }
 
   ngOnInit() {
+    this.id = (this.name === 'a1' || this.name === 'b1') ? 1 : 2;
+    this.address = (this.name === 'a1' || this.name === 'a2') ? 10 : 12;
+    console.log(this.id);
+
+    this.mmStream
+      .pipe(debounceTime(500))
+      .pipe(distinctUntilChanged())
+      .subscribe(data => {
+        this._ms.connection.invoke('F06', { id: this.id, address: data.address, F06: data.F06 });
+        console.log(data);
+      });
+    this.mpaStream
+      .pipe(debounceTime(500))
+      .pipe(distinctUntilChanged())
+      .subscribe(data => {
+        this._ms.connection.invoke('F06', { id: this.id, address: data.address, F06: data.F06 });
+        console.log(data);
+      });
   }
 
-  onSet(make) {
-    let value = this.data.setMpa;
-    let id = 2;
-    let address = 10;
-    if (make === 'mm') {
-      value = this.data.setMm;
-    }
-    value = this._ms.Value2PLC( value, make, this.name);
-    console.log(value, make, this.name);
-    if (this.name === 'a1' ||  this.name === 'b1') {
-      id = 1;
-    }
-    switch (this.name) {
-      case 'a1':
-      case 'a2':
-        address = 10;
-        if (make === 'mm') {
-          address = 11;
-        }
-        break;
-      case 'b1':
-      case 'b2':
-        address = 12;
-        if (make === 'mm') {
-          address = 13;
-        }
-        break;
-      default:
-        break;
-    }
-    this._ms.F06(id, address, value);
-    console.log(id, address, value);
+  onSetMpa() {
+    const F06 = this._ms.Dev[this.name].Mpa2PLC(this.data.setMpa);
+    this.mpaStream.next({address: this.address, F06: F06});
+  }
+  onSetMm(): void {
+    const F06 = this._ms.Dev[this.name].Mm2PLC(this.data.setMm);
+    // this._ms.connection.invoke('F06', { id: this.id, address: this.address, F06: F06 });
+    this.mmStream.next({address: this.address + 1, F06: F06});
   }
   reset() {
     this.relativeMm = this._ms.showValues[this.name].mm;
