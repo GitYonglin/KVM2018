@@ -114,7 +114,6 @@ export class GroupTaskDataComponent implements OnInit {
   onSelectHoleRadio(id, state = false) {
     this.recordData = null;
     this.showCvs = false;
-    console.log('dsfosdi');
     if (id !== this.holeGroupId || state) {
       this._service.get(`/holeGroup/${id}`).subscribe(r => {
         this.setFormValue(r.task);
@@ -122,6 +121,7 @@ export class GroupTaskDataComponent implements OnInit {
         this.recordData = r.record;
         this.dbData = r;
         if (r.record) {
+          console.log(r.record.mm, r.task);
           this.recordSum = funcSumData(r.record.mm, r.task);
           this.recordRetraction = funcRetraction(r.record, r.task);
         }

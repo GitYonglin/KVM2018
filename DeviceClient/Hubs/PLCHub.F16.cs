@@ -22,6 +22,14 @@ namespace DeviceClient.Hubs
             }
             return true;
         }
+        public void DF16(InPLC data)
+        {
+            if (data.C && C != null)
+            {
+                C.F16(PLCSite.D(data.Address), data.F16, null);
+            }
+            Z.F16(PLCSite.D(data.Address), data.F16, null);
+        }
         public async Task<bool> F16Async(InPLC data)
         {
 

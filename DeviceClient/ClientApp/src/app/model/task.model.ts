@@ -59,53 +59,29 @@ export const taskMenuData = [
   },
 ];
 export interface Task extends Base {
-  /// <summary>
-  /// 在项目ID
-  /// </summary>
+  /** 在项目ID */
   projectId?: string;
-  /// <summary>
-  /// 梁名称
-  /// </summary>
+  /** 梁名称 */
   bridgeName?: string;
-  /// <summary>
-  /// 使用钢绞线ID
-  /// </summary>
+  /** 使用钢绞线ID */
   steelStrandId?: string;
-  /// <summary>
-  /// 使用设备ID
-  /// </summary>
+  /** 使用设备ID */
   deviceId?: string;
-  /// <summary>
-  /// 构建ID
-  /// </summary>
+  /** 构建ID */
   componentId?: string;
-  /// <summary>
-  /// 构建孔ID
-  /// </summary>
+  /** 构建孔ID */
   holeId?: string;
-  /// <summary>
-  /// 张拉孔数据明细
-  /// </summary>
+  /** 张拉孔数据明细 */
   holeGroups?: Array<HoleGroup>;
-  /// <summary>
-  /// 张拉组名称
-  /// </summary>
+  /** 张拉组名称 */
   holeGroupsRadio?: Array<HoleGroupsRadio>;
-  /// <summary>
-  /// 使用设备明细
-  /// </summary>
+  /** 使用设备明细 */
   device?: Device;
-  /// <summary>
-  /// 钢绞线明细
-  /// </summary>
+  /** 钢绞线明细 */
   steelStrand?: SteelStrand;
-  /// <summary>
-  /// 构建
-  /// </summary>
+  /** 构建 */
   component?: Component;
-  /// <summary>
-  /// 孔道
-  /// </summary>
+  /** 孔道 */
   hole?: Hole;
   /** 试块编号 */
   skNumber?: string;
@@ -120,100 +96,71 @@ export interface Task extends Base {
   /** 摩擦系数 */
   friction?: string;
 }
-/// <summary>
-/// 张拉孔数据
-/// </summary>
+/**
+ * 张拉孔数据
+ *
+ * @export
+ * @interface HoleGroup
+ * @extends {Subset}
+ */
 export interface HoleGroup extends Subset {
-  /// <summary>
-  /// 孔名称
-  /// </summary>
+  /** 孔名称 */
   name: string;
-  /// <summary>
-  /// 张拉模式
-  /// </summary>
+  /** 张拉模式 */
   mode: number;
   // float SuperTensionStageValue
-  /// <summary>
-  /// 张拉力
-  /// </summary>
+  /** 张拉力 */
   tensionKn: number;
-  /// <summary>
-  /// /张拉长度
-  /// </summary>
+  /** /张拉长度 */
   tensionLength: number;
-  /// <summary>
-  /// 钢绞线数量
-  /// </summary>
+  /** 钢绞线数量 */
   steelStrandNumber: number;
-  /// <summary>
-  /// 张拉段数
-  /// </summary>
+  /** 张拉段数 */
   tensionStage: string;
-  /// <summary>
-  /// 张拉阶段
-  /// </summary>
+  /** 张拉阶段 */
   tensionStageValue: number[];
-  /// <summary>
-  /// 保压时间
-  /// </summary>
+  /** 保压时间 */
   time: number[];
-  /// <summary>
-  /// 超张拉
-  /// </summary>
+  /** 超张拉 */
   super: boolean;
-  /// <summary>
-  /// 二次张拉
-  /// </summary>
+  /** 二次张拉 */
   twice: boolean;
-  /// <summary>
-  /// A1数据
-  /// </summary>
+  /** A1数据 */
   a1?: ModeGroup;
-  /// <summary>
-  /// A2数据
-  /// </summary>
+  /** A2数据 */
   a2?: ModeGroup;
-  /// <summary>
-  /// B1数据
-  /// </summary>
+  /** B1数据 */
   b1?: ModeGroup;
-  /// <summary>
-  /// B2数据
-  /// </summary>
+  /** B2数据 */
   b2?: ModeGroup;
 }
-/// <summary>
-/// 顶数据
-/// </summary>
+/**
+ * 伸长量计算数据
+ *
+ * @export
+ * @interface ModeGroup
+ */
 export interface ModeGroup {
-  /// <summary>
-  /// 工作端伸长量
-  /// </summary>
+  /** 工作端伸长量 */
   workMm: number;
-  /// <summary>
-  /// 回缩量
-  /// </summary>
+  /** 回缩量 */
   retractionMm: number;
-  /// <summary>
-  /// 理论伸长量
-  /// </summary>
+  /** 理论伸长量 */
   theoryMm: number;
 }
-/// <summary>
-/// 张拉组名称组
-/// </summary>
+
+/**
+ * 张拉组名称组
+ *
+ * @export
+ * @interface HoleGroupsRadio
+ */
 export interface HoleGroupsRadio {
-  /// <summary>
-  /// 张拉组ID
-  /// </summary>
+  /** 张拉组ID */
   Id: string;
-  /// <summary>
-  /// 组名称
-  /// </summary>
+  /** 组名称 */
   hole: string;
-  /// <summary>
-  /// 张拉状态
-  /// </summary>
+  /** 张拉状态 */
   state: number;
 }
 export interface ConpomentHole {

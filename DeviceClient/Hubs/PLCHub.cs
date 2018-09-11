@@ -280,17 +280,23 @@ namespace DeviceClient.Hubs
         //    CAutoStopState = false;
         //    return true;
         //}
-        
+
+
         public async Task<bool> AutoStartAsync()
         {
             var b = await DF05Async(new InPLC() { Address = 520, F05 = true });
             TensionRun = true;
             return b;
         }
+        /// <summary>
+        /// 张拉完成
+        /// </summary>
+        /// <returns></returns>
         public async Task AutoDoneAsync()
         {
-            TensionRun = false;
             await DF05Async(new InPLC() { Address = 522, F05 = true });
+            TensionRun = false;
+            TensionMode = false;
         }
         /// <summary>
         /// 通信错误事件
@@ -353,6 +359,19 @@ namespace DeviceClient.Hubs
             }
 
         }
+        /// <summary>
+        /// 张拉平衡
+        /// </summary>
+        /// <param name="t"></param>
+        public object Balance(MpaUP t)
+        {
+            if (TensionMode)
+            {
+                C.F16(PLCSite.D(t.Address), new int[] { t.A2, t.B2 }, null);
+            }
+            Z.F16(PLCSite.D(t.Address), new int[] { t.A1, t.B1 }, null);
+            return t;
+        }
 
         /// <summary>
         /// 确认压力数据下载
@@ -372,21 +391,59 @@ namespace DeviceClient.Hubs
             return true;
         }
         /// <summary>
-        /// 倒顶回程位移设置
+        /// 确认压力数据下载
         /// </summary>
-        /// <param name="data"></param>
-        public void ReturnSetMm(InPLC data)
+        /// <param name="t"></param>
+        public object AffirmMpaDone(InPLC data)
         {
-            if (!TensionMode)
+            if (data.Id == 1)
             {
-                Z.F16(PLCSite.D(416), new int[] { data.F06 }, null);
+                Z.F06(PLCSite.D(data.Address), data.F06, null);
             }
             else
             {
-                Z.F16(PLCSite.D(406), new int[] { data.F06 }, null);
+                C.F06(PLCSite.D(data.Address), data.F06, null);
+            }
+            return data;
+        }
+        /// <summary>
+        /// 倒顶回程位移设置
+        /// </summary>
+        /// <param name="data"></param>
+        public void GoBack(InPLC data)
+        {
+            Z.F16(PLCSite.D(406), new int[] { data.F06 }, null);
+            if (TensionMode)
+            {
                 C.F16(PLCSite.D(406), new int[] { data.F06 }, null);
             }
+            Z.F05(PLCSite.M(560), true, null);
+            if (TensionMode)
+            {
+                C.F05(PLCSite.M(560), true, null);
+            }
         }
-
+        /// <summary>
+        /// 张拉暂停
+        /// </summary>
+        /// <returns></returns>
+        public Boolean Pause()
+        {
+            Z.F05(PLCSite.M(550), true, null);
+            if (TensionMode)
+            {
+                C.F05(PLCSite.M(550), true, null);
+            }
+            return true;
+        }
+        /// <summary>
+        /// 暂停继续运行
+        /// </summary>
+        /// <returns></returns>
+        public async Task<bool> PauseRunAsync()
+        {
+            var b = await DF05Async(new InPLC() { Address = 550, F05 = false });
+            return b;
+        }
     }
 }

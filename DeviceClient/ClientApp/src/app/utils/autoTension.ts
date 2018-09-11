@@ -34,18 +34,34 @@ export interface AutoState {
   loadOffDone: boolean;
   /** 回程 */
   returnState: boolean;
+  /** 超位移 */
+  superWorkMm: boolean;
   /** 倒顶回程 */
   goBack: boolean;
   /** 倒顶完成 */
-  ogBackDone: boolean;
+  goBackDone: boolean;
   /** 确认压力 */
   affirmMpa: boolean;
   /** 确认压力完成 */
   affirmMpaDone: boolean;
+  /** 确认压力位移 */
+  affirmMm: ModeData;
+  /** 原始位移记录 */
+  originalMm: ModeData;
   /** 中断张拉 */
   break: boolean;
   /** 卸荷用时 */
   loadOffTime: number;
+  /** 平衡状态 */
+  balance: boolean;
+  /** 张拉暂停 */
+  pause: boolean;
+  /** 暂停完成 */
+  pauseDone: boolean;
+  /** 报警解除 */
+  alarmLift: boolean;
+  /** 超伸长量 */
+  maximumDeviationRate: boolean;
 }
 export interface AutoData {
   /** 张拉组合 */
@@ -72,19 +88,8 @@ export interface AutoData {
   mmGoBack: number;
   /** 卸荷延时 */
   loadOffTime: number;
-}
-export interface AutoControlData {
-  task: HoleGroup;
-  record: Record;
-  data: AutoData;
-  state: AutoState;
-  sumData: SumData;
-}
-interface PLCMpa {
-  a1?: number[];
-  a2?: number[];
-  b1?: number[];
-  b2?: number[];
+  /** 确认压力PLC值 */
+  affirmMpa: ModeData;
 }
 interface KMData {
   kn: string[];
@@ -95,6 +100,27 @@ interface KMData {
     b2?: string[];
   };
 }
+export interface AutoControlData {
+  task: HoleGroup;
+  record: Record;
+  data: AutoData;
+  state: AutoState;
+  sumData: SumData;
+  KMData: KMData;
+}
+interface PLCMpa {
+  a1?: number[];
+  a2?: number[];
+  b1?: number[];
+  b2?: number[];
+}
+
+interface ModeData {
+  a1?: number;
+  a2?: number;
+  b1?: number;
+  b2?: number;
+}
 
 export class GetAutoData {
   public task: HoleGroup;
@@ -103,19 +129,77 @@ export class GetAutoData {
   public data: AutoData;
   public sumData: SumData;
   public autoData: AutoControlData;
+  public KMData: KMData;
 
-  private KMData: KMData;
   private Dev: Dev;
 
-  constructor(task: HoleGroup, record: Record, kMData: KMData, dev: Dev) {
+  constructor(task: HoleGroup, record: Record, kMData: KMData, dev: Dev, data0: AutoData = null) {
     this.Dev = dev;
     this.KMData = kMData;
     this.task = task;
+    this.record = record;
     const control: AutoControlModel = JSON.parse(localStorage.getItem('AutoControl'));
     const modeStr = deviceModes[task.mode];
-    if (record) {
-      this.record = record;
-    } else {
+
+    const arrData = this.getPLCMpa(modeStr);
+    const getSumDdata = this.getSumData(modeStr);
+    const stage = this.getStageStr();
+    this.data = {
+      modeStr: modeStr,
+      stageSrt: stage.stageStr,
+      PLCMpa: arrData.plcMpa,
+      mpa: arrData.mpa,
+      kn: this.KMData.kn,
+      time: this.task.time,
+      maximumDeviationRate: data0 ? data0.maximumDeviationRate : control.maximumDeviationRate,
+      LowerDeviationRate: data0 ? data0.LowerDeviationRate : control.LowerDeviationRate,
+      mpaDeviation: data0 ? data0.mpaDeviation : control.mpaDeviation,
+      mmBalanceControl: data0 ? data0.mmBalanceControl : control.mmBalanceControl,
+      mmGoBack: data0 ? data0.mmGoBack : control.mmGoBack,
+      loadOffTime: Number(data0 ? data0.loadOffTime : control.loadOffTime),
+      affirmMpa: arrData.affirmMpa,
+    };
+    this.state = {
+      stage: this.record ? this.record.stage : 0,
+      self: false,
+      selfError: false,
+      run: false,
+      pm: false,
+      pmDone: false,
+      tensionDone: false,
+      loadOffState: false,
+      loadOffDone: false,
+      returnState: false,
+      superWorkMm: false,
+      goBack: false,
+      goBackDone: false,
+      affirmMpa: !record ? false : true,
+      affirmMpaDone: false,
+      affirmMm: {
+        a1: 0,
+        a2: 0,
+        b1: 0,
+        b2: 0,
+      },
+      originalMm: getSumDdata.originalMm,
+      break: false,
+      loadOffTime: 0,
+      balance: false,
+      pause: false,
+      pauseDone: false,
+      alarmLift: false,
+      maximumDeviationRate: false,
+    };
+    this.sumData = getSumDdata.sumData,
+    this.autoData = {
+      task: this.task,
+      record: this.record,
+      data: this.data,
+      state: this.state,
+      sumData: this.sumData,
+      KMData: this.KMData,
+    };
+    if (!record) {
       const recordItem = this.getRecordArr(modeStr);
       this.record = {
         id: task.id,
@@ -139,47 +223,6 @@ export class GetAutoData {
         returnStart: recordItem.returnStart
       };
     }
-    const arrData = this.getPLCMpa(modeStr);
-    this.data = {
-      modeStr: modeStr,
-      stageSrt: this.getStageStr(),
-      PLCMpa: arrData.plcMpa,
-      mpa: arrData.mpa,
-      kn: this.KMData.kn,
-      time: this.task.time,
-      maximumDeviationRate: control.maximumDeviationRate,
-      LowerDeviationRate: control.LowerDeviationRate,
-      mpaDeviation: control.mpaDeviation,
-      mmBalanceControl: control.mmBalanceControl,
-      mmGoBack: control.mmGoBack,
-      loadOffTime: Number(control.loadOffTime),
-    };
-    this.state = {
-      stage: this.record ? this.record.stage : 0,
-      self: false,
-      selfError: false,
-      run: false,
-      pm: false,
-      pmDone: false,
-      tensionDone: false,
-      loadOffState: false,
-      loadOffDone: false,
-      returnState: false,
-      goBack: false,
-      ogBackDone: false,
-      affirmMpa: false,
-      affirmMpaDone: false,
-      break: false,
-      loadOffTime: 0
-    };
-    this.sumData = this.getSumData(modeStr);
-    this.autoData = {
-      task: this.task,
-      record: this.record,
-      data: this.data,
-      state: this.state,
-      sumData: this.sumData
-    };
   }
   /**
    * 获取张拉阶段
@@ -189,16 +232,20 @@ export class GetAutoData {
    * @returns
    * @memberof Auto
    */
-  getStageStr(): string[] {
+  getStageStr(): {stageStr: string[], stage: number} {
     const task = this.task;
     const record = this.record;
     let stageSrt = ['初张拉', '阶段一', '阶段二', '阶段三', '终张拉'];
+    console.log('二次张拉选择', task.twice, !record);
     if (task.twice && record) {
       if (record.state === 4) {
-        return ['初张拉', '阶段一', '阶段二'];
+        return {stageStr: ['初张拉', '阶段一', '阶段二'], stage: 2};
+      } else if (record.state === 2) {
+        this.record.time[2] = 0;
       }
-    } else if (task.twice && record) {
-      return ['初张拉', '阶段一', '阶段二'];
+    }
+    if (task.twice && !record) {
+      return {stageStr: ['初张拉', '阶段一', '阶段二'], stage: 2};
     }
     switch (Number(task.tensionStage)) {
       case 3:
@@ -216,14 +263,14 @@ export class GetAutoData {
     if (task.super) {
       stageSrt.push('超张拉');
     }
-    return stageSrt;
+    return {stageStr: stageSrt, stage: stageSrt.length - 1};
   }
   /**
    *获取PLCMpa值
    *
    * @memberof Auto
    */
-  getPLCMpa(modeStr): { plcMpa: PLCMpa, mpa: PLCMpa } {
+  getPLCMpa(modeStr): { plcMpa: PLCMpa, mpa: PLCMpa, affirmMpa: any } {
     const kMData = this.KMData;
     const plcMpa: PLCMpa = {
       a1: [],
@@ -237,6 +284,12 @@ export class GetAutoData {
       b1: [],
       b2: [],
     };
+    const affirmMpa = {
+      a1: 0,
+      a2: 0,
+      b1: 0,
+      b2: 0,
+    };
     modeStr.forEach(name => {
       kMData.mpa[name].forEach(value => {
         console.log(value);
@@ -245,8 +298,11 @@ export class GetAutoData {
         plcMpa[name].push(PLCmpa);
         mpa[name].push(m);
       });
+      if (this.record) {
+        affirmMpa[name] = this.Dev[name].Mpa2PLC(this.record.mpa[name][this.record.stage]);
+      }
     });
-    return { plcMpa: plcMpa, mpa: mpa };
+    return { plcMpa: plcMpa, mpa: mpa, affirmMpa: affirmMpa };
   }
   /** 记录数据初始化 */
   getRecordArr(modeStr) {
@@ -263,8 +319,15 @@ export class GetAutoData {
     });
     return { arr: arr, returnStart: returnStart, cvsData: cvsData };
   }
+  /** 伸长量计算初始化 */
   getSumData(modeStr) {
     const sumData: SumData = {};
+    const originalMm = {
+      a1: 0,
+      a2: 0,
+      b1: 0,
+      b2: 0,
+    };
     modeStr.forEach(name => {
       sumData[name] = {
         mm: null,
@@ -272,8 +335,11 @@ export class GetAutoData {
         deviation: null,
         sub: null,
       };
+      if (this.record) {
+        originalMm[name] = this.record.mm[name][this.record.stage];
+      }
     });
-    return sumData;
+    return {sumData: sumData, originalMm: originalMm};
   }
 }
 
@@ -285,7 +351,8 @@ export class AutoControl {
       record: data.record,
       data: data.data,
       state: data.state,
-      sumData: data.sumData
+      sumData: data.sumData,
+      KMData: data.KMData,
     };
   }
 }

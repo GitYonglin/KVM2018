@@ -15,8 +15,10 @@ export class ProtectEditGuard implements CanDeactivate<any> {
     const editState = this._appService.editState;
     const url = this._appService.goUrl;
     console.log(url, editState, this._router);
-    return new Observable((observer) => {
+    console.log(editState);
+    console.log(this._router);
     if (editState) {
+      return new Observable((observer) => {
         this.modalService.create({
           nzTitle: '编辑中',
           nzContent: '你确定要放弃编辑吗？',
@@ -27,10 +29,10 @@ export class ProtectEditGuard implements CanDeactivate<any> {
             observer.complete();
           }
         });
-      } else {
-        observer.next(true);
-        observer.complete();
-      }
-    });
+      });
+    } else {
+      console.log('可以跳转');
+      return true;
+    }
   }
 }

@@ -22,7 +22,8 @@
         <div *ngFor="let item of autoData.data.stageSrt; index as i" class="item">
           <div class="top">
             <button nz-button [nzType]=" autoData.state.stage >= i ? 'primary': 'dashed'" nzShape="circle">{{item}}</button>
-            <nz-progress [nzPercent]="(autoData.record.time[i] / autoData.data.time[i]) * 100" [nzStatus]="'active'" [nzShowInfo]="false"></nz-progress>
+            <nz-progress [nzPercent]="(autoData.record.time[i] / autoData.data.time[i]) * 100" [nzStatus]="'active'"
+              [nzShowInfo]="false"></nz-progress>
             <span style="font-size: 22px;">{{autoData.record.time[i]}} / {{autoData.data.time[i]}}</span>
           </div>
           <div class="bottom">
@@ -31,8 +32,10 @@
         </div>
         <div class="item">
           <div class="top">
-            <button nz-button [nzType]=" autoData.state.loadOffState || autoData.state.loadOffDone ? 'primary': 'dashed'" nzShape="circle">卸荷</button>
-            <nz-progress [nzPercent]="(autoData.state.loadOffTime / autoData.data.loadOffTime) *100" [nzStatus]="'active'" [nzShowInfo]="false"></nz-progress>
+            <button nz-button [nzType]=" autoData.state.loadOffState || autoData.state.loadOffDone ? 'primary': 'dashed'"
+              nzShape="circle">卸荷</button>
+            <nz-progress [nzPercent]="(autoData.state.loadOffTime / autoData.data.loadOffTime) *100" [nzStatus]="'active'"
+              [nzShowInfo]="false"></nz-progress>
             <span>{{autoData.state.loadOffTime}} / {{autoData.data.loadOffTime}}</span>
           </div>
           <div class="bottom">
@@ -88,49 +91,49 @@
 </div>
 
 <!-- 张拉弹出框 -->
-<nz-modal [nzVisible]="!autoData.state.run" nzTitle="准备张拉·数据核对" nzWidth="auto" [nzFooter]="runFooter" [nzMaskClosable]="false"
+<nz-modal [nzVisible]="!autoData.state.run && !autoData.state.goBack" nzTitle="准备张拉·数据核对" nzWidth="auto" [nzFooter]="runFooter" [nzMaskClosable]="false"
   nzClosable="false">
   <nz-spin [nzSpinning]="upPlcState" nzTip="数据下载中..." [nzSize]="'large'">
     <div *ngIf="!autoData.state.self">
       <nz-card nzTitle="控制参数">
         <div class="run-main">
-            <nz-form-item>
-              <nz-input-group nzAddOnBefore="允许偏差率上限" nzAddOnAfter="%">
-                <input (focus)="$event.target.select()" type="number" nz-input nzSize="large" [value]="autoData.data.maximumDeviationRate"
-                  (input)="autoData.data.maximumDeviationRate = $event.target.valueAsNumber">
-              </nz-input-group>
-            </nz-form-item>
-            <nz-form-item>
-              <nz-input-group nzAddOnBefore="允许偏差率下限" nzAddOnAfter="%">
-                <input (focus)="$event.target.select()" type="number" nz-input nzSize="large" [value]="autoData.data.LowerDeviationRate"
-                  (input)="autoData.data.LowerDeviationRate = $event.target.valueAsNumber">
-              </nz-input-group>
-            </nz-form-item>
-            <nz-form-item>
-              <nz-input-group nzAddOnBefore="允许压力偏差" nzAddOnAfter="Mpa">
-                <input (focus)="$event.target.select()" type="number" nz-input nzSize="large" [value]="autoData.data.mpaDeviation"
-                  (input)="autoData.data.mpaDeviation = $event.target.valueAsNumber">
-              </nz-input-group>
-            </nz-form-item>
-            <nz-form-item>
-              <nz-input-group nzAddOnBefore="平衡控制" nzAddOnAfter="mm">
-                <input (focus)="$event.target.select()" type="number" nz-input nzSize="large" [value]="autoData.data.mmBalanceControl"
-                  (input)="autoData.data.mmBalanceControl = $event.target.valueAsNumber">
-              </nz-input-group>
-            </nz-form-item>
-            <nz-form-item>
-              <nz-input-group nzAddOnBefore="倒顶位移下限" nzAddOnAfter="mm">
-                <input (focus)="$event.target.select()" type="number" nz-input nzSize="large" [value]="autoData.data.mmGoBack"
-                  (input)="autoData.data.mmGoBack = $event.target.valueAsNumber">
-              </nz-input-group>
-            </nz-form-item>
-            <nz-form-item>
-              <nz-input-group nzAddOnBefore="卸荷完成延时" nzAddOnAfter="s">
-                <input (focus)="$event.target.select()" type="number" nz-input nzSize="large" [value]="autoData.data.loadOffTime"
-                  (input)="autoData.data.loadOffTime = $event.target.valueAsNumber">
-              </nz-input-group>
-            </nz-form-item>
-          </div>
+          <nz-form-item>
+            <nz-input-group nzAddOnBefore="允许偏差率上限" nzAddOnAfter="%">
+              <input (focus)="$event.target.select()" type="number" nz-input nzSize="large" [value]="autoData.data.maximumDeviationRate"
+                (input)="autoData.data.maximumDeviationRate = $event.target.valueAsNumber">
+            </nz-input-group>
+          </nz-form-item>
+          <nz-form-item>
+            <nz-input-group nzAddOnBefore="允许偏差率下限" nzAddOnAfter="%">
+              <input (focus)="$event.target.select()" type="number" nz-input nzSize="large" [value]="autoData.data.LowerDeviationRate"
+                (input)="autoData.data.LowerDeviationRate = $event.target.valueAsNumber">
+            </nz-input-group>
+          </nz-form-item>
+          <nz-form-item>
+            <nz-input-group nzAddOnBefore="允许压力偏差" nzAddOnAfter="Mpa">
+              <input (focus)="$event.target.select()" type="number" nz-input nzSize="large" [value]="autoData.data.mpaDeviation"
+                (input)="autoData.data.mpaDeviation = $event.target.valueAsNumber">
+            </nz-input-group>
+          </nz-form-item>
+          <nz-form-item>
+            <nz-input-group nzAddOnBefore="平衡控制" nzAddOnAfter="mm">
+              <input (focus)="$event.target.select()" type="number" nz-input nzSize="large" [value]="autoData.data.mmBalanceControl"
+                (input)="autoData.data.mmBalanceControl = $event.target.valueAsNumber">
+            </nz-input-group>
+          </nz-form-item>
+          <nz-form-item>
+            <nz-input-group nzAddOnBefore="倒顶位移下限" nzAddOnAfter="mm">
+              <input (focus)="$event.target.select()" type="number" nz-input nzSize="large" [value]="autoData.data.mmGoBack"
+                (input)="autoData.data.mmGoBack = $event.target.valueAsNumber">
+            </nz-input-group>
+          </nz-form-item>
+          <nz-form-item>
+            <nz-input-group nzAddOnBefore="卸荷完成延时" nzAddOnAfter="s">
+              <input (focus)="$event.target.select()" type="number" nz-input nzSize="large" [value]="autoData.data.loadOffTime"
+                (input)="autoData.data.loadOffTime = $event.target.valueAsNumber">
+            </nz-input-group>
+          </nz-form-item>
+        </div>
       </nz-card>
       <nz-card nzTitle="张拉数据">
         <table border="1" cellspaning="0" class="check">
@@ -182,56 +185,61 @@
 </nz-modal>
 
 
-<nz-modal [nzVisible]="modalState.done" nzTitle="张拉完成" [nzMaskClosable]="false"
-  nzClosable="false">
+<nz-modal [nzVisible]="modalState.done" nzTitle="张拉完成" [nzMaskClosable]="false" nzClosable="false">
   <div>
     <h1>张拉完成！数据保存完成！</h1>
     <h2>{{modalState.doneTime}}s 自动退出！</h2>
   </div>
 </nz-modal>
 
-<!-- <nz-modal [nzVisible]="_ms.runTensionData.stopState" nzTitle="张拉暂停" [nzFooter]="stopFooter" [nzMaskClosable]="false"
-  nzClosable="false">
-  <div>
-    <h1>张拉暂停</h1>
-    <div class="alarm">
-        <div *ngFor="let name of _ms.tensionData.modes">
-          <nz-card [nzTitle]="name + '报警'" *ngIf="_ms.showValues[name].alarmNumber">
-              <div *ngFor="let item of _ms.showValues[name].alarm">
-                <nz-alert *ngIf="item" nzType="error" [nzMessage]="item" nzDescription="报警说明" nzShowIcon>
-                </nz-alert>
-              </div>
-            <h3 *ngIf="!_ms.state[name]">设备通信异常</h3>
-          </nz-card>
-        </div>
-    </div>
-  </div>
-  <ng-template #stopFooter>
-    <button nz-button nzType="default" (click)="onStop2run()" *ngIf="
-    (_ms.tensionData.mode === 0 && _ms.showValues.a1.alarmNumber === 0 && _ms.state.a1) ||
-    (_ms.tensionData.mode === 2 && _ms.showValues.b1.alarmNumber === 0 && _ms.state.b1) ||
-    ( _ms.tensionData.mode === 1 && _ms.showValues.a1.alarmNumber === 0 && _ms.showValues.a2.alarmNumber === 0 && _ms.state.a1 && _ms.state.a2) ||
-    ( _ms.tensionData.mode === 3 && _ms.showValues.b1.alarmNumber === 0 && _ms.showValues.b2.alarmNumber === 0 && _ms.state.b1 && _ms.state.b2) ||
-    ( _ms.tensionData.mode === 4 && _ms.showValues.a1.alarmNumber === 0 && _ms.showValues.a2.alarmNumber === 0 && _ms.showValues.b1.alarmNumber === 0 && _ms.showValues.b2.alarmNumber === 0 && _ms.state.a1 && _ms.state.a2)
-    ">继续张拉</button>
-    <button nz-button nzType="default" (click)="onSaveExit()">保存数据·退出张拉</button>
-    <button nz-button nzType="danger" (click)="onExit()">不保存数据·退出</button>
-  </ng-template>
-</nz-modal> -->
-
-<!-- <nz-modal [nzVisible]="_ms.passSate" nzTitle="超位移暂停" [nzFooter]="returnFooter" [nzMaskClosable]="false"
+<nz-modal [nzVisible]="autoData.state.superWorkMm" nzTitle="超位移暂停" [nzFooter]="returnFooter" [nzMaskClosable]="false"
   nzClosable="false">
   <div>
     <h1>超位移暂停！</h1>
     <nz-form-item>
-        <nz-input-group nzAddOnBefore="倒顶位移下限" nzAddOnAfter="mm">
-          <input type="number" nz-input nzSize="large" [(ngModel)]="_ms.mmReturnLowerLimit">
-        </nz-input-group>
-      </nz-form-item>
+      <nz-input-group nzAddOnBefore="倒顶位移下限" nzAddOnAfter="mm">
+        <input (focus)="$event.target.select()" type="number" nz-input nzSize="large" [value]="autoData.data.mmGoBack"
+          (input)="autoData.data.mmGoBack = $event.target.valueAsNumber">
+      </nz-input-group>
+    </nz-form-item>
     <h1 *ngIf="_ms.returnMmOk">回顶完成！装载完成可以继续张拉！</h1>
   </div>
   <ng-template #returnFooter>
-    <button nz-button nzType="default" (click)="onReturn()">回顶</button>
-    <button nz-button nzType="default" (click)="onContinue()" *ngIf="_ms.returnMmOk">继续张拉</button>
+    <button nz-button nzType="default" (click)="onContinueTension()" *ngIf="autoData.state.goBackDone">继续张拉</button>
+    <button nz-button nzType="default" (click)="onGoBack()">回顶</button>
+    <button nz-button nzType="default" (click)="onShowData()" *ngIf="autoData.state.goBackDone">继续张拉</button>
+    <button nz-button nzType="default" (click)="onSaveExit()">保存数据·退出张拉</button>
+    <button nz-button nzType="danger" (click)="onExit()">不保存数据·退出</button>
   </ng-template>
-</nz-modal> -->
+</nz-modal>
+
+<nz-modal [nzVisible]="autoData.state.pause" nzTitle="张拉暂停" [nzFooter]="stopFooter" [nzMaskClosable]="false" nzClosable="false">
+    <div>
+      <div>
+          <nz-form-item>
+            <nz-input-group nzAddOnBefore="允许偏差率上限" nzAddOnAfter="%">
+              <input (focus)="$event.target.select()" type="number" nz-input nzSize="large" [value]="autoData.data.maximumDeviationRate"
+                (input)="autoData.data.maximumDeviationRate = $event.target.valueAsNumber">
+            </nz-input-group>
+          </nz-form-item>
+        </div>
+      <div class="alarm">
+        <div *ngFor="let name of autoData.data.modeStr">
+          <nz-card [nzTitle]="(name + '报警') | L2U" *ngIf="_ms.Dev[name].liveData.alarmNumber || deviationRate[name]">
+            <div *ngFor="let item of _ms.Dev[name].liveData.alarm">
+              <nz-alert *ngIf="item" nzType="error" [nzMessage]="item" nzDescription="报警说明" nzShowIcon></nz-alert>
+            </div>
+            <div>
+              <nz-alert *ngIf="deviationRate[name]" nzType="error" nzMessage="超偏差率报警" nzDescription="报警说明" nzShowIcon></nz-alert>
+              <h3>当前偏差率： {{autoData.sumData[name].deviation}}</h3>
+            </div>
+          </nz-card>
+        </div>
+      </div>
+    </div>
+    <ng-template #stopFooter>
+      <button nz-button nzType="default" (click)="onPauseRun()" *ngIf="autoData.state.alarmLift && !autoData.state.maximumDeviationRate">继续张拉</button>
+      <button nz-button nzType="default" (click)="onSaveExit()">保存数据·退出张拉</button>
+      <button nz-button nzType="danger" (click)="onExit()">不保存数据·退出</button>
+    </ng-template>
+  </nz-modal>

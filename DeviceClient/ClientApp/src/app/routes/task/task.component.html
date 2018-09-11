@@ -109,7 +109,7 @@
         <nz-affix [nzTarget]="target">
           <div class="hole-group">
             <nz-radio-group [nzSize]="'large'" [(ngModel)]="selectHoleGroup" (ngModelChange)="onSelectHoleRadio()">
-              <div class="label" *ngFor="let item of dbData?.holeGroupsRadio | Sort; index as i">
+              <div class="label" *ngFor="let item of dbData?.holeGroupsRadio | HoleSort; index as i">
                 <label nz-radio-button [nzValue]="item?.id" [nzDisabled]="_appService.editState && (holeGroup.holeGroupEdit && item.id !== holeGroup.holeGroupId)">
                   {{item?.hole}}
                 </label>

@@ -32,7 +32,9 @@ export class DeviceSetComponent implements OnInit, OnDestroy {
     public _ms: MSService,
     public _appService: AppService,
     private message: NzMessageService
-  ) { }
+  ) {
+    this._ms.getDeviceParameterEvent = new Event('GetDeviceParameter');
+  }
 
   ngOnInit() {
     if (this._ms.deviceParameter) {
@@ -73,6 +75,7 @@ export class DeviceSetComponent implements OnInit, OnDestroy {
     this.autoControlModel = JSON.parse(localStorage.getItem('AutoControl'));
   }
   ngOnDestroy(): void {
+    this._ms.getDeviceParameterEvent = null;
   }
 
   /** 取消修改 */

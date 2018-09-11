@@ -100,11 +100,11 @@ interface SumItem {
  *
  * @export
  * @param {RecordMode} mm 记录位移数据
- * @param {HoleGroup} task 任务孔组
+ * @param {HoleGroup} task 任务数据
  * @param {number} [stage=1] 当前张拉阶段
  * @returns {SumData}
  */
-export function funcSumData(mm: RecordMode, task: HoleGroup, stage: number = 1): SumData {
+export function funcSumData(mm: RecordMode, task: HoleGroup, stage: number = 0): SumData {
   const r: SumData = {};
   const mode = [];
   // tslint:disable-next-line:forin
@@ -146,9 +146,17 @@ export function funcSumData(mm: RecordMode, task: HoleGroup, stage: number = 1):
   return r;
 }
 // (终位移 - 回油位移) - (1 - 初张拉压力 / 终张拉压力) / 工作端伸长量
-export function funcRetraction (d: RecordData, task) {
+/**
+ * 力筋回缩量计算
+ *
+ * @export
+ * @param {RecordData} d 记录数据
+ * @param {HoleGroup} task 任务数据
+ * @returns
+ */
+export function funcRetraction (d: RecordData, task: HoleGroup) {
   const r = {};
-  for (const name of deviceModes[d.mode]) {
+  for (const name of deviceModes[task.mode]) {
     const length = d.mpa[name].length - 1;
     console.log('力筋回缩量', length, d.mm[name][length], d.returnStart[name].mm, d.mpa[name][0], d.mpa[name][length], task[name].workMm);
     r[name] = N2F((d.mm[name][length] - d.returnStart[name].mm) - (1 - d.mpa[name][0] / d.mpa[name][length]) / task[name].workMm);

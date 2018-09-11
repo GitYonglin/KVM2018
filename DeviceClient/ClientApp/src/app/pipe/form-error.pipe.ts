@@ -78,9 +78,9 @@ export class CheckboxSelect implements PipeTransform {
     return ds.indexOf(value) > -1;
   }
 }
-// 排序
-@Pipe({ name: 'Sort' })
-export class StringSort implements PipeTransform {
+// 孔排序
+@Pipe({ name: 'HoleSort' })
+export class HoleSort implements PipeTransform {
   constructor(@Inject('BASE_CONFIG') private config) {}
   transform(datas: Array<any>): any {
     console.log(datas);
@@ -91,3 +91,15 @@ export class StringSort implements PipeTransform {
   }
 }
 
+// 孔排序
+@Pipe({ name: 'BridgeSort' })
+export class BridgeSort implements PipeTransform {
+  constructor(@Inject('BASE_CONFIG') private config) {}
+  transform(datas: Array<any>): any {
+    console.log(datas);
+    if (!datas) {
+      return datas;
+    }
+    return datas.sort((a, b) => a.name < b.name ? 0 : 1);
+  }
+}

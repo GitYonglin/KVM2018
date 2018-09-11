@@ -98,7 +98,8 @@ export class MSService {
   public Dev: Dev;
   public modeNo: string;
   public connectNo: string;
-  public GetDeviceParameterEvent: Function = function () { document.dispatchEvent(new Event('GetDeviceParameter')); };
+  public getDeviceParameterEvent = null;
+  public liveMonitoringEvent = null;
 
 
   constructor(
@@ -270,6 +271,9 @@ export class MSService {
                 this.Dev[name].liveDataFunc([data[2], data[3], data[5], data[7], data[9]]);
               }
             }
+            if (this.liveMonitoringEvent) {
+              document.dispatchEvent(this.liveMonitoringEvent); // 触发监听事件
+            }
           });
         });
         // 监听保压延时
@@ -319,11 +323,12 @@ export class MSService {
               });
             }
             this.newPLCLive();
-            this.GetDeviceParameterEvent();
           }
           if (rData.c) {
             this.deviceParameterC = setDeviceParameterValue(rData.c);
-            this.GetDeviceParameterEvent();
+          }
+          if (this.getDeviceParameterEvent) {
+            document.dispatchEvent(this.getDeviceParameterEvent);
           }
         });
 

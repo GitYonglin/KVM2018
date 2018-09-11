@@ -7,6 +7,7 @@ namespace DeviceClient.Hubs
 {
     public class InPLC
     {
+        public bool C { get; set; }
         public int Id { get; set; }
         public int Address { get; set; }
         public Boolean F05 { get; set; }

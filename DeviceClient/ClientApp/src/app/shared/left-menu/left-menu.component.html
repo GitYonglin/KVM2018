@@ -33,9 +33,7 @@
           </div>
           <!-- 梁菜单 -->
           <div [@list]="bridges.length" class="bridge-list" *ngIf="bridges && titleId === item.id">
-
-            <!-- <li></li> -->
-            <ng-container *ngFor="let bridge of selectBridges">
+            <ng-container *ngFor="let bridge of selectBridges | BridgeSort">
               <li [ngClass]="{'active': bridgeId === bridge.id}" (click)="onBridge(bridge.id)">
                 <span class="state" [ngClass]="'state' + bridge.state"></span>
                 <span mat-line>{{bridge.name}}</span>

@@ -75,6 +75,16 @@ export class APIService {
         });
     });
   }
+  /**
+   * 后台请求
+   *
+   * @param {string} [type='post'] 请求类型
+   * @param {*} fd 保存数据
+   * @param {string} url 请求地址
+   * @param {{ success: string, error: string }} message 请求说明
+   * @returns {Observable<{ state: string, data: any }>}
+   * @memberof APIService
+   */
   public http(type: string = 'post', fd: any, url: string, message: { success: string, error: string }):
     Observable<{ state: string, data: any }> {
       return Observable.create((observer) => {

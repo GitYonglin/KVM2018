@@ -8,7 +8,8 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { LeftMenuComponent } from './left-menu/left-menu.component';
 import { CommonModule } from '@angular/common';
-import { FormErrorPipe, ImgUrlPipe, DeviceMode, Number2Float, Lower2Upper, CheckboxSelect, StringSort } from '../pipe/form-error.pipe';
+import { FormErrorPipe, ImgUrlPipe, DeviceMode, Number2Float, Lower2Upper, CheckboxSelect,
+         HoleSort, BridgeSort } from '../pipe/form-error.pipe';
 import { FormUpImgComponent } from './form/form-up-img/form-up-img.component';
 import { ModalFormDataComponent } from './form/modal-form-data/modal-form-data.component';
 import { ChildrenFormComponent } from './form/children-form/children-form.component';
@@ -39,7 +40,8 @@ const declarations = [
   Number2Float,
   Lower2Upper,
   CheckboxSelect,
-  StringSort
+  HoleSort,
+  BridgeSort,
 ];
 @NgModule({
   imports: [

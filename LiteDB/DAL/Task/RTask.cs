@@ -161,12 +161,12 @@ namespace KVM.LiteDB.DAL.Task
         public IEnumerable<MenuData> MenuData(string projectId, string componentId)
         {
             return _col.Find(t => t.ProjectId == projectId && t.ComponentId == componentId).Select(x =>
-                new MenuData { Name = x.BridgeName, Id = x.Id, State = GetBriderState(x.ProjectId) }
+                new MenuData { Name = x.BridgeName, Id = x.Id, State = GetBriderState(x.Id) }
             );
         }
         private int GetBriderState(string id)
         {
-            //var v = _holeGroup.Find(o => o.ParentId == id).Select(h => new { Record = _record.FindOne(re => re.Id == h.Id) });
+            var task = _holeGroup.Find(h => h.ParentId == id);
             var records = _record.Find(r => r.ParentId == id);
             if (records != null)
             {
@@ -189,10 +189,10 @@ namespace KVM.LiteDB.DAL.Task
                             state = 1;
                         }
                     }
-                    else
-                    {
-                        state1 = 4;
-                    }
+                }
+                if (task.Count() != records.Count())
+                {
+                    state1 = 4;
                 }
                 if (state1 == 4 && state == 1)
                 {
