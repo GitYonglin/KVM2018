@@ -113,4 +113,7 @@ export class MenuButtonComponent implements OnInit {
       window.location.href = '/';
     }
   }
+  retry() {
+    this._ms.connection.invoke('Retry');
+  }
 }

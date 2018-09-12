@@ -16,6 +16,7 @@ export class ManualComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChildren(DeviceItemComponent)
   private deviceItems: QueryList<DeviceItemComponent>;
   deviceItem: DeviceItemComponent;
+  nowCorrectionValue: number;
   devices = [];
   a1 = {
     state: true,
@@ -62,6 +63,7 @@ export class ManualComponent implements OnInit, OnDestroy, AfterViewInit {
   nowSetItem = null;
   nowKey = null;
   selectDeviceId = null;
+  mpaMm = null;
   // deviceParameter: DeviceParameter;
   correctionIndex: any;
   resetMm: 0;
@@ -100,6 +102,7 @@ export class ManualComponent implements OnInit, OnDestroy, AfterViewInit {
             this.b2.setMm = dev.b2.PLC2Mm(r.c[3]);
           }
         }
+        this._ms.DF05(10, true);
       });
     } catch (error) {
       console.log('设备没有连接！', error);
@@ -172,6 +175,7 @@ export class ManualComponent implements OnInit, OnDestroy, AfterViewInit {
     this.correctionName = name;
     this.nowSetItem = null;
     this.nowKey = null;
+    console.log(state, deviceName, name);
     this.a1.state = false;
     this.a2.state = false;
     this.b1.state = false;
@@ -183,14 +187,17 @@ export class ManualComponent implements OnInit, OnDestroy, AfterViewInit {
   public onSetCorrection(name: string, key: string, i) {
     this.nowSetItem = name;
     this.nowKey = key;
+    this.mpaMm = this.nowSetItem.indexOf('Mpa') !== -1;
     const reg = /\[(.+?)\]/;
     this.correctionIndex = key.match(reg)[1];
     if (name.indexOf('Mpa') !== -1) {
       this.deviceItem.data.setMpa = Number(name.slice(0, name.length - 3));
       this.deviceItem.data.setMm = 0;
+      this.nowCorrectionValue = this.deviceItem.data.setMpa;
     } else {
       this.deviceItem.data.setMm = Number(name.slice(0, name.length - 2));
       this.deviceItem.data.setMpa = 3;
+      this.nowCorrectionValue = this.deviceItem.data.setMm;
     }
     this.deviceItem.onSetMm();
     this.deviceItem.onSetMpa();
@@ -207,18 +214,23 @@ export class ManualComponent implements OnInit, OnDestroy, AfterViewInit {
   }
   // 计算校准值
   calculate() {
-    this.correctionValue = Number((this.realityValue / this.nowValue).toFixed(4));
+    if (this.mpaMm) {
+      this.correctionValue = Number((this.realityValue / this.nowValue).toFixed(4));
+    } else {
+      this.correctionValue = N2F(Number(this.nowCorrectionValue) /
+      (Number(this.nowCorrectionValue) + (Number(this.nowValue) - Number(this.realityValue))), 4);
+    }
   }
   // 校正获取设备值
   getNowValue() {
-    const name = this.nowSetItem;
-    if (name.indexOf('Mpa') !== -1) {
-      this.nowValue = this._ms.showValues[this.correctionName].mpa;
+    const key = this.nowSetItem;
+    if (key.indexOf('Mpa') !== -1) {
+      this.nowValue = this._ms.Dev[this.correctionName].liveData.mpa;
     } else {
-      this.nowValue = N2F(this._ms.showValues[this.correctionName].mm - this.resetMm);
+      this.nowValue = N2F(this._ms.Dev[this.correctionName].liveData.mm - this.resetMm);
     }
     this.calculate();
-    console.log(name, this.deviceItem.data);
+    console.log(key, this.deviceItem.data);
   }
   // 切换泵顶组
   onSwitchDevice() {

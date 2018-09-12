@@ -202,4 +202,10 @@ namespace KVM.entity
         public string ComponentId { get; set; }
         public string ProjectId { get; set; }
     }
+
+    public class Export
+    {
+        public IEnumerable<HoleGroup> HoleGroups { get; set; }
+        public IEnumerable<Record> Records { get; set; }
+    }
 }

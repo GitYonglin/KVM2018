@@ -62,8 +62,8 @@ export class DeviceItemComponent implements OnInit {
     this.mmStream.next({address: this.address + 1, F06: F06});
   }
   reset() {
-    this.relativeMm = this._ms.showValues[this.name].mm;
+    this.relativeMm = this._ms.Dev[this.name].liveData.mm;
     this.resetZero.emit(this.relativeMm);
-    console.log(this._ms.showValues[this.name].mm, this.relativeMm);
+    console.log(this._ms.Dev[this.name].liveData.mm, this.relativeMm);
   }
 }

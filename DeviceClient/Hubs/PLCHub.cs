@@ -74,6 +74,10 @@ namespace DeviceClient.Hubs
                 this.GetDeviceParameterAsync();
             }
         }
+        public void Retry()
+        {
+            Creates(ConnentState);
+        }
         /// <summary>
         /// 连接成功，启动心跳包连接
         /// </summary>
@@ -101,85 +105,7 @@ namespace DeviceClient.Hubs
                 }
             });
         }
-        
-        //public void F03(InPLC data)
-        //{
-
-        //    if (data.Id == 1)
-        //    {
-        //        Z.F03(PLCSite.D(data.Address), data.F03, (rdata) =>
-        //        {
-        //            _clients.All.SendAsync("F03Return", new { name = Z.Name, data = ReceiveData.F03(rdata, data.F03) });
-        //        });
-        //    }
-        //    else
-        //    {
-        //        C.F03(PLCSite.D(data.Address), data.F03, (rdata) =>
-        //        {
-        //            _clients.All.SendAsync("F03Return", new { name = C.Name, data = ReceiveData.F03(rdata, data.F03) });
-        //        });
-        //    }
-        //}
-        //public async Task DF03Async(InPLC data)
-        //{
-        //    //Z.F03(PLCSite.D(data.Address), data.F03, (rdata) =>
-        //    //{
-        //    //    _clients.All.SendAsync("F03Return", new { name = Z.Name, data = ReceiveData.F03(rdata, data.F03) });
-        //    //});
-        //    //C.F03(PLCSite.D(data.Address), data.F03, (rdata) =>
-        //    //{
-        //    //    _clients.All.SendAsync("F03Return", new { name = C.Name, data = ReceiveData.F03(rdata, data.F03) });
-        //    //});
-        //    var cancelTokenSource = new CancellationTokenSource(3000);
-        //    int b = 1;
-        //    int bb = 0;
-        //    List<int> z = null;
-        //    List<int> c = null;
-        //    await Task.Run(() =>
-        //    {
-        //        if (ConnentState)
-        //        {
-        //            b = 2;
-        //            C.F03(PLCSite.D(500), 17, (rdata) =>
-        //            {
-        //                c = ReceiveData.F03(rdata, 17);
-        //                bb++;
-        //            });
-        //        }
-        //        Z.F03(PLCSite.D(500), 17, (rdata) =>
-        //        {
-        //            z = ReceiveData.F03(rdata, 17);
-        //            bb++;
-        //        });
-        //        while (bb != b || !cancelTokenSource.IsCancellationRequested)
-        //        {
-        //            Thread.Sleep(10);
-        //        }
-        //    });
-        //    cancelTokenSource.Cancel();
-        //}
-        //public void F05(InPLC data)
-        //{
-
-        //    if (data.Id == 1)
-        //    {
-        //        Z.F05(data.Address, data.F05, null);
-        //    }
-        //    else
-        //    {
-        //        C.F05(data.Address, data.F05, null);
-        //    }
-        //}
-        //public Boolean DF05(InPLC data)
-        //{
-        //    Z.F05(PLCSite.M(data.Address), data.F05, null);
-        //    if (ConnentState && C != null)
-        //    {
-        //        C.F05(PLCSite.M(data.Address), data.F05, null);
-        //    }
-        //    return true;
-        //}
-
+       
         public async Task<bool> F06Async(InPLC data)
         {
             var cancelTokenSource = new CancellationTokenSource(3000);
@@ -220,18 +146,7 @@ namespace DeviceClient.Hubs
                     C.F06(PLCSite.D(data.Address), data.F06, null);
                 }
         }
-        //public bool F16(InPLC data)
-        //{
-        //    if (data.Id == 1)
-        //    {
-        //        Z.F16(PLCSite.D(data.Address), data.F16, null);
-        //    }
-        //    else
-        //    {
-        //        C.F16(PLCSite.D(data.Address), data.F16, null);
-        //    }
-        //    return true;
-        //}
+
         public void F01(InPLC data)
         {
             if (data.Id == 1)
@@ -250,38 +165,6 @@ namespace DeviceClient.Hubs
             }
         }
 
-        /// <summary>
-        /// 自动张拉F05
-        /// </summary>
-        /// <param name="mode"></param>
-        /// <returns></returns>
-        //public Boolean AutoF05(InPLC data)
-        //{
-        //    if (TensionMode == -1)
-        //    {
-        //        TensionMode = data.Mode;
-
-        //    }
-        //    Console.WriteLine("张拉启动");
-        //    Console.WriteLine(TensionMode);
-        //    if (TensionMode == 1 || TensionMode == 3 || TensionMode == 4)
-        //    {
-        //        C.F05(PLCSite.M(data.Address), data.F05, null);
-        //    }
-
-        //    Z.F05(PLCSite.M(data.Address), data.F05, null);
-        //    LoadOffDelayState = false;
-        //    DelayState = false;
-        //    AutoStopRunState = false;
-        //    ZAutoStopState = false;
-        //    CAutoStopState = false;
-        //    AutoStopState = false;
-        //    ZAutoStopState = false;
-        //    CAutoStopState = false;
-        //    return true;
-        //}
-
-
         public async Task<bool> AutoStartAsync()
         {
             var b = await DF05Async(new InPLC() { Address = 520, F05 = true });
@@ -298,18 +181,7 @@ namespace DeviceClient.Hubs
             TensionRun = false;
             TensionMode = false;
         }
-        /// <summary>
-        /// 通信错误事件
-        /// </summary>
-        /// <param name="id">主从Id</param>
-        /// <param name="message">通信状态</param>
-        public void ModbusLinkError(string id, string message)
-        {
-            if (_clients != null)
-            {
-                _clients.All.SendAsync("Send", new { Id = id, Message = message });
-            }
-        }
+
 
         /// <summary>
         /// 阶段压力数据上载到PLC
@@ -444,6 +316,31 @@ namespace DeviceClient.Hubs
         {
             var b = await DF05Async(new InPLC() { Address = 550, F05 = false });
             return b;
+        }
+
+        /// <summary>
+        /// 通信错误事件
+        /// </summary>
+        /// <param name="id">主从Id</param>
+        /// <param name="message">通信状态</param>
+        public void ModbusLinkError(string id, string message, bool state)
+        {
+            if (_clients != null)
+            {
+                _clients.All.SendAsync("Send", new { Id = id, Message = message });
+                if (state)
+                {
+                    if (id == "主站")
+                    {
+                        Z = null;
+                    } 
+                    else
+                    {
+                        C = null;
+                    }
+
+                }
+            }
         }
     }
 }

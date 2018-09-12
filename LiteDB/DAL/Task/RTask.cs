@@ -202,5 +202,12 @@ namespace KVM.LiteDB.DAL.Task
             }
             return 0;
         }
+
+        public Export Export(string id)
+        {
+            var holeGroups =  _holeGroup.Find(h => h.ParentId == id);
+            var records = _record.Find(r => r.ParentId == id);
+            return new Export() { HoleGroups = holeGroups, Records = records };
+        }
     }
 }

@@ -61,13 +61,18 @@ namespace Modbus.ASCII
         /// <summary>
         /// 设备链接失败回调事件
         /// </summary>
-        public event EventDL ModbusLinkError;
+        public event Action<string, string, bool> ModbusLinkError;
         /// <summary>
         /// 请求数据队列
         /// </summary>
         public List<ListSendData> listSands = new List<ListSendData>();
         public string socketId { get; set; }
         private Boolean ReviceState { get; set; } = true;
+        /// <summary>
+        /// 重新连接次数
+        /// </summary>
+        public int connNumber { get; set; }
+        public bool end { get; set; }
 
 
         /// <summary>
@@ -86,17 +91,27 @@ namespace Modbus.ASCII
 
             Task.Run(() =>
             {
-                while (true)
+                while (!end)
                 {
                     if (!IsSuccess)
                     {
-                        Console.WriteLine(this.Ip);
-                        Client?.Close();
-                        Client = null;
-                        ModbusLinkError?.Invoke(this.Name, $"{Name}--3秒钟后重新链接");
-                        Thread.Sleep(3000);
-                        ModbusLinkError?.Invoke(this.Name, $"{Name}--重新链接...");
-                        Link();
+                        if (connNumber <= 3)
+                        {
+                            connNumber++;
+                            Console.WriteLine(this.Ip);
+                            Client?.Close();
+                            Client = null;
+                            ModbusLinkError?.Invoke(this.Name, $"{Name}--3秒钟后重新链接", false);
+                            Thread.Sleep(3000);
+                            ModbusLinkError?.Invoke(this.Name, $"{Name}--重新链接{connNumber}次...", false);
+                            Link();
+                        } else
+                        {
+                            Client?.Close();
+                            Client = null;
+                            end = true;
+                            ModbusLinkError?.Invoke(this.Name, $"{Name}--尝试{connNumber}次失败，请手动连接", true);
+                        }
                     }
                     else
                     {
@@ -176,7 +191,7 @@ namespace Modbus.ASCII
                 catch (SocketException ex)
                 {
                     IsSuccess = false;
-                    ModbusLinkError?.Invoke(this.Name, $"{Name}请求错误--{ex.Message}");
+                    ModbusLinkError?.Invoke(this.Name, $"{Name}请求错误--{ex.Message}", false);
                 }
                 //}).Start();
             }
@@ -216,6 +231,7 @@ namespace Modbus.ASCII
                 listSands.Clear();
                 socketId = DateTime.Now.ToString();
                 ModbusLinkSuccess?.Invoke(this.Name, $"{Name}链接成功");
+                connNumber = 0;
             }
             else
             {

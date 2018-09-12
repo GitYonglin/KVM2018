@@ -62,6 +62,8 @@ export interface AutoState {
   alarmLift: boolean;
   /** 超伸长量 */
   maximumDeviationRate: boolean;
+  /** 压力差报警 */
+  mpaDeviation: boolean;
 }
 export interface AutoData {
   /** 张拉组合 */
@@ -189,6 +191,7 @@ export class GetAutoData {
       pauseDone: false,
       alarmLift: false,
       maximumDeviationRate: false,
+      mpaDeviation: false,
     };
     this.sumData = getSumDdata.sumData,
     this.autoData = {

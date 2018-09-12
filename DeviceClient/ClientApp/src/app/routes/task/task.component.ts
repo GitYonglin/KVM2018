@@ -22,6 +22,7 @@ import { publicDecrypt } from 'crypto';
 import { AuthorityService } from '../../services/authority.service';
 import { NzModalService, NzMessageService } from 'ng-zorro-antd';
 import { GetAutoData } from '../../utils/autoTension';
+import { exportData } from '../../utils/export';
 
 const baseUri = '/task';
 
@@ -393,6 +394,8 @@ export class TaskComponent implements OnInit, AfterViewInit {
   }
   // 张拉
   onTension() {
+    this._ms.DF05(10, true); // 设备调整手动
+    const dev = this._ms.Dev;
     this.runTension.deviceState = false;
     this.runTension.state = false;
     console.log('自动张拉数据', this.groupTaskElem.dbData, this.groupTaskElem.countKM);
@@ -405,7 +408,7 @@ export class TaskComponent implements OnInit, AfterViewInit {
       // 检查设备连接状态
       this.runTension.mode = deviceModes[dbTask.task.mode];
       for (const name of deviceModes[dbTask.task.mode]) {
-        if (!(this._ms.Dev[name] && this._ms.Dev[name].liveData.connectState && this._ms.Dev[name].liveData.alarmNumber === 0)) {
+        if (!(dev[name] && dev[name].liveData.connectState && dev[name].liveData.alarmNumber === 0 && dev.a1.liveData.state === '待机')) {
           this.runTension.alarmState = true;
           console.log(this.runTension.mode);
           this.runTension.title = '设备状态有误，请检查设备！';
@@ -445,27 +448,28 @@ export class TaskComponent implements OnInit, AfterViewInit {
   }
   /** 记录导出 */
   onExportRecord(state = false) {
-    const rData = this.groupTaskElem;
-    console.log(rData.recordData, rData.nowTaskData);
-    if (!state) {
-      this.exportRecord.state = true;
-    } else if (this.exportRecord.templatePath && this.exportRecord.savePath) {
-      if (this._electronService.isElectronApp) {
-        const data = [
-          { name: 'N1', kh: 'A1' },
-          { name: 'N1', kh: 'A2' },
-          { name: 'N2', kh: 'B1' },
-          { name: 'N2', kh: 'B2' },
-        ];
-        this._electronService.ipcRenderer.send('exportRecord',
-          { templatePath: this.exportRecord.templatePath, savePath: this.exportRecord.savePath, data: data });
-        this._electronService.ipcRenderer.on('exportRecordOK', (event, msg) => {
-          this.exportRecord.msg = msg;
-        });
-      } else {
-        console.log('只能在Electron中使用');
+    this._servers.get(`/task/export/${this.dbData.id}`).subscribe((d) => {
+      console.log(d);
+      const ed = exportData({holeData: d.holeGroups, record: d.records}, this.dbData.device);
+      console.log(ed);
+      if (!state) {
+        this.exportRecord.state = true;
+      } else if (this.exportRecord.templatePath && this.exportRecord.savePath) {
+        if (this._electronService.isElectronApp) {
+          const data = {
+            project: {name: '测试'},
+            tension: ed
+          };
+          this._electronService.ipcRenderer.send('exportRecord',
+            { templatePath: this.exportRecord.templatePath, savePath: this.exportRecord.savePath, data: data });
+          this._electronService.ipcRenderer.on('exportRecordOK', (event, msg) => {
+            this.exportRecord.msg = msg;
+          });
+        } else {
+          console.log('只能在Electron中使用');
+        }
       }
-    }
+    });
   }
   exportFilePath(t) {
     // console.log(file);

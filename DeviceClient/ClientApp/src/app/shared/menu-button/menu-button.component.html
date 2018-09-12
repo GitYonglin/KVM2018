@@ -25,7 +25,14 @@
           </nz-radio-group>
         </nz-form-control>
       </nz-form-item>
+      <div style="margin: 0 20px">
+        <button (click)="retry()" nz-button >重新连接</button>
+      </div>
     </div>
+  </div>
+  <div style="display: flex; justify-content: space-around;">
+    <h2>主站：{{liveState?.z.message}}</h2>
+    <h2>从站：{{liveState?.c.message}}</h2>
   </div>
   <div class="alarm">
     <div *ngFor="let name of _ms.deviceItemNames">

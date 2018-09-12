@@ -150,6 +150,7 @@
   <h3>{{runTension.title}}</h3>
   <div class="alarm" *ngIf="runTension.alarmState">
     <div *ngFor="let name of runTension.mode">
+      <h2>{{name | L2U}}--{{_ms.Dev[name].liveData.state}}</h2>
       <div *ngIf="_ms.Dev[name]?.liveData.alarmNumber">
         <nz-card [nzTitle]="name + '状态'">
           <div *ngFor="let item of _ms.Dev[name]?.liveData.alarm">

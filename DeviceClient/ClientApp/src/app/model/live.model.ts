@@ -2,12 +2,10 @@ import { N2F } from '../utils/toFixed';
 import { deviceModes } from './device.model';
 import { PLCLive } from '../utils/PLC8Show';
 import { HoleGroup } from './task.model';
+import { Record } from './record.model';
 
 export const manualState = ['待机', '张拉中', '卸荷中', '回程中', '保压'];
-export const autoState = ['待机', '张拉中', '卸荷中', '回程中', '保压', '卸荷完成', '补压', '压力确认', '回顶', '回顶完成', '平衡暂停',
-                          '压力确认完成', '自检完成', '自检错误', '14', '15', '16', '17', '18', '19',
-                          '张拉暂停', '超工作位移上限', '回顶完成'
-];
+
 export const liveState = ['初张拉', '阶段一', '阶段二', '阶段三', '终张拉', '超张拉', '卸荷', '回程'];
 
 export interface Dev {
@@ -154,7 +152,7 @@ export function funcSumData(mm: RecordMode, task: HoleGroup, stage: number = 0):
  * @param {HoleGroup} task 任务数据
  * @returns
  */
-export function funcRetraction (d: RecordData, task: HoleGroup) {
+export function funcRetraction (d: Record, task: HoleGroup): any {
   const r = {};
   for (const name of deviceModes[task.mode]) {
     const length = d.mpa[name].length - 1;
@@ -178,49 +176,3 @@ export const runTensionData = {
   stopState: false,
 };
 
-export const showValues: ShowValues = {
-  a1: {
-    plcMpa: 0,
-    mpa: 0,
-    mm: 0,
-    alarmNumber: 0,
-    alarm: [],
-    state: autoState[0],
-    setPLCMpa: 0,
-    affirmMm: 0,
-    affirmMm0: 0,
-  },
-  b1: {
-    plcMpa: 0,
-    mpa: 0,
-    mm: 0,
-    alarmNumber: 0,
-    alarm: [],
-    state: autoState[0],
-    setPLCMpa: 0,
-    affirmMm: 0,
-    affirmMm0: 0,
-  },
-  a2: {
-    plcMpa: 0,
-    mpa: 0,
-    mm: 0,
-    alarmNumber: 0,
-    alarm: [],
-    state: autoState[0],
-    setPLCMpa: 0,
-    affirmMm: 0,
-    affirmMm0: 0,
-  },
-  b2: {
-    plcMpa: 0,
-    mpa: 0,
-    mm: 0,
-    alarmNumber: 0,
-    alarm: [],
-    state: autoState[0],
-    setPLCMpa: 0,
-    affirmMm: 0,
-    affirmMm0: 0,
-  },
-};

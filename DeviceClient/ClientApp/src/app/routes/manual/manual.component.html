@@ -1,11 +1,10 @@
-
 <div style="width: 100%; height: 100%;;" [ngClass]="{'enforcement': enforcement}">
   <header>
     <h1 *ngIf="correctionState">{{deviceName}}--{{correctionName | L2U}}设备校正</h1>
     <app-menu-button *ngIf="!correctionState"></app-menu-button>
     <div class="header" *ngIf="!correctionState">
       <div>
-        <nz-input-group nzAddOnBefore="选择设备" >
+        <nz-input-group nzAddOnBefore="选择设备">
           <nz-select style="width: 200px;" nzSize="Large" [(ngModel)]="selectDeviceId" (ngModelChange)="onSwitchDevice()">
             <nz-option *ngFor="let device of devices" [nzLabel]="device.name" [nzValue]="device.id"></nz-option>
           </nz-select>
@@ -19,46 +18,56 @@
       <div>
         <nz-input-group nzAddOnBefore="设备控制">
           <button nz-button nzSize="Large" [nzType]="enforcement ? 'primary' : 'dashed'" (click)="onEnforcement()">强制运行</button>
-          <button nz-button nzSize="Large" [nzType]="autoState ? 'primary' : 'dashed'" (click)="onAutoState()" disabled="true">{{autoState ? '自动补压' : '手动补压'}}</button>
+          <button nz-button nzSize="Large" [nzType]="autoState ? 'primary' : 'dashed'" (click)="onAutoState()" disabled="true">{{autoState
+            ? '自动补压' : '手动补压'}}</button>
         </nz-input-group>
       </div>
     </div>
   </header>
   <!-- <nz-divider></nz-divider> -->
   <nz-spin nzTip='设备参数没有设置' [nzSpinning]="!_ms.deviceParameter">
-  <main #main [ngClass]="{'correction': correctionState}" *ngIf="_ms.deviceParameter">
-    <div class="device-group">
-      <app-device-item *ngIf="_ms.modeNo === '2'" name="b1" [title]="'B1 - ' + _ms.showValues.b1.state" [data]="b1" (resetZero)="resetMm = $event"></app-device-item>
-      <app-device-item name="a1" [title]="'A1 - ' + _ms.showValues.a1.state" [data]="a1" (resetZero)="resetMm = $event"></app-device-item>
-    </div>
-    <div class="device-group" >
-      <app-device-item *ngIf="_ms.connectNo === '2' && _ms.modeNo === '2'" name="b2" [title]="'B2 - ' + _ms.showValues.b2.state" [data]="b2" (resetZero)="resetMm = $event"></app-device-item>
-      <app-device-item *ngIf="_ms.connectNo === '2'" name="a2" [title]="'A2 - ' + _ms.showValues.a2.state" [data]="a2" (resetZero)="resetMm = $event"></app-device-item>
-    </div>
-    <div class="device-group"  *ngIf="correctionState">
-      <nz-card>
-        <div class="item">
-          <h3>{{nowSetItem}}·校正系数计算</h3>
-          <nz-input-group nzAddOnBefore="设备显示值" >
-            <div style="display: flex;">
-              <input (focus)="$event.target.select()" type="number" [(ngModel)]="nowValue" nz-input nzSize="large" (input)="calculate()">
-              <button nz-button nzType="primary" (click)="getNowValue()" [disabled]="nowKey === null">获取设备值</button>
-            </div>
-          </nz-input-group>
+    <main #main [ngClass]="{'correction': correctionState}" *ngIf="_ms.deviceParameter">
+      <div class="device-group">
+        <app-device-item *ngIf="_ms.modeNo === '2'" name="b1" [title]="'B1 - ' + _ms.Dev?.b1?.liveData.state" [data]="b1"
+          (resetZero)="resetMm = $event"></app-device-item>
+        <app-device-item name="a1" [title]="'A1 - ' + _ms.Dev?.a1?.liveData.state" [data]="a1" (resetZero)="resetMm = $event"></app-device-item>
+      </div>
+      <div class="device-group">
+        <app-device-item *ngIf="_ms.connectNo === '2' && _ms.modeNo === '2'" name="b2" [title]="'B2 - ' + _ms.Dev?.b2?.liveData.state"
+          [data]="b2" (resetZero)="resetMm = $event"></app-device-item>
+        <app-device-item *ngIf="_ms.connectNo === '2'" name="a2" [title]="'A2 - ' + _ms.Dev?.a2?.liveData.state" [data]="a2"
+          (resetZero)="resetMm = $event"></app-device-item>
+      </div>
+      <div class="device-group" *ngIf="correctionState">
+        <nz-card>
+          <div class="item">
+            <h3>{{nowSetItem}}·校正系数计算</h3>
+            <nz-input-group nzAddOnBefore="实际测量值">
+              <input (focus)="$event.target.select()" type="number" [(ngModel)]="realityValue" nz-input nzSize="large" [disabled]="nowKey === null"
+                (input)="calculate()">
+            </nz-input-group>
+            <nz-input-group nzAddOnBefore="设备显示值">
+              <div style="display: flex;">
+                <input (focus)="$event.target.select()" type="number" [(ngModel)]="nowValue" nz-input nzSize="large" [disabled]="nowKey === null"
+                  (input)="calculate()">
+                <button nz-button nzType="primary" (click)="getNowValue()" [disabled]="nowKey === null">获取设备值</button>
+              </div>
+            </nz-input-group>
 
-          <nz-input-group nzAddOnBefore="实际测量值" >
-            <input (focus)="$event.target.select()" type="number" [(ngModel)]="realityValue" nz-input nzSize="large" (input)="calculate()">
-          </nz-input-group>
-          <nz-input-group nzAddOnBefore="数据校正值" >
-            <input (focus)="$event.target.select()" type="number" [(value)]="correctionValue" nz-input nzSize="large" >
-          </nz-input-group>
-          <nz-input-group  >
+            <nz-input-group nzAddOnBefore="计算明细" *ngIf="mpaMm !== null">
+              <input nz-input nzSize="large" *ngIf="!mpaMm" readonly="readonly" [value]="(nowCorrectionValue + (nowValue - realityValue)) + '/' + nowCorrectionValue">
+              <input nz-input nzSize="large" *ngIf="mpaMm" readonly="readonly" [value]="realityValue + '/' + nowValue">
+            </nz-input-group>
+            <nz-input-group nzAddOnBefore="数据校正值">
+              <input (focus)="$event.target.select()" type="number" [(value)]="correctionValue" nz-input nzSize="large" [disabled]="nowKey === null">
+            </nz-input-group>
+            <nz-input-group>
               <button style="width: 100%;" nz-button nzType="primary" [disabled]="nowKey === null" (click)="onSaveCorrectionValue()">确认校正值</button>
-          </nz-input-group>
-        </div>
-      </nz-card>
-    </div>
-  </main>
-  <div *ngIf="!_ms.deviceParameter"></div>
-</nz-spin>
+            </nz-input-group>
+          </div>
+        </nz-card>
+      </div>
+    </main>
+    <div *ngIf="!_ms.deviceParameter"></div>
+  </nz-spin>
 </div>

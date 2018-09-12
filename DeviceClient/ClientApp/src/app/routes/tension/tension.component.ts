@@ -474,13 +474,35 @@ export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
       // console.log(r);
     });
   }
+  /** 压力差报警 */
+  mpaDeviation() {
+    const data = this.autoData.data;
+    const sumData =  this.autoData.sumData;
+    const state = this.autoData.state;
+    const dev = this._ms.Dev;
+    const mode = this.autoData.task.mode;
+    state.mpaDeviation = false;
+    if (state.affirmMpa === state.affirmMpaDone) {
+      if (mode === 1 || mode === 4) {
+        if (Math.abs(dev.a1.liveData.mpa - dev.a2.liveData.mpa) > data.mpaDeviation) {
+          state.mpaDeviation = true;
+        }
+      }
+      if (mode === 3 || mode === 4) {
+        if (Math.abs(dev.b1.liveData.mpa - dev.b2.liveData.mpa) > data.mpaDeviation) {
+          state.mpaDeviation = true;
+        }
+      }
+    }
+
+  }
   /** 超伸长量报警 */
   maximumDeviationRate() {
     const data = this.autoData.data;
     const sumData =  this.autoData.sumData;
     const state = this.autoData.state;
     state.maximumDeviationRate = false;
-    console.log(sumData.a1.deviation, sumData.b1.deviation, data.maximumDeviationRate);
+    // console.log(sumData.a1.deviation, sumData.b1.deviation, data.maximumDeviationRate);
     if (data.modeStr.indexOf('a1') > -1 && (sumData.a1.deviation > data.maximumDeviationRate)) {
       this.deviationRate.a1 = true;
     } else {
@@ -509,7 +531,8 @@ export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
       data.modeStr.forEach(name => {
         if (dev[name].liveData.state === '张拉暂停' ||
           dev[name].liveData.state === '超工作位移上限' ||
-          state.maximumDeviationRate) {
+          state.maximumDeviationRate ||
+          state.mpaDeviation) {
           this._ms.connection.invoke('Pause');
           if (dev[name].liveData.state === '超工作位移上限') {
             state.superWorkMm = true;
@@ -537,7 +560,7 @@ export class TensionComponent implements OnInit, AfterViewInit, OnDestroy {
   }
   /** 回顶 */
   onGoBack() {
-    const F06 = this.autoData.data.mmGoBack;
+    const F06 = Value2PLC(this.autoData.data.mmGoBack, this._ms.deviceParameter.mmCoefficient);
     const data = this.autoData.data;
     const state = this.autoData.state;
     const dev = this._ms.Dev;
