@@ -62,6 +62,7 @@ namespace Modbus.ASCII
         /// 设备链接失败回调事件
         /// </summary>
         public event Action<string, string, bool> ModbusLinkError;
+        public event Action<string> SendTime;
         /// <summary>
         /// 请求数据队列
         /// </summary>
@@ -73,6 +74,8 @@ namespace Modbus.ASCII
         /// </summary>
         public int connNumber { get; set; }
         public bool end { get; set; }
+        private bool sendState { get; set; }
+        Stopwatch watch = new Stopwatch();
 
 
         /// <summary>
@@ -95,8 +98,10 @@ namespace Modbus.ASCII
                 {
                     if (!IsSuccess)
                     {
-                        if (connNumber <= 3)
+                        Thread.Sleep(3000);
+                        if (connNumber < 3 && !IsSuccess)
                         {
+                            listSands?.Clear();
                             connNumber++;
                             Console.WriteLine(this.Ip);
                             Client?.Close();
@@ -113,19 +118,17 @@ namespace Modbus.ASCII
                             ModbusLinkError?.Invoke(this.Name, $"{Name}--尝试{connNumber}次失败，请手动连接", true);
                         }
                     }
-                    else
+                    else if (Client != null && Client.Connected && listSands.Count > 0)
                     {
-                        if (listSands.Count > 0)
+                        var item = listSands?[0];
+                        if (item != null && !sendState)
                         {
-                            var item = listSands?[0];
-                            if (item != null)
-                            {
-                                //ModbusLink(this.Name, $"{Name}--{item.CommandData.Str}--{listSands.Count}--{socketId}");
-                                Send(item.CommandData.Bytes, item.RR);
-                                listSands.Remove(item);
-                            }
+                            //ModbusLink(this.Name, $"{Name}--{item.CommandData.Str}--{listSands.Count}--{socketId}");
+                            Send(item.CommandData.Bytes, item.RR);
+                            listSands.Remove(item);
                         }
                     }
+                    Thread.Sleep(100);
                 }
             });
         }
@@ -184,9 +187,17 @@ namespace Modbus.ASCII
                 //{
                 try
                 {
+                    watch.Reset();
+                    watch.Start();
+                    sendState = true;
                     Client.Send(bs);
                     Client.Receive(ReviceByte);
                     returnReceive?.Invoke(ReviceByte);
+                    sendState = false;
+                    watch.Stop();
+                    var t = watch.ElapsedMilliseconds.ToString();
+                    SendTime?.Invoke(t);
+                    Console.WriteLine(t);
                 }
                 catch (SocketException ex)
                 {
@@ -212,11 +223,11 @@ namespace Modbus.ASCII
             {
                 IsSuccess = true;
                 Client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                Client.BeginConnect(Ip, Port, AsyncCallback, null);
-                //Client.BeginConnect(Ip, Port, AsyncCallback, null);
                 Client.ReceiveBufferSize = 1024;
                 Client.ReceiveTimeout = 3000;
                 Client.SendTimeout = 3000;
+                Client.BeginConnect(Ip, Port, AsyncCallback, null);
+                //Client.BeginConnect(Ip, Port, AsyncCallback, null);
             }
         }
         /// <summary>

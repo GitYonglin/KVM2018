@@ -52,22 +52,25 @@ export class LoginComponent implements OnInit {
   }
   getProject() {
     this._service.get('/project').subscribe(p => {
-      console.log('获取项目', p, localStorage.getItem('project'));
-      if (p.length > 0) {
-        this.projectList = p;
-        let project: any = localStorage.getItem('project');
-        if (project) {
-          project = JSON.parse(project);
-        }
-        const selectProject = p.filter(item => item.id === project.id);
-        if (selectProject.length === 0) {
-          localStorage.setItem('project', null);
+      try {
+        console.log('获取项目', p, localStorage.getItem('project') !== 'null', localStorage.getItem('project'));
+        if (p.length > 0) {
+          this.projectList = p;
+          let project: any = localStorage.getItem('project');
+          if (project !== 'null') {
+            project = JSON.parse(project);
+            const selectProject = p.filter(item => item.id === project.id);
+            if (selectProject.length === 0) {
+              localStorage.setItem('project', null);
+            } else {
+              this.onSelectProject(selectProject[0]);
+            }
+          }
         } else {
-          this.onSelectProject(selectProject[0]);
+          this.projectList = null;
+          localStorage.setItem('project', null);
         }
-      } else {
-        this.projectList = null;
-        localStorage.setItem('project', null);
+      } catch (error) {
       }
     });
   }

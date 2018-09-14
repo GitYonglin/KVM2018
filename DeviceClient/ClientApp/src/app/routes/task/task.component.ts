@@ -394,7 +394,7 @@ export class TaskComponent implements OnInit, AfterViewInit {
   }
   // 张拉
   onTension() {
-    this._ms.DF05(10, true); // 设备调整手动
+    this._ms.DF05(10, false); // 设备调整手动
     const dev = this._ms.Dev;
     this.runTension.deviceState = false;
     this.runTension.state = false;
@@ -463,7 +463,7 @@ export class TaskComponent implements OnInit, AfterViewInit {
           this._electronService.ipcRenderer.send('exportRecord',
             { templatePath: this.exportRecord.templatePath, savePath: this.exportRecord.savePath, data: data });
           this._electronService.ipcRenderer.on('exportRecordOK', (event, msg) => {
-            this.exportRecord.msg = msg;
+            this.message.success(msg);
           });
         } else {
           console.log('只能在Electron中使用');

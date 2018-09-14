@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { NzModalService } from 'ng-zorro-antd';
 import { AppService } from '../../routes/app.service';
 import { AuthorityService } from '../../services/authority.service';
+import { ElectronService } from 'ngx-electron';
 
 const menuArr = [
   // {
@@ -62,6 +63,7 @@ export class FullMenuComponent implements OnInit {
     private _appServe: AppService,
     private _cdr: ChangeDetectorRef,
     public _authority: AuthorityService,
+    private _electronService: ElectronService,
   ) { }
 
   ngOnInit() {
@@ -113,5 +115,25 @@ export class FullMenuComponent implements OnInit {
       this._router.navigate([url]);
     }
     console.log(url, this.modal.openModals);
+  }
+  restart() {
+    this.modal.create({
+      nzTitle: '重启',
+      nzContent: '重启',
+      nzClosable: true,
+      nzOnOk: () => {
+        this._electronService.ipcRenderer.send('restart');
+      }
+    });
+  }
+  off() {
+    this.modal.create({
+      nzTitle: '关机',
+      nzContent: '关机',
+      nzClosable: true,
+      nzOnOk: () => {
+        this._electronService.ipcRenderer.send('off');
+      }
+    });
   }
 }

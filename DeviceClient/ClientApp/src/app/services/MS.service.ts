@@ -34,6 +34,7 @@ export class MSService {
   public connectNo: string;
   public getDeviceParameterEvent = null;
   public liveMonitoringEvent = null;
+  public plcT = 'plc耗时';
 
 
   constructor(
@@ -174,8 +175,9 @@ export class MSService {
       const connection = new HubConnectionBuilder().withUrl('/PLC').build();
       connection.start().then(r => {
         // this.setDevice();
+        console.log('连接', new Date().getTime());
         connection.invoke('Init').then(() => {
-          this._service.showMessage('success', '设备连接成功');
+          this._service.showMessage('success', '后台连接成功！');
           connection.invoke('Creates', localStorage.getItem('connect') === '2');
         });
         console.log('MS请求');
@@ -229,7 +231,11 @@ export class MSService {
             document.dispatchEvent(this.getDeviceParameterEvent);
           }
         });
-
+        /** 通信耗时 */
+        connection.on('PLCTime', rt => {
+          console.log(rt);
+          this.plcT = rt;
+        });
         this.connection = connection;
         console.log('链接成功', this.connection);
       }).catch((error) => {

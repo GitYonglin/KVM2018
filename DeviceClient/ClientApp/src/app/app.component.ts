@@ -13,7 +13,7 @@ export class AppComponent implements OnInit {
   title = 'app';
 
   constructor(
-    private _ms: MSService,
+    public _ms: MSService,
     private _router: Router,
     private _service: APIService,
   ) {
@@ -47,7 +47,10 @@ export class AppComponent implements OnInit {
       localStorage.setItem('deviceMode', '1');
       console.log('000初始化plc', connect, mode);
     } else {
-      this._ms.creation();
+      console.log(!this._ms.connection);
+      if (!this._ms.connection) {
+        this._ms.creation();
+      }
     }
   }
 }

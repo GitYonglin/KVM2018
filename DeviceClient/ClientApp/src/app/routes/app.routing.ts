@@ -11,6 +11,7 @@ const routes: Routes = [
   { path: 'component', loadChildren: './component/component.module#ComponentModule', canDeactivate: [ProtectEditGuard]},
   { path: 'project', loadChildren: './project/project.module#ProjectModule', canDeactivate: [ProtectEditGuard]},
   { path: 'device', loadChildren: './device/device.module#DeviceModule', canDeactivate: [ProtectEditGuard]},
+  { path: 'help', loadChildren: './help/help.module#HelpModule', pathMatch: 'full'},
   { path: '**', redirectTo: 'login', },
 ];
 

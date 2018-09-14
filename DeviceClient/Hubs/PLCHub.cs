@@ -21,11 +21,12 @@ namespace DeviceClient.Hubs
 
         public PLCHub()
         {
-            TaskFactory tf = new TaskFactory();
-            tf.StartNew(() => Console.WriteLine("重新请求连接" + Thread.CurrentThread.ManagedThreadId));
+            //TaskFactory tf = new TaskFactory();
+            //tf.StartNew(() => Console.WriteLine("重新请求连接" + Thread.CurrentThread.ManagedThreadId));
         }
         public void Init()
         {
+            //var all  = Clients.All;
             _clients = Clients;
         }
         /// <summary>
@@ -37,17 +38,27 @@ namespace DeviceClient.Hubs
             ConnentState = connectState;
             if (Z == null)
             {
+                _clients.All.SendAsync("Send", new { Id = "主站", Message = "正在连接..." });
                 Z = new ModbusSocket("192.168.181.101", 502, "主站", true);
                 Z.ModbusLinkSuccess += ModbusLinkSuccess;
                 Z.ModbusLinkError += ModbusLinkError;
+                Z.SendTime += (t) =>
+                {
+                    _clients.All.SendAsync("PLCTime", $"主站耗时={t}");
+                };
             }
             try
             {
                 if (C == null && ConnentState)
                 {
+                    _clients.All.SendAsync("Send", new { Id = "从站", Message = "正在连接..." });
                     C = new ModbusSocket("192.168.181.102", 502, "从站", false);
                     C.ModbusLinkSuccess += ModbusLinkSuccess;
                     C.ModbusLinkError += ModbusLinkError;
+                    C.SendTime += (t) =>
+                    {
+                        _clients.All.SendAsync("PLCTime", $"从站耗时={t}");
+                    };
                 }
                 if (!ConnentState && C != null)
                 {
@@ -56,6 +67,7 @@ namespace DeviceClient.Hubs
                     {
                         while (C != null)
                         {
+                            C.end = true;
                             if (!C.Client.Connected)
                             {
                                 C.Client = null;
@@ -69,7 +81,7 @@ namespace DeviceClient.Hubs
             {
                 throw;
             }
-            if (Z != null)
+            if (Z != null && Z.Client != null && C.Client.Connected)
             {
                 this.GetDeviceParameterAsync();
             }
@@ -130,7 +142,7 @@ namespace DeviceClient.Hubs
                 {
                     Thread.Sleep(10);
                 }
-            });
+            }, cancelTokenSource.Token);
             cancelTokenSource.Cancel();
             return b;
         }
@@ -333,7 +345,7 @@ namespace DeviceClient.Hubs
                     if (id == "主站")
                     {
                         Z = null;
-                    } 
+                    }
                     else
                     {
                         C = null;

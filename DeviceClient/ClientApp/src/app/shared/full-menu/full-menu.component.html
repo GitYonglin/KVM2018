@@ -3,8 +3,8 @@
     <a href="/">
       <button nz-button nzType="primary" nzShape="circle"><i class="anticon anticon-logout"></i>登出</button>
     </a>
-    <button nz-button nzType="default" nzShape="circle"><i class="anticon anticon-reload"></i>重启</button>
-    <button nz-button nzType="danger" nzShape="circle"><i class="anticon anticon-poweroff"></i> 关机</button>
+    <button nz-button nzType="default" nzShape="circle" (click)="restart()"><i class="anticon anticon-reload" ></i>重启</button>
+    <button nz-button nzType="danger" nzShape="circle" (click)="off()"><i class="anticon anticon-poweroff" ></i> 关机</button>
     <button nz-button nzType="primary" nzGhost nzShape="circle"><i class="anticon anticon-lock"></i> 锁屏</button>
   </div>
   <div class="menu">

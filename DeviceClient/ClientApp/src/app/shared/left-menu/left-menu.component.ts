@@ -43,33 +43,39 @@ export class LeftMenuComponent implements OnInit {
     this.getMenuData();
     this.deviceLinkZ = this._ms.deviceLinkZ;
     this.deviceLinkC = this._ms.deviceLinkC;
-    this.groupBridgeStr = JSON.parse(localStorage.getItem('bridgeStr'));
-    console.log(JSON.parse(localStorage.getItem('bridgeStr')),  this.groupBridgeStr);
+    if (localStorage.getItem('bridgeStr')) {
+      this.groupBridgeStr = JSON.parse(localStorage.getItem('bridgeStr'));
+    } else {
+      this.groupBridgeStr = ['0', '1', '234'];
+    }
+    console.log(localStorage.getItem('bridgeStr'),  this.groupBridgeStr);
   }
 
   getMenuData() {
-    let url = this._router.url;
-    if (url.indexOf(';') !== -1) {
-      url = url.match(/(\S*);/)[1];
-    }
-    if (url.indexOf('/task') !== -1) {
-      url = `/task/menu/${JSON.parse(localStorage.getItem('project')).id}`;
-    }
-    this._service.get(url).subscribe(p => {
-      console.log('000000000', p);
-      if (p.length > 0) {
-        this.menus = p.length === 0 ? null : p;
-        // this.menuDataState = p ? true : false;
-        this.menuDataState = p && p.length > 0 && 'count' in p[0];
-        console.log('菜单数据', p, this.menuDataState);
-        if (url.indexOf('/task') !== -1 && this.titleId !== null) {
-          this.getBridges(this.titleId, this.indexActive);
-          this.bridgeItem = this.menus.filter(m => m.id === this.titleId)[0];
-        }
-      } else {
-        this.menus = null;
+    try {
+      let url = this._router.url;
+      if (url.indexOf(';') !== -1) {
+        url = url.match(/(\S*);/)[1];
       }
-    });
+      if (url.indexOf('/task') !== -1) {
+        url = `/task/menu/${JSON.parse(localStorage.getItem('project')).id}`;
+      }
+      this._service.get(url).subscribe(p => {
+        console.log('000000000', p);
+        if (p.length > 0) {
+          this.menus = p.length === 0 ? null : p;
+          // this.menuDataState = p ? true : false;
+          this.menuDataState = p && p.length > 0 && 'count' in p[0];
+          console.log('菜单数据', p, this.menuDataState);
+          if (url.indexOf('/task') !== -1 && this.titleId !== null) {
+            this.getBridges(this.titleId, this.indexActive);
+            this.bridgeItem = this.menus.filter(m => m.id === this.titleId)[0];
+          }
+        } else {
+          this.menus = null;
+        }
+      });
+    } catch (error) {}
   }
   getBridges(id, index = this.indexActive) {
     let url = this._router.url;

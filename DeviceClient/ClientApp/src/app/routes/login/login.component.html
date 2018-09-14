@@ -1,74 +1,81 @@
-<div class="content">
-  <div nz-row class="project-list">
-    <div nz-col nzSpan="20" nzOffset="2">
-      <div *ngFor="let item of projectList">
-        <nz-card style="width:150px;" [ngClass]="{'active': item.id === selectProject.id}" [nzCover]="coverTemplate" (click)="onSelectProject(item)">
-          <nz-card-meta [nzTitle]="item.name"></nz-card-meta>
+<div style="height: 100%; display: flex; flex-direction: column;">
+    <img class="logo" src="assets\logo\kvm-logo.jpg" alt="">
+  <header>
+    <h1>  凯瑞姆智能张拉</h1>
+  </header>
+  <div class="content">
+    <div nz-row class="project-list">
+      <div nz-col nzSpan="20" nzOffset="2">
+        <div *ngFor="let item of projectList">
+          <nz-card style="width:150px;" [ngClass]="{'active': item.id === selectProject.id}" [nzCover]="coverTemplate" (click)="onSelectProject(item)">
+            <nz-card-meta [nzTitle]="item.name"></nz-card-meta>
+          </nz-card>
+          <ng-template #coverTemplate>
+            <img alt="example" src="assets\logo\kvm-logo.jpg" />
+          </ng-template>
+        </div>
+      </div>
+    </div>
+    <div nz-row class="main">
+      <div nz-col nzSpan="9" nzOffset="2" class="project-desc">
+        <nz-card style="width:100%;" [nzCover]="coverTemplate">
+          <nz-card-meta [nzTitle]="selectProject.name"></nz-card-meta>
         </nz-card>
         <ng-template #coverTemplate>
-          <img alt="example" src="https://gw.alipayobjects.com/zos/rmsportal/JiqGstEfoWAOHiTxclqi.png" />
+          <img alt="example" src="assets\logo\kvm-logo.jpg" />
         </ng-template>
+      </div>
+      <div nz-col nzSpan="9" nzOffset="2" class="login">
+        <nz-card style="width:100%">
+          <h1 style="text-align: center;">登录</h1>
+          <form nz-form [formGroup]="formGroup">
+            <nz-form-item>
+              <nz-form-label [nzSpan]="4">用户名</nz-form-label>
+              <nz-form-control [nzSpan]="20">
+                <!-- <nz-select style="width: 200px;" nzShowSearch nzPlaceHolder="输入用户名" formControlName="Name">
+                  <nz-option *ngFor="let user of userGroup" [nzLabel]="user.name" [nzValue]="user.name"></nz-option>
+                </nz-select> -->
+                <nz-input-group nzSize="large">
+                  <input (focus)="$event.target.select()" placeholder="输入用户名" formControlName="Name" nz-input [nzAutocomplete]="auto" />
+                </nz-input-group>
+                <nz-autocomplete #auto>
+                  <nz-auto-option *ngFor="let user of userGroup" [nzLabel]="user.name" [nzValue]="user.name">
+                    <h1>{{user.name}}</h1>
+                  </nz-auto-option>
+                </nz-autocomplete>
+              </nz-form-control>
+
+            </nz-form-item>
+            <nz-form-item>
+
+              <nz-form-label [nzSpan]="4">密 码</nz-form-label>
+
+              <nz-form-control [nzSpan]="20">
+                <input type="password" (focus)="$event.target.select()" nz-input [formControlName]="'Password'">
+
+                <nz-form-explain *ngIf="formGroup.controls['Password'].errors">
+                  <ng-container>
+                    {{formGroup.controls['Password'].errors | formError: formTypes[1].errors }}
+                  </ng-container>
+                </nz-form-explain>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item>
+              <nz-form-control>
+                <div class="login-btn">
+                  <button nz-button class="login-form-button" nzType="primary" (click)="login($event)" (dblclick)="adminLogin()" [nzLoading]="adminLoginState"
+                    [disabled]="loginState">登 录</button>
+                </div>
+              </nz-form-control>
+            </nz-form-item>
+          </form>
+        </nz-card>
       </div>
     </div>
   </div>
-  <div nz-row class="main">
-    <div nz-col nzSpan="9" nzOffset="2" class="project-desc">
-      <nz-card style="width:100%;" [nzCover]="coverTemplate">
-        <nz-card-meta [nzTitle]="selectProject.name"></nz-card-meta>
-      </nz-card>
-      <ng-template #coverTemplate>
-        <img alt="example" src="https://gw.alipayobjects.com/zos/rmsportal/JiqGstEfoWAOHiTxclqi.png" />
-      </ng-template>
-    </div>
-    <div nz-col nzSpan="9" nzOffset="2" class="login">
-      <nz-card style="width:100%">
-        <h1 style="text-align: center;">登录</h1>
-        <form nz-form [formGroup]="formGroup">
-          <nz-form-item>
-            <nz-form-label [nzSpan]="4">用户名</nz-form-label>
-            <nz-form-control [nzSpan]="20">
-              <!-- <nz-select style="width: 200px;" nzShowSearch nzPlaceHolder="输入用户名" formControlName="Name">
-                <nz-option *ngFor="let user of userGroup" [nzLabel]="user.name" [nzValue]="user.name"></nz-option>
-              </nz-select> -->
-              <nz-input-group nzSize="large">
-                <input (focus)="$event.target.select()" placeholder="输入用户名" formControlName="Name" nz-input [nzAutocomplete]="auto"/>
-              </nz-input-group>
-              <nz-autocomplete #auto>
-                <nz-auto-option *ngFor="let user of userGroup" [nzLabel]="user.name" [nzValue]="user.name">
-                  <h1>{{user.name}}</h1>
-                </nz-auto-option>
-              </nz-autocomplete>
-            </nz-form-control>
-
-          </nz-form-item>
-          <nz-form-item>
-
-            <nz-form-label [nzSpan]="4">密 码</nz-form-label>
-
-            <nz-form-control [nzSpan]="20">
-              <input type="password" (focus)="$event.target.select()" nz-input [formControlName]="'Password'">
-
-              <nz-form-explain *ngIf="formGroup.controls['Password'].errors">
-                <ng-container>
-                  {{formGroup.controls['Password'].errors | formError: formTypes[1].errors }}
-                </ng-container>
-              </nz-form-explain>
-            </nz-form-control>
-          </nz-form-item>
-          <nz-form-item>
-            <nz-form-control>
-              <div class="login-btn">
-                <button nz-button class="login-form-button" nzType="primary"
-                  (click)="login($event)"
-                  (dblclick)="adminLogin()"
-                  [nzLoading]="adminLoginState" [disabled]="loginState">登 录</button>
-              </div>
-            </nz-form-control>
-          </nz-form-item>
-        </form>
-      </nz-card>
-    </div>
-  </div>
+  <footer>
+    <h1>凯瑞姆智能张拉</h1>
+  </footer>
 </div>
 <!-- <div class="bg"></div>
 <div class="bg bg2"></div>
