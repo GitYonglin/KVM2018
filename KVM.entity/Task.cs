@@ -199,7 +199,7 @@ namespace KVM.entity
     {
         public string Id { get; set; }
         public string BridgeName { get; set; }
-        public string ComponentId { get; set; }
+        public string HoleId { get; set; }
         public string ProjectId { get; set; }
     }
 

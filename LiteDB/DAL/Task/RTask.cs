@@ -34,7 +34,7 @@ namespace KVM.LiteDB.DAL.Task
         /// <returns></returns>
         public new ReturnPost Insert(entity.Task data)
         {
-            if (_col.FindOne(p => p.ComponentId == data.ComponentId && p.BridgeName == data.BridgeName && p.ProjectId == data.ProjectId) == null)
+            if (_col.FindOne(p => p.HoleId == data.HoleId && p.BridgeName == data.BridgeName && p.ProjectId == data.ProjectId) == null)
             {
                 data.Id = Guid.NewGuid().ToString();
                 _col.Insert(data);
@@ -57,7 +57,7 @@ namespace KVM.LiteDB.DAL.Task
         {
             try
             {
-                if (_col.FindOne(p => p.ProjectId == data.ProjectId && p.ComponentId == data.ComponentId && p.BridgeName == data.BridgeName) == null)
+                if (_col.FindOne(p => p.ProjectId == data.ProjectId && p.HoleId == data.HoleId && p.BridgeName == data.BridgeName) == null)
                 {
                     var copyData = _col.FindOne(p => p.Id == data.Id);
                     if (copyData != null)
@@ -89,7 +89,7 @@ namespace KVM.LiteDB.DAL.Task
         /// <returns></returns>
         public ReturnPost UpData(entity.Task data)
         {
-            var searchData = _col.Find(p => p.ComponentId == data.ComponentId && p.BridgeName == data.BridgeName && p.ProjectId == data.ProjectId);
+            var searchData = _col.Find(p => p.HoleId == data.HoleId && p.BridgeName == data.BridgeName && p.ProjectId == data.ProjectId);
             if (searchData.Count() == 0 || (searchData.Count() == 1 && searchData.Select(s => s.Id == data.Id).Count() == 1))
             {
                 var old = _col.FindById(data.Id);
@@ -118,33 +118,13 @@ namespace KVM.LiteDB.DAL.Task
             Task.Device = _Device.FindById(Task.DeviceId);
             return Task;
         }
-        /// <summary>
-        /// 获取一条数据
-        /// </summary>
-        /// <param name="id">Id</param>
-        /// <returns></returns>
-        public entity.Task GetOneData(string id)
-        {
-            var Task = _col.FindById(new BsonValue(id));
-            Task.HoleGroups = _holeGroup.Find(o => o.ParentId == id);
-            Task.Device = _Device.FindById(Task.DeviceId);
-            return Task;
-        }
+
         private int GetRecordState(string id)
         {
             var r = _record.FindOne(re => re.Id == id);
             return r != null ? r.State : 0;
         }
-        /// <summary>
-        /// 获取菜单显示数据
-        /// </summary>
-        /// <returns></returns>
-        public IEnumerable<TaskMenu> MenuData(string projectId)
-        {
-            return _col.Find(t => t.ProjectId == projectId)
-              .GroupBy(p => (p.ComponentId),
-                (key, holeGroup) => new TaskMenu { Name = _component.FindById(key).sName, Id = key, Count = holeGroup.Count() });
-        }
+
 
         /// <summary>
         /// 删除一条数据
@@ -153,14 +133,31 @@ namespace KVM.LiteDB.DAL.Task
         /// <returns></returns>
         public new string Delete(string id)
         {
+            var del = _col.FindById(id);
+            _holeGroup.Delete(o => o.ParentId == del.ProjectId);
             _col.Delete(id);
-            _holeGroup.Delete(o => o.ParentId == id);
             return "";
         }
 
-        public IEnumerable<MenuData> MenuData(string projectId, string componentId)
+        /// <summary>
+        /// 获取一级菜单显示数据
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<TaskMenu> MenuData(string projectId)
         {
-            return _col.Find(t => t.ProjectId == projectId && t.ComponentId == componentId).Select(x =>
+            return _col.Find(t => t.ProjectId == projectId)
+              .GroupBy(p => (p.HoleId, p.ComponentId),
+                (g, holeGroup) => new TaskMenu { Name = $"{_component.FindById(g.ComponentId).sName} - {_hole.FindById(g.HoleId).sName}", Id = g.HoleId, Count = holeGroup.Count() });
+        }
+        /// <summary>
+        /// 获取二级菜单显示数据
+        /// </summary>
+        /// <param name="projectId"></param>
+        /// <param name="holeId"></param>
+        /// <returns></returns>
+        public IEnumerable<MenuData> MenuData(string projectId, string holeId)
+        {
+            return _col.Find(t => t.ProjectId == projectId && t.HoleId == holeId).Select(x =>
                 new MenuData { Name = x.BridgeName, Id = x.Id, State = GetBriderState(x.Id) }
             );
         }

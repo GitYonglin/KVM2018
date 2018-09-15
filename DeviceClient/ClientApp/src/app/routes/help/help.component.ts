@@ -18,9 +18,16 @@ export class HelpComponent implements OnInit {
     this.message.info('帮助');
   }
   updata() {
-    this._electronService.ipcRenderer.send('updata');
-    this._electronService.ipcRenderer.on('updataOk', (event, msg) => {
-      this.message.info(msg);
-    });
+    // const {dialog} = require('electron').remote
+    if (this._electronService.isElectronApp) {
+      this._electronService.ipcRenderer.send('updata');
+      this._electronService.ipcRenderer.on('updataOk', (event, msg) => {
+        this.message.info(msg);
+      });
+      // const window = this._electronService.remote.BrowserWindow;
+      // // console.log(this._electronService.remote.dialog.showOpenDialog(new window(), {properties: ['openDirectory']})[0]);
+    } else {
+      this.message.warning('只能在客服端中使用！');
+    }
   }
 }

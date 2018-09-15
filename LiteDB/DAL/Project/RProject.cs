@@ -14,12 +14,14 @@ namespace KVM.LiteDB.DAL.Project
         private LiteCollection<entity.Operator> _operatorCol;
         private LiteCollection<entity.Supervision> _supervisionCol;
         private LiteCollection<entity.SteelStrand> _steelStrandCol;
+        private LiteCollection<entity.Task> _task;
         public RProject(IOptions<DbString> dbString) : base(dbString)
         {
             _col = DbCollection<entity.Project>();
             _operatorCol = DbCollection<entity.Operator>();
             _supervisionCol = DbCollection<entity.Supervision>();
             _steelStrandCol = DbCollection<entity.SteelStrand>();
+            _task = DbCollection<entity.Task>();
         }
         /// <summary>
         /// 添加一条数据
@@ -91,11 +93,17 @@ namespace KVM.LiteDB.DAL.Project
         /// <returns></returns>
         public new string Delete(string id)
         {
-            _col.Delete(id);
-            _operatorCol.Delete(o => o.ParentId == id);
-            _supervisionCol.Delete(o => o.ParentId == id);
-            _steelStrandCol.Delete(o => o.ParentId == id);
-            return "";
+            var del = _col.FindById(id);
+            var task = _task.Find(t => t.ProjectId == id).Count();
+            if (task == 0)
+            {
+                _col.Delete(id);
+                _operatorCol.Delete(o => o.ParentId == id);
+                _supervisionCol.Delete(o => o.ParentId == id);
+                _steelStrandCol.Delete(o => o.ParentId == id);
+                return "";
+            }
+            return "项目下有任务，不允许删除！！！";
         }
 
         public ReturnLoging UserLogin(LoginData data, string id)

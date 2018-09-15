@@ -110,7 +110,7 @@
           <div class="hole-group">
             <nz-radio-group [nzSize]="'large'" [(ngModel)]="selectHoleGroup" (ngModelChange)="onSelectHoleRadio()">
               <div class="label" *ngFor="let item of dbData?.holeGroupsRadio | HoleSort; index as i">
-                <label nz-radio-button [nzValue]="item?.id" [nzDisabled]="_appService.editState && (holeGroup.holeGroupEdit && item.id !== holeGroup.holeGroupId)">
+                <label nz-radio-button [nzValue]="item?.id" [nzDisabled]="copyState || (_appService.editState && (holeGroup.holeGroupEdit && item.id !== holeGroup.holeGroupId))">
                   {{item?.hole}}
                 </label>
                 <div class="state" [ngClass]="'state' + item.state"></div>
@@ -122,7 +122,7 @@
             </div>
             <ng-template #tension>
               <div class="operation" *ngIf="holeGroup.recordData?.state !== 1">
-                <button nz-button nzType="primary" nzSize="large" *ngIf="!menu.operationState && selectHoleGroup !== null" (click)="onTension()">
+                <button nz-button nzType="primary" nzSize="large" *ngIf="copyState || (!menu.operationState && selectHoleGroup !== null)" (click)="onTension()">
                   {{holeGroup.recordData === null ? '张拉' : ''}} {{holeGroup.recordData?.state === 0 ? '张拉' : ''}} {{holeGroup.recordData?.state
                   === 2 ? '二次张拉' : ''}} {{holeGroup.recordData?.state === 3 ? '继续张拉' : ''}} {{holeGroup.recordData?.state
                   === 4 ? '继续张拉' : ''}}
@@ -133,7 +133,7 @@
             </ng-template>
           </div>
         </nz-affix>
-        <app-group-task-data [nowDevice]="dbData?.device" #holeGroup></app-group-task-data>
+        <app-group-task-data [hidden]="copyState" [nowDevice]="dbData?.device" #holeGroup></app-group-task-data>
       </div>
     </main>
   </div>

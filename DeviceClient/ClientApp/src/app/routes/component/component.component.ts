@@ -8,6 +8,7 @@ import { constructFormData, holeFormData } from './form.data';
 import { ModalFormDataComponent } from '../../shared/form/modal-form-data/modal-form-data.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AppService } from '../app.service';
+import { NzMessageService } from 'ng-zorro-antd';
 
 @Component({
   selector: 'app-component',
@@ -32,6 +33,7 @@ export class ComponentComponent implements OnInit {
     private _activatedRoute: ActivatedRoute,
     private _appService: AppService,
     private _router: Router,
+    private message: NzMessageService,
   ) { }
 
   ngOnInit() {
@@ -93,15 +95,21 @@ export class ComponentComponent implements OnInit {
   }
   onDelete(data) {
     console.log('删除');
-    this._servers.modal('删除项目', `确定要删除项目，项目下的所有内容都会被删除！`,
+    this._servers.modal('删除构建', `确定要删除构建，构建下的所有孔道都会被删除！`,
       () => {
         this._servers.delete(`/component/${this.LeftMenu.titleId}`).subscribe(r => {
+          console.log(r);
           if (r.state) {
-            console.log(r);
-            this.LeftMenu.titleId = null;
-            this.LeftMenu.getMenuData();
-            this.holeData = null;
-            this._servers.showMessage('success', '删除完成！');
+            if (!r.data) {
+              this.LeftMenu.titleId = null;
+              this.LeftMenu.getMenuData();
+              this.holeData = null;
+              this._servers.showMessage('success', '删除完成！');
+            } else {
+              this.message.warning(r.data);
+            }
+          } else {
+            this.message.warning('未知错误!');
           }
         });
       });

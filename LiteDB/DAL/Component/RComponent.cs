@@ -12,10 +12,12 @@ namespace KVM.LiteDB.DAL.Component
     {
         private LiteCollection<entity.Component> _col;
         private LiteCollection<entity.Hole> _holeCol;
+        private LiteCollection<entity.Task> _task;
         public RComponent(IOptions<DbString> dbString) : base(dbString)
         {
             _col = DbCollection<entity.Component>();
             _holeCol = DbCollection<entity.Hole>();
+            _task = DbCollection<entity.Task>();
         }
         /// <summary>
         /// 添加一条数据
@@ -85,9 +87,15 @@ namespace KVM.LiteDB.DAL.Component
         /// <returns></returns>
         public new string Delete(string id)
         {
-            _col.Delete(id);
-            _holeCol.Delete(o => o.ParentId == id);
-            return "";
+            var del = _col.FindById(id);
+            var task = _task.Find(t => t.ComponentId == id).Count();
+            if (task == 0)
+            {
+                _col.Delete(id);
+                _holeCol.Delete(o => o.ParentId == id);
+                return "";
+            }
+            return "正在使用构建，不允许删除！";
         }
     }
 }

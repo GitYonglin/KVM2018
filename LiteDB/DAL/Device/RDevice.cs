@@ -11,9 +11,11 @@ namespace KVM.LiteDB.DAL.Device
     public class RDevice : RBase<entity.Device>, IDevice
     {
         private LiteCollection<entity.Device> _col;
+        private LiteCollection<entity.Task> _task;
         public RDevice(IOptions<DbString> dbString) : base(dbString)
         {
             _col = DbCollection<entity.Device>();
+            _task = DbCollection<entity.Task>();
         }
         /// <summary>
         /// 添加一条数据
@@ -82,8 +84,14 @@ namespace KVM.LiteDB.DAL.Device
         /// <returns></returns>
         public new string Delete(string id)
         {
-            _col.Delete(id);
-            return "";
+            var del = _col.FindById(id);
+            var task = _task.Find(t => t.DeviceId == del.Id).Count();
+            if (task == 0)
+            {
+                _col.Delete(id);
+                return "";
+            }
+            return "设备已经使用，不允许删除！！";
         }
     }
 }

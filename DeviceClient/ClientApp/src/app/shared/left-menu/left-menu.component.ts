@@ -21,11 +21,10 @@ export class LeftMenuComponent implements OnInit {
   bridgeItem: any;
   menuDataState = false;
   operationState = false;
-  componentId = null;
-  deviceLinkZ = '主站';
-  deviceLinkC = '从站';
+  holeId = null;
   bridgeStr: string;
   groupBridgeStr = [];
+  taskUrl = false;
 
   @Input() disabledState = false;
   @Output() operation = new EventEmitter<string>();
@@ -41,8 +40,6 @@ export class LeftMenuComponent implements OnInit {
   ngOnInit() {
     this.menuDataState = false;
     this.getMenuData();
-    this.deviceLinkZ = this._ms.deviceLinkZ;
-    this.deviceLinkC = this._ms.deviceLinkC;
     if (localStorage.getItem('bridgeStr')) {
       this.groupBridgeStr = JSON.parse(localStorage.getItem('bridgeStr'));
     } else {
@@ -56,9 +53,11 @@ export class LeftMenuComponent implements OnInit {
       let url = this._router.url;
       if (url.indexOf(';') !== -1) {
         url = url.match(/(\S*);/)[1];
+        this.taskUrl = false;
       }
       if (url.indexOf('/task') !== -1) {
         url = `/task/menu/${JSON.parse(localStorage.getItem('project')).id}`;
+        this.taskUrl = true;
       }
       this._service.get(url).subscribe(p => {
         console.log('000000000', p);
@@ -116,7 +115,7 @@ export class LeftMenuComponent implements OnInit {
       if ('count' in this.menus[0]) {
         console.log('二级菜单', id);
         this.bridgeItem = item;
-        this.goUrl('/task', {id: JSON.parse(localStorage.getItem('project')).id, componentId: item.id});
+        this.goUrl('/task', {id: JSON.parse(localStorage.getItem('project')).id, holeId: item.id});
         this.getBridges(id, index);
       } else {
         this.goUrl(url, {id: item.id});
@@ -129,7 +128,7 @@ export class LeftMenuComponent implements OnInit {
   onBridge(id) {
     console.log(id);
     // this.bridgeId = id;
-    this.goUrl('/task', { id: JSON.parse(localStorage.getItem('project')).id, componentId: this.titleId, bridgeId: id});
+    this.goUrl('/task', { id: JSON.parse(localStorage.getItem('project')).id, holeId: this.titleId, bridgeId: id});
     // this.menuSwitch.emit(id);
   }
   onOperation(name) {

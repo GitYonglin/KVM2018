@@ -96,10 +96,10 @@ export class TaskComponent implements OnInit, AfterViewInit {
     this.formGroup.disable(); // 输入框禁止编辑状态
     this.newForm();
     this._activatedRoute.params.subscribe(params => {
-      console.log('路由7897987978978978978979878979', params, this.LeftMenu.menus, params.componentId);
-      if ('componentId' in params) {
-        if (this.LeftMenu.titleId !== params.componentId) {
-          this.LeftMenu.titleId = params.componentId;
+      console.log('路由7897987978978978978979878979', params, this.LeftMenu.menus, params.holeId);
+      if ('holeId' in params) {
+        if (this.LeftMenu.titleId !== params.holeId) {
+          this.LeftMenu.titleId = params.holeId;
         }
         if ('bridgeId' in params) {
           if (this.LeftMenu.bridgeId !== params.bridgeId && params.bridgeId !== 'null') {
@@ -136,28 +136,31 @@ export class TaskComponent implements OnInit, AfterViewInit {
    * @memberof ProjectComponent
    */
   menuSwitch() {
-    console.log('任务路由切换', `${baseUri}/${this.LeftMenu.bridgeId}`);
-    this._servers.get(`${baseUri}/${this.LeftMenu.bridgeId}`).subscribe(r => {
-      this.dbData = r;
-      console.log('切换梁数据', r, this.dbData.component);
-      const fData = {
-        componentName: this.dbData.component.sName,
-        holeName: this.dbData.hole.sName,
-        deviceName: this.dbData.device.sName,
-        steelStrandName: this.dbData.steelStrand.sName,
-      };
-      ['bridgeName', 'skNumber', 'skIntensity', 'designIntensity', 'tensionIntensity', 'concretingDate', 'friction'].map( key => {
-        fData[key] = this.dbData[key];
+    try {
+      console.log('任务路由切换', `${baseUri}/${this.LeftMenu.bridgeId}`);
+      this._servers.get(`${baseUri}/${this.LeftMenu.bridgeId}`).subscribe(r => {
+        this.dbData = r;
+        console.log('切换梁数据', r, this.dbData.component);
+        const fData = {
+          componentName: this.dbData.component.sName,
+          holeName: this.dbData.hole.sName,
+          deviceName: this.dbData.device.sName,
+          steelStrandName: this.dbData.steelStrand.sName || '未找到钢绞线',
+        };
+        ['bridgeName', 'skNumber', 'skIntensity', 'designIntensity', 'tensionIntensity', 'concretingDate', 'friction'].map(key => {
+          fData[key] = this.dbData[key];
+        });
+        setFromValue(fData, this.formGroup);
+        this.groupTaskElem.holeGroupId = null;
+        this.formGroup.disable();
+        this.LeftMenu.operationState = false;
+        this.copyState = false;
+        if (this.selectHoleGroup) {
+          this.groupTaskElem.onSelectHoleRadio(this.selectHoleGroup);
+        }
       });
-      setFromValue(fData, this.formGroup);
-      this.groupTaskElem.holeGroupId = null;
-      this.formGroup.disable();
-      this.LeftMenu.operationState = false;
-      this.copyState = false;
-      if (this.selectHoleGroup) {
-        this.groupTaskElem.onSelectHoleRadio(this.selectHoleGroup);
-      }
-    });
+    } catch (error) {
+    }
   }
   operation(name) {
     this[name]();
@@ -183,19 +186,29 @@ export class TaskComponent implements OnInit, AfterViewInit {
     console.log('修改');
     this._appService.editState = true;
   }
-  onDelete(data) {
-    console.log('删除');
-    this._servers.modal('删除项目', `确定要删除项目，项目下的所有内容都会被删除！`,
-      () => {
-        this._servers.delete(`${baseUri}/${this.LeftMenu.bridgeId}`).subscribe(r => {
-          if (r.state) {
-            console.log(r);
-            this.LeftMenu.bridgeId = null;
-            this.LeftMenu.getBridges(r.data.data.componentName, null);
-            this._servers.showMessage('success', '删除完成！');
-          }
-        });
-      });
+  onDelete() {
+    console.log('删除', this.LeftMenu.bridgeItem);
+    const bid = this.LeftMenu.bridgeId;
+    const state = this.LeftMenu.bridgeItem.state;
+    if (bid) {
+      if (state === 0) {
+        this._servers.modal('删除梁', `确定要删除梁！`,
+          () => {
+            this._servers.delete(`${baseUri}/${bid}`).subscribe(r => {
+              if (r.state) {
+                console.log(r);
+                this.LeftMenu.bridgeId = null;
+                this.LeftMenu.getBridges(r.data.data.componentName, null);
+                this._servers.showMessage('success', '删除完成！');
+              }
+            });
+          });
+      } else {
+        this.message.warning('该梁已经张拉不能 删除！');
+      }
+    } else {
+      this.message.warning('该功能没有实现！');
+    }
   }
   onCloud() {
     console.log('云');
@@ -215,7 +228,7 @@ export class TaskComponent implements OnInit, AfterViewInit {
     let url = baseUri;
     const postData: Task = this.dbData;
     postData.projectId = JSON.parse(localStorage.getItem('project')).id;
-    ['bridgeName', 'skNumber', 'skIntensity', 'designIntensity', 'tensionIntensity', 'concretingDate', 'friction'].map( key => {
+    ['bridgeName', 'skNumber', 'skIntensity', 'designIntensity', 'tensionIntensity', 'concretingDate', 'friction'].map(key => {
       let value = this.formGroup.controls[key].value;
       if (key === 'concretingDate') {
         value = value.toString().replace('GMT+0800 (中国标准时间)', '');
@@ -227,7 +240,7 @@ export class TaskComponent implements OnInit, AfterViewInit {
     // 复制梁
     if (this.copyState) {
       url = '/task/copy';
-      ['bridgeName', 'projectId', 'id', 'componentId'].map(key => {
+      ['bridgeName', 'projectId', 'id', 'holeId'].map(key => {
         pd[key] = postData[key];
       });
       message = { success: '复制任务', error: '任务名称' };
@@ -252,7 +265,7 @@ export class TaskComponent implements OnInit, AfterViewInit {
           this.formGroup.disable();
           this.LeftMenu.operationState = false;
           this.copyState = false;
-          this.LeftMenu.titleId = r.data.data.componentId;
+          this.LeftMenu.titleId = r.data.data.holeId;
           this.LeftMenu.getMenuData();
           this.LeftMenu.onBridge(r.data.data.id);
           setFromValue(r.data.data, this.formGroup);
@@ -273,9 +286,9 @@ export class TaskComponent implements OnInit, AfterViewInit {
     this.LeftMenu.operationState = false;
     this.copyState = false;
     this._appService.editState = false;
-    this._router.navigate(['/task', {
-      id: JSON.parse(localStorage.getItem('project')).id
-    }]);
+    // this._router.navigate(['/task', {
+    //   id: JSON.parse(localStorage.getItem('project')).id
+    // }]);
     this.LeftMenu.getMenuData();
   }
 
@@ -375,10 +388,10 @@ export class TaskComponent implements OnInit, AfterViewInit {
   onSelectHoleRadio() {
     if (this.dbData) {
       console.log('88888888888888888888888888888', this.selectHoleGroup, JSON.parse(localStorage.getItem('project')).id,
-         this.LeftMenu.titleId, this.LeftMenu.bridgeId);
+        this.LeftMenu.titleId, this.LeftMenu.bridgeId);
       this._router.navigate(['/task', {
         id: JSON.parse(localStorage.getItem('project')).id,
-        componentId: this.LeftMenu.titleId,
+        holeId: this.LeftMenu.titleId,
         bridgeId: this.LeftMenu.bridgeId,
         holeGroupId: this.selectHoleGroup
       }]);
@@ -424,7 +437,7 @@ export class TaskComponent implements OnInit, AfterViewInit {
         sumData: auto.sumData,
         KMData: auto.KMData,
       }));
-      this._router.navigate(['/tension'], { queryParams: { bridgeName: this.dbData.bridgeName} });
+      this._router.navigate(['/tension'], { queryParams: { bridgeName: this.dbData.bridgeName } });
       // this._router.navigate(['/login'], { queryParams: user });
       console.log('auto', auto);
     }
@@ -450,14 +463,14 @@ export class TaskComponent implements OnInit, AfterViewInit {
   onExportRecord(state = false) {
     this._servers.get(`/task/export/${this.dbData.id}`).subscribe((d) => {
       console.log(d);
-      const ed = exportData({holeData: d.holeGroups, record: d.records}, this.dbData.device);
+      const ed = exportData({ holeData: d.holeGroups, record: d.records }, this.dbData.device);
       console.log(ed);
       if (!state) {
         this.exportRecord.state = true;
       } else if (this.exportRecord.templatePath && this.exportRecord.savePath) {
         if (this._electronService.isElectronApp) {
           const data = {
-            project: {name: '测试'},
+            project: { name: '测试' },
             tension: ed
           };
           this._electronService.ipcRenderer.send('exportRecord',

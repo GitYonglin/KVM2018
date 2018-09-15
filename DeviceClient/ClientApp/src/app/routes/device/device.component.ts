@@ -7,6 +7,7 @@ import { newFormData, upDataFormData } from '../../utils/form/constructor-FormDa
 import { constructFormData, setFormValue } from './form.data';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AppService } from '../app.service';
+import { NzMessageService } from 'ng-zorro-antd';
 
 const baseUri = '/device';
 @Component({
@@ -32,6 +33,7 @@ export class DeviceComponent implements OnInit {
     private _activatedRoute: ActivatedRoute,
     public _appService: AppService,
     private _router: Router,
+    private message: NzMessageService,
   ) { }
 
   ngOnInit() {
@@ -92,14 +94,20 @@ export class DeviceComponent implements OnInit {
   }
   onDelete(data) {
     console.log('删除');
-    this._servers.modal('删除项目', `确定要删除项目，项目下的所有内容都会被删除！`,
+    this._servers.modal('删除设备', `确定要删除设备！`,
       () => {
         this._servers.delete(`${baseUri}/${this.LeftMenu.titleId}`).subscribe(r => {
+          console.log(r);
           if (r.state) {
-            console.log(r);
-            this.LeftMenu.titleId = null;
-            this.LeftMenu.getMenuData();
-            this._servers.showMessage('success', '删除完成！');
+            if (!r.data) {
+              this.LeftMenu.titleId = null;
+              this.LeftMenu.getMenuData();
+              this._servers.showMessage('success', '删除完成。');
+            } else {
+              this.message.warning(r.data);
+            }
+          } else {
+            this.message.warning('未知错误！！！');
           }
         });
       });

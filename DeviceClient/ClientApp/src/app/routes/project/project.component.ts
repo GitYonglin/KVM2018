@@ -103,14 +103,20 @@ export class ProjectComponent implements OnInit {
     this._servers.modal('删除项目', `确定要删除项目，项目下的所有内容都会被删除！`,
       () => {
         this._servers.delete(`/project/${this.LeftMenu.titleId}`).subscribe(r => {
+          console.log(r);
           if (r.state) {
-            console.log(r);
-            this.LeftMenu.titleId = null;
-            this.LeftMenu.getMenuData();
-            this.operatorData = null;
-            this.supervisionData = null;
-            this.steelStrandData = null;
-            this._servers.showMessage('success', '删除完成！');
+            if (!r.data) {
+              this.LeftMenu.titleId = null;
+              this.LeftMenu.getMenuData();
+              this.operatorData = null;
+              this.supervisionData = null;
+              this.steelStrandData = null;
+              this._servers.showMessage('success', '删除完成！');
+            } else {
+              this._servers.showMessage('warning', r.data);
+            }
+          } else {
+            this._servers.showMessage('warning', '未知错误！！！');
           }
         });
       });
@@ -256,11 +262,17 @@ export class ProjectComponent implements OnInit {
     this._servers.modal(deleteData[this.tabIndex].title, `确定要删除---${data.sName}`,
       () => {
         this._servers.delete(`${deleteData[this.tabIndex].url}/${data.id}`).subscribe(r => {
+          console.log(r);
           if (r.state) {
-            console.log(r);
-            this._servers.showMessage('success', r.data ? `${deleteData[this.tabIndex].title}完成！` : '删除错误！');
-            // this.operatorData = r.data;
-            deleteData[this.tabIndex].callback(r);
+            if (!r.data) {
+              this._servers.showMessage('success', `${deleteData[this.tabIndex].title}完成！`);
+              // this.operatorData = r.data;
+              deleteData[this.tabIndex].callback(r);
+            } else {
+              this._servers.showMessage('warning', r.data);
+            }
+          } else {
+            this._servers.showMessage('warning', '未知错误！！！');
           }
         });
       });

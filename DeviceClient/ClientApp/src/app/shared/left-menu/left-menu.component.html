@@ -11,8 +11,8 @@
     <button nz-button (click)="onOperation('onSave')">保存</button>
     <button nz-button (click)="onOperation('onCancel')">取消</button>
   </div>
-  <div *ngIf="bridges">
-    <nz-checkbox-wrapper  style=" width: 100%;display: flex;align-items: center;justify-content: space-around;height: 36px;" (nzOnChange)="selectGroup($event)">
+  <div *ngIf="taskUrl">
+    <nz-checkbox-wrapper class="task-select" (nzOnChange)="selectGroup($event)">
       <label nz-checkbox nzValue="1" style="color: #87d068;" [ngModel]="1 | CheckboxSelect: groupBridgeStr" >已</label>
       <label nz-checkbox nzValue="0" style="color: grey;" [ngModel]="0 | CheckboxSelect: groupBridgeStr">未</label>
       <label nz-checkbox nzValue="234" style="color: #108ee9;" [ngModel]="234 | CheckboxSelect: groupBridgeStr">在</label>

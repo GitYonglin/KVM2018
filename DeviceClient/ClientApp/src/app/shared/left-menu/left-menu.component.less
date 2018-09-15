@@ -37,7 +37,7 @@ nz-sider{
         justify-content: space-between;
         min-height: 55px;
         padding: 0 5px;
-        border-bottom: 1px solid #ccc;
+        border-bottom: 1px solid @border-color;
         &.active {
           background-color: @active-color;
         }
@@ -67,46 +67,15 @@ nz-sider{
           }
         }
       }
-      // .list {
-      //   // max-height: calc(100);
-      //   flex: 1;
-      //   overflow-y: auto;
-      //   .active {
-      //     background-color: @active-color;
-      //   }
-      //   li {
-      //     position: relative;
-      //     padding: 0 10px;
-      //     font-size: 18px;
-      //     height: 46px;
-      //     border-bottom: 1px solid #ccc;
-      //     line-height: 46px;
-      //   }
-      //   .state{
-      //     width: 5px;
-      //     height: 100%;
-      //     position: absolute;
-      //     background-color: grey;
-      //     top: 0;
-      //     left: 0;
-      //   }
-      //   .state0{
-      //     background-color: grey;
-      //   }
-      //   .state1{
-      //     background-color: #87d068;
-      //   }
-      //   .state2{
-      //     background-color: rgb(250, 173, 20);
-      //   }
-      //   .state3{
-      //     background-color: #f50;
-      //   }
-      //   .state4{
-      //     background-color: #108ee9;
-      //   }
-      // }
     }
+  }
+  .task-select {
+    width: 100%;
+    display:flex;
+    align-items: center;
+    justify-content: space-around;
+    height: 55px;
+    border-bottom: 1px solid @border-color;
   }
   .footer {
     height: 56px;
