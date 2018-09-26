@@ -15,19 +15,19 @@ namespace DeviceClient.Hubs
 
             if (data.Id == 1)
             {
-                Z.F05(data.Address, data.F05, null);
+                Z.F05(1, data.Address, data.F05, null);
             }
             else
             {
-                C.F05(data.Address, data.F05, null);
+                C.F05(1, data.Address, data.F05, null);
             }
         }
         public Boolean DF05(InPLC data)
         {
-            Z.F05(PLCSite.M(data.Address), data.F05, null);
+            Z.F05(1, PLCSite.M(data.Address), data.F05, null);
             if (C != null)
             {
-                C.F05(PLCSite.M(data.Address), data.F05, null);
+                C.F05(1, PLCSite.M(data.Address), data.F05, null);
             }
             return true;
         }
@@ -39,12 +39,12 @@ namespace DeviceClient.Hubs
             if (TensionMode)
             {
                 b = 2;
-                C.F05(PLCSite.M(data.Address), data.F05, (rdata) =>
+                C.F05(1, PLCSite.M(data.Address), data.F05, (rdata) =>
                 {
                     bb++;
                 });
                 }
-            Z.F05(PLCSite.M(data.Address), data.F05, (rdata) =>
+            Z.F05(1, PLCSite.M(data.Address), data.F05, (rdata) =>
             {
                 bb++;
             });

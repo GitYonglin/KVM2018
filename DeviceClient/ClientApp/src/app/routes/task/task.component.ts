@@ -145,7 +145,7 @@ export class TaskComponent implements OnInit, AfterViewInit {
           componentName: this.dbData.component.sName,
           holeName: this.dbData.hole.sName,
           deviceName: this.dbData.device.sName,
-          steelStrandName: this.dbData.steelStrand.sName || '未找到钢绞线',
+          steelStrandName: this.dbData.steelStrand.sName,
         };
         ['bridgeName', 'skNumber', 'skIntensity', 'designIntensity', 'tensionIntensity', 'concretingDate', 'friction'].map(key => {
           fData[key] = this.dbData[key];

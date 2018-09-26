@@ -31,6 +31,7 @@
     <ProjectReference Include="..\KVM.entity\KVM.entity.csproj" />
     <ProjectReference Include="..\LiteDB\KVM.LiteDB.csproj" />
     <ProjectReference Include="..\Modbus.ASCII\Modbus.ASCII.csproj" />
+    <ProjectReference Include="..\MODBUS\MODBUS.csproj" />
   </ItemGroup>
 
   <ItemGroup>

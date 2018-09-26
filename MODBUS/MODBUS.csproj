@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="ASCII.Receive.cs" />
+    <Compile Remove="ASCII.Send.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="ASCII\ASCIIReceive.cs" />
+    <None Include="ASCII\ASCIISend.cs" />
+  </ItemGroup>
+
+</Project>

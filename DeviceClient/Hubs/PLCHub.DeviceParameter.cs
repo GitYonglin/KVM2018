@@ -34,12 +34,12 @@ namespace DeviceClient.Hubs
                 if (ConnentState)
                 {
                     b = 2;
-                    C.F16(PLCSite.D(data.Address), data.F16, (r) =>
+                    C.F16(1, PLCSite.D(data.Address), data.F16, (r) =>
                     {
                         bb++;
                     });
                 }
-                Z.F16(PLCSite.D(data.Address), data.F16, (r) =>
+                Z.F16(1, PLCSite.D(data.Address), data.F16, (r) =>
                 {
                     bb++;
                 });

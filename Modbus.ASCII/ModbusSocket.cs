@@ -133,21 +133,20 @@ namespace Modbus.ASCII
             });
         }
         /// <summary>
-        /// 保持通信请求
+        /// 获取单个线圈
         /// </summary>
-        private void Finit()
+        /// <param name="ipAddress">设备地址</param>
+        /// <param name="address">装置地址</param>
+        /// <param name="data">设置数据</param>
+        /// <param name="callback">回调</param>
+        public void F01(int ipAddress, int address, int data, ReturnReceive callback)
         {
-            ModbusLinkSuccess?.Invoke(this.Name, $"{Name}链接中");
-            F05(PLCSite.M(0), true, null);
-        }
-        public void F01(int address, int data, ReturnReceive callback)
-        {
-            CommandData command = CommandCode.F01(address, data);
+            CommandData command = CommandCode.F01(ipAddress, address, data);
             AddListSand(new ListSendData { CommandData = command, RR = callback });
         }
-        public void F03(int address, int data, ReturnReceive callback)
+        public void F03(int ipAddress, int address, int data, ReturnReceive callback)
         {
-            CommandData command = CommandCode.F03(address, data);
+            CommandData command = CommandCode.F03(ipAddress, address, data);
             AddListSand(new ListSendData { CommandData = command, RR = callback });
         }
         /// <summary>
@@ -156,21 +155,19 @@ namespace Modbus.ASCII
         /// <param name="address">设置线圈地址</param>
         /// <param name="data">设置线圈状态 true通，false断</param>
         /// <returns>返回 IsSuccess：请求结果True=成功，Message：信息，Data.Data：返回数据</returns>
-        public void F05(int address, Boolean data, ReturnReceive callback)
+        public void F05(int ipAddress, int address, Boolean data, ReturnReceive callback)
         {
-            CommandData command = CommandCode.F05(address, data);
-            AddListSand(new ListSendData { CommandData = command, RR = callback });
-            //Send(command, callback);
-            //return receive == null ? false : ReceiveData.F05(receive);
-        }
-        public void F06(int address, int data, ReturnReceive callback)
-        {
-            CommandData command = CommandCode.F06(address, data);
+            CommandData command = CommandCode.F05(ipAddress, address, data);
             AddListSand(new ListSendData { CommandData = command, RR = callback });
         }
-        public void F16(int address, int[] data, ReturnReceive callback)
+        public void F06(int ipAddress, int address, int data, ReturnReceive callback)
         {
-            CommandData command = CommandCode.F16(address, data);
+            CommandData command = CommandCode.F06(ipAddress, address, data);
+            AddListSand(new ListSendData { CommandData = command, RR = callback });
+        }
+        public void F16(int ipAddress, int address, int[] data, ReturnReceive callback)
+        {
+            CommandData command = CommandCode.F16(ipAddress, address, data);
             AddListSand(new ListSendData { CommandData = command, RR = callback });
         }
         /// <summary>
@@ -222,10 +219,12 @@ namespace Modbus.ASCII
             if (!IsSuccess)
             {
                 IsSuccess = true;
-                Client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                Client.ReceiveBufferSize = 1024;
-                Client.ReceiveTimeout = 3000;
-                Client.SendTimeout = 3000;
+                Client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
+                {
+                    ReceiveBufferSize = 1024,
+                    ReceiveTimeout = 3000,
+                    SendTimeout = 3000
+                };
                 Client.BeginConnect(Ip, Port, AsyncCallback, null);
                 //Client.BeginConnect(Ip, Port, AsyncCallback, null);
             }

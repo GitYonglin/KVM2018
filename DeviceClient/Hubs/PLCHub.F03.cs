@@ -15,14 +15,14 @@ namespace DeviceClient.Hubs
 
             if (data.Id == 1)
             {
-                Z.F03(PLCSite.D(data.Address), data.F03, (rdata) =>
+                Z.F03(1, PLCSite.D(data.Address), data.F03, (rdata) =>
                 {
                     _clients.All.SendAsync("F03Return", new { name = Z.Name, data = ReceiveData.F03(rdata, data.F03) });
                 });
             }
             else
             {
-                C.F03(PLCSite.D(data.Address), data.F03, (rdata) =>
+                C.F03(1, PLCSite.D(data.Address), data.F03, (rdata) =>
                 {
                     _clients.All.SendAsync("F03Return", new { name = C.Name, data = ReceiveData.F03(rdata, data.F03) });
                 });
@@ -38,13 +38,13 @@ namespace DeviceClient.Hubs
             if (ConnentState)
             {
                 b = 2;
-                C.F03(PLCSite.D(data.Address), data.F03, (rdata) =>
+                C.F03(1, PLCSite.D(data.Address), data.F03, (rdata) =>
                 {
                     c = ReceiveData.F03(rdata, data.F03);
                     bb++;
                 });
             }
-            Z.F03(PLCSite.D(data.Address), data.F03, (rdata) =>
+            Z.F03(1, PLCSite.D(data.Address), data.F03, (rdata) =>
             {
                 z = ReceiveData.F03(rdata, data.F03);
                 bb++;

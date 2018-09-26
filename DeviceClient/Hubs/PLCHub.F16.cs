@@ -14,11 +14,11 @@ namespace DeviceClient.Hubs
         {
             if (data.Id == 1)
             {
-                Z.F16(PLCSite.D(data.Address), data.F16, null);
+                Z.F16(1, PLCSite.D(data.Address), data.F16, null);
             }
             else
             {
-                C.F16(PLCSite.D(data.Address), data.F16, null);
+                C.F16(1, PLCSite.D(data.Address), data.F16, null);
             }
             return true;
         }
@@ -26,9 +26,9 @@ namespace DeviceClient.Hubs
         {
             if (data.C && C != null)
             {
-                C.F16(PLCSite.D(data.Address), data.F16, null);
+                C.F16(1, PLCSite.D(data.Address), data.F16, null);
             }
-            Z.F16(PLCSite.D(data.Address), data.F16, null);
+            Z.F16(1, PLCSite.D(data.Address), data.F16, null);
         }
         public async Task<bool> F16Async(InPLC data)
         {
@@ -39,13 +39,13 @@ namespace DeviceClient.Hubs
             {
                 if (data.Id == 1)
                 {
-                    Z.F16(PLCSite.D(data.Address), data.F16, (r) => {
+                    Z.F16(1, PLCSite.D(data.Address), data.F16, (r) => {
                         b = true;
                     });
                 }
                 else
                 {
-                    C.F16(PLCSite.D(data.Address), data.F16, (r) => {
+                    C.F16(1, PLCSite.D(data.Address), data.F16, (r) => {
                         b = true;
                     });
                 }
@@ -68,11 +68,11 @@ namespace DeviceClient.Hubs
                 if (TensionMode)
                 {
                     b = 2;
-                    C.F16(PLCSite.D(data.Address), data.F16, (r) => {
+                    C.F16(1, PLCSite.D(data.Address), data.F16, (r) => {
                         bb++;
                     });
                 }
-                Z.F16(PLCSite.D(data.Address), data.F16, (r) => {
+                Z.F16(1, PLCSite.D(data.Address), data.F16, (r) => {
                     bb++;
                 });
                 while (bb != b || !cancelTokenSource.IsCancellationRequested)

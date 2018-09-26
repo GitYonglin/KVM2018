@@ -173,6 +173,7 @@ export class MSService {
   public creation() {
     try {
       const connection = new HubConnectionBuilder().withUrl('/PLC').build();
+      // const connection = new HubConnectionBuilder().withUrl('/DVP').build();
       connection.start().then(r => {
         // this.setDevice();
         console.log('连接', new Date().getTime());
@@ -186,9 +187,9 @@ export class MSService {
         console.log('MS请求');
         // 监听连接状态
         connection.on('Send', data => {
-          // console.log(data);
+          console.log(data);
           const modes = data.id === '主站' ? ['a1', 'b1'] : ['a2', 'b2'];
-          modes.map(name => {
+          this.deviceItemNames.map(name => {
             if (this.Dev[name]) {
               this.Dev[name].connectError(data.message);
             }
@@ -197,7 +198,7 @@ export class MSService {
         });
         // 监听获取实时数据
         connection.on('LiveData', rData => {
-          const modes = rData.name === '主站' ? ['a1', 'b1'] : ['a2', 'b2'];
+          const modes = rData.id === 1 ? ['a1', 'b1'] : ['a2', 'b2'];
           const data = rData.data;
           modes.map(name => {
             if (this.Dev[name]) {

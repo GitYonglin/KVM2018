@@ -108,8 +108,8 @@ namespace DeviceClient.Hubs
             {
                 while (device != null && device.Client != null && device.Client.Connected && device.IsSuccess)
                 {
-                    device.F05(PLCSite.M(0), true, null);
-                    device.F03(PLCSite.D(0), 10, (data) => {
+                    device.F05(1, PLCSite.M(0), true, null);
+                    device.F03(1, PLCSite.D(0), 10, (data) => {
                         var rdata = ReceiveData.F03(data, 10);
                         _clients.All.SendAsync("LiveData", new { name = device.Name, data = rdata });
                     });
@@ -126,14 +126,14 @@ namespace DeviceClient.Hubs
             {
                 if (data.Id == 1)
                 {
-                    Z.F06(PLCSite.D(data.Address), data.F06, (r) =>
+                    Z.F06(1, PLCSite.D(data.Address), data.F06, (r) =>
                     {
                         b = true;
                     });
                 }
                 else
                 {
-                    C.F06(PLCSite.D(data.Address), data.F06, (r) =>
+                    C.F06(1, PLCSite.D(data.Address), data.F06, (r) =>
                     {
                         b = true;
                     });
@@ -151,11 +151,11 @@ namespace DeviceClient.Hubs
      
                 if (data.Id == 1)
                 {
-                    Z.F06(PLCSite.D(data.Address), data.F06, null);
+                    Z.F06(1, PLCSite.D(data.Address), data.F06, null);
                 }
                 else
                 {
-                    C.F06(PLCSite.D(data.Address), data.F06, null);
+                    C.F06(1, PLCSite.D(data.Address), data.F06, null);
                 }
         }
 
@@ -163,14 +163,14 @@ namespace DeviceClient.Hubs
         {
             if (data.Id == 1)
             {
-                Z.F01(data.Address, data.F01, (rData) =>
+                Z.F01(1, data.Address, data.F01, (rData) =>
                 {
                     _clients.All.SendAsync("noe", rData);
                 });
             }
             else
             {
-                C.F01(data.Address, data.F01, (rData) =>
+                C.F01(1, data.Address, data.F01, (rData) =>
                 {
                     _clients.All.SendAsync("noe", rData);
                 });
@@ -208,11 +208,11 @@ namespace DeviceClient.Hubs
             if (TensionMode)
             {
                 b = 2;
-                C.F16(PLCSite.D(t.Address), new int[] { t.A2, t.B2 }, (r) => {
+                C.F16(1, PLCSite.D(t.Address), new int[] { t.A2, t.B2 }, (r) => {
                     bb++;
                 });
             }
-            Z.F16(PLCSite.D(t.Address), new int[] { t.A1, t.B1 }, (r) => {
+            Z.F16(1, PLCSite.D(t.Address), new int[] { t.A1, t.B1 }, (r) => {
                 bb++;
             });
             await Task.Run(() =>
@@ -251,9 +251,9 @@ namespace DeviceClient.Hubs
         {
             if (TensionMode)
             {
-                C.F16(PLCSite.D(t.Address), new int[] { t.A2, t.B2 }, null);
+                C.F16(1, PLCSite.D(t.Address), new int[] { t.A2, t.B2 }, null);
             }
-            Z.F16(PLCSite.D(t.Address), new int[] { t.A1, t.B1 }, null);
+            Z.F16(1, PLCSite.D(t.Address), new int[] { t.A1, t.B1 }, null);
             return t;
         }
 
@@ -265,12 +265,12 @@ namespace DeviceClient.Hubs
         {
             if (t.Mode == 0 || t.Mode == 2)
             {
-                Z.F16(PLCSite.D(414), new int[] { t.A1, t.B1 }, null);
+                Z.F16(1, PLCSite.D(414), new int[] { t.A1, t.B1 }, null);
             }
             else
             {
-                Z.F16(PLCSite.D(414), new int[] { t.A1, t.B1 }, null);
-                C.F16(PLCSite.D(414), new int[] { t.A2, t.B2 }, null);
+                Z.F16(1, PLCSite.D(414), new int[] { t.A1, t.B1 }, null);
+                C.F16(1, PLCSite.D(414), new int[] { t.A2, t.B2 }, null);
             }
             return true;
         }
@@ -282,11 +282,11 @@ namespace DeviceClient.Hubs
         {
             if (data.Id == 1)
             {
-                Z.F06(PLCSite.D(data.Address), data.F06, null);
+                Z.F06(1, PLCSite.D(data.Address), data.F06, null);
             }
             else
             {
-                C.F06(PLCSite.D(data.Address), data.F06, null);
+                C.F06(1, PLCSite.D(data.Address), data.F06, null);
             }
             return data;
         }
@@ -296,15 +296,15 @@ namespace DeviceClient.Hubs
         /// <param name="data"></param>
         public void GoBack(InPLC data)
         {
-            Z.F16(PLCSite.D(406), new int[] { data.F06 }, null);
+            Z.F16(1, PLCSite.D(406), new int[] { data.F06 }, null);
             if (TensionMode)
             {
-                C.F16(PLCSite.D(406), new int[] { data.F06 }, null);
+                C.F16(1, PLCSite.D(406), new int[] { data.F06 }, null);
             }
-            Z.F05(PLCSite.M(560), true, null);
+            Z.F05(1, PLCSite.M(560), true, null);
             if (TensionMode)
             {
-                C.F05(PLCSite.M(560), true, null);
+                C.F05(1, PLCSite.M(560), true, null);
             }
         }
         /// <summary>
@@ -313,10 +313,10 @@ namespace DeviceClient.Hubs
         /// <returns></returns>
         public Boolean Pause()
         {
-            Z.F05(PLCSite.M(550), true, null);
+            Z.F05(1, PLCSite.M(550), true, null);
             if (TensionMode)
             {
-                C.F05(PLCSite.M(550), true, null);
+                C.F05(1, PLCSite.M(550), true, null);
             }
             return true;
         }
@@ -355,4 +355,5 @@ namespace DeviceClient.Hubs
             }
         }
     }
+
 }

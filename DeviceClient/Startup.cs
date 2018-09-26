@@ -78,7 +78,8 @@ namespace DeviceClient
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
 
-            app.UseSignalR(s => s.MapHub<PLCHub>("/PLC"));
+            //app.UseSignalR(s => s.MapHub<DVP>("/DVP"));
+            app.UseSignalR(s => s.MapHub<PLCHub>("/DVP"));
 
             app.UseMvc(routes =>
             {

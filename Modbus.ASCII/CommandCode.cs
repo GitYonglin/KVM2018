@@ -6,26 +6,26 @@ namespace Modbus.ASCII
 {
     public static class CommandCode
     {
-        public static CommandData F01(int address, int data)
+        public static CommandData F01(int ipAddress, int address, int data)
         {
-            return LRCOnly(new List<int> { 1, 1, address, data });
+            return LRCOnly(new List<int> { ipAddress, 1, address, data });
         }
-        public static CommandData F03(int address, int data)
+        public static CommandData F03(int ipAddress, int address, int data)
         {
-            return LRCOnly(new List<int> { 1, 3, address, data });
+            return LRCOnly(new List<int> { ipAddress, 3, address, data });
         }
-        public static CommandData F05(int address, Boolean data)
+        public static CommandData F05(int ipAddress, int address, Boolean data)
         {
             int d = data ? 0xFF00 : 0;
-            return LRCOnly(new List<int> { 1, 5, address, d });
+            return LRCOnly(new List<int> { ipAddress, 5, address, d });
         }
-        public static CommandData F06(int address, int data)
+        public static CommandData F06(int ipAddress, int address, int data)
         {
-            return LRCOnly(new List<int> { 1, 6, address, data });
+            return LRCOnly(new List<int> { ipAddress, 6, address, data });
         }
-        public static CommandData F16(int address, int[] data)
+        public static CommandData F16(int ipAddress, int address, int[] data)
         {
-            var list = new List<int> { 1, 16, address, data.Length, data.Length * 2 };
+            var list = new List<int> { ipAddress, 16, address, data.Length, data.Length * 2 };
             list.AddRange(data);
             return LRCOnly(list);
         }
